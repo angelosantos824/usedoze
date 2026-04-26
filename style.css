@@ -38,8 +38,9 @@ body {
 }
 
 .logo img {
-    height: 55px; /* Altura aumentada para dar presença */
+    height: 45px; /* Altura aumentada para dar presença */
     width: auto;
+    margin-right: 5px;
     border-radius: 15px;
     transition: var(--transition);
     /* Remove qualquer fundo ou borda residual da imagem */
@@ -68,7 +69,7 @@ nav {
 }
 
 .logo {
-    font-size: 1.5rem;
+    font-size: 2rem;
     font-weight: 900;
     letter-spacing: -1px;
     text-transform: uppercase;

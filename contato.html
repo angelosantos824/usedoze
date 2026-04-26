@@ -47,29 +47,32 @@
                 </div>
 
                 <div class="contact-form-container reveal">
-                    <form id="contact-form">
+                    <form action="https://formspree.io/f/mqakvjge" method="POST" id="contact-form">
                         <div class="input-group">
                             <label>Nome</label>
-                            <input type="text" placeholder="Como te chamamos?" required>
+                            <input type="text" name="name" placeholder="Como te chamamos?" required>
                         </div>
                         <div class="input-group">
                             <label>E-mail</label>
-                            <input type="email" placeholder="seu@email.com" required>
+                            <input type="email" name="email" placeholder="seu@email.com" required>
                         </div>
                         <div class="input-group">
                             <label>Assunto</label>
-                            <select>
-                                <option>Landing Page / Site</option>
-                                <option>Sistema Sob Medida</option>
-                                <option>UI/UX Design</option>
-                                <option>Outro</option>
+                            <select name="subject">
+                                <option value="Landing Page">Landing Page / Site</option>
+                                <option value="Sistema">Sistema Sob Medida</option>
+                                <option value="UI/UX">UI/UX Design</option>
+                                <option value="Outro">Outro</option>
                             </select>
                         </div>
-                        <div class="input-group">
-                            <label>Mensagem</label>
-                            <textarea rows="5" placeholder="Descreva seu projeto brevemente..."></textarea>
-                        </div>
-                        <button type="submit" class="btn-primary">Enviar Proposta</button>
+                <div class="input-group">
+                    <label>Mensagem</label>
+                    <textarea name="message" rows="5" placeholder="Descreva seu projeto brevemente..." required></textarea>
+                </div>
+    
+                <input type="text" name="_gotcha" style="display:none">
+
+                    <button type="submit" class="btn-primary">Enviar Proposta</button>
                     </form>
                 </div>
             </div>

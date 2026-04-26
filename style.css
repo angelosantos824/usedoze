@@ -30,6 +30,28 @@ body {
 }
 
 /* Header & Logo */
+/* Ajuste da Logo no Header */
+.logo a {
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+}
+
+.logo img {
+    height: 55px; /* Altura aumentada para dar presença */
+    width: auto;
+    border-radius: 15px;
+    transition: var(--transition);
+    /* Remove qualquer fundo ou borda residual da imagem */
+    background: transparent; 
+    filter: drop-shadow(0 0 8px rgba(0, 122, 255, 0.4)); /* Brilho sutil azul */
+}
+
+.logo img:hover {
+    transform: scale(1.05);
+    filter: drop-shadow(0 0 12px rgba(0, 122, 255, 0.7));
+}
+
 header {
     padding: 1.5rem 0;
     position: sticky;
@@ -78,6 +100,43 @@ nav {
     color: var(--text-main);
 }
 
+/* Efeito de Fundo Tech - Sem exagero */
+.tech-bg {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    /* Padrão de pontos (grid) muito sutil */
+    background-image: radial-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+    background-size: 30px 30px; 
+    z-index: -1;
+}
+
+/* Adicionando dois "Glows" de luz nos cantos para profundidade */
+.tech-bg::before {
+    content: '';
+    position: absolute;
+    top: -10%;
+    right: -10%;
+    width: 500px;
+    height: 500px;
+    background: radial-gradient(circle, rgba(0, 122, 255, 0.15), transparent 70%);
+    border-radius: 50%;
+}
+
+.tech-bg::after {
+    content: '';
+    position: absolute;
+    bottom: -10%;
+    left: -10%;
+    width: 600px;
+    height: 600px;
+    background: radial-gradient(circle, rgba(0, 255, 204, 0.1), transparent 70%);
+    border-radius: 50%;
+}
+
+
 /* Botão de Destaque */
 .btn-nav {
     background: var(--primary-color);
@@ -89,10 +148,11 @@ nav {
 
 /* Hero Section */
 .hero {
-    padding: 100px 0;
-    text-align: center;
+    padding: 160px 0 120px; /* Mais espaço no topo para destacar o fundo tech */
+    min-height: 80vh; /* Faz a seção ocupar quase a tela toda */
+    display: flex;
+    align-items: center;
 }
-
 .tagline {
     color: var(--primary-color);
     font-size: 0.8rem;
@@ -103,23 +163,38 @@ nav {
     margin-bottom: 1rem;
 }
 
+.hero p {
+    font-size: 1.25rem;
+    color: #cecece; /* Um cinza mais claro que o text-dim anterior */
+    max-width: 650px;
+    margin: 0 auto 3rem;
+    font-weight: 400;
+    letter-spacing: -0.2px;
+}/* Estilização da Hero */
+.hero-badge {
+    display: inline-block;
+    padding: 6px 16px;
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 100px;
+    font-size: 0.75rem;
+    color: var(--primary-color);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 2rem;
+}
+
 .hero h1 {
-    font-size: 4rem;
-    line-height: 1.1;
-    margin-bottom: 1.5rem;
-    font-weight: 900;
+    font-size: 4.5rem;
+    letter-spacing: -2px;
 }
 
 .hero h1 span {
-    display: block;
-    color: var(--text-dim);
-}
-
-.hero p {
-    font-size: 1.2rem;
-    color: var(--text-dim);
-    max-width: 600px;
-    margin: 0 auto 2.5rem;
+    color: #fff;
+    text-shadow: 0 0 20px rgba(0, 122, 255, 0.6), 
+                 0 0 40px rgba(0, 122, 255, 0.2);
+    display: inline-block; /* Ajuda na renderização do efeito */
 }
 
 /* Botões Principais */
@@ -139,7 +214,7 @@ nav {
     transition: var(--transition);
 }
 
-.btn-secondary {
+/* .btn-secondary {
     padding: 1rem 2rem;
     border: 1px solid #333;
     color: var(--text-main);
@@ -147,12 +222,24 @@ nav {
     border-radius: 5px;
     font-weight: 700;
     transition: var(--transition);
-}
+} */
 
 .btn-primary:hover {
     transform: translateY(-3px);
     box-shadow: 0 10px 20px rgba(255,255,255,0.1);
 }
+/* Botão Secundário com efeito de vidro */
+.btn-secondary {
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(5px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.btn-secondary:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: var(--primary-color);
+}
+
 
 /* Responsividade */
 @media (max-width: 768px) {
@@ -347,15 +434,26 @@ footer {
     padding-left: 5px;
 }
 
-/* Estado inicial dos elementos para o efeito Reveal */
+/* Estado inicial: Invisível e um pouco abaixo */
 .reveal {
     opacity: 0;
     transform: translateY(30px);
-    transition: all 0.8s ease-out;
+    transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    visibility: hidden; /* Garante que não ocupe espaço invisível */
 }
 
-/* Estado quando o elemento entra no campo de visão */
+/* Estado ativo: Visível e na posição correta */
 .reveal.active {
     opacity: 1;
     transform: translateY(0);
+    visibility: visible;
+}
+
+/* Segurança: Se o JS demorar muito, os elementos aparecem sozinhos 
+   após 2 segundos para o site não ficar vazio */
+@keyframes fallbackShow {
+    to { opacity: 1; transform: translateY(0); visibility: visible; }
+}
+.no-js .reveal {
+    animation: fallbackShow 0.5s forwards;
 }

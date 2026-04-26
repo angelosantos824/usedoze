@@ -23,7 +23,7 @@ reveal();
 const form = document.getElementById("contact-form");
 const status = document.getElementById("form-status");
 
-// if (form) {
+if (form) {
     form.addEventListener("submit", async function(event) {
         event.preventDefault(); // Impede o redirecionamento
         const data = new FormData(event.target);

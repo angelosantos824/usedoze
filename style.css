@@ -1,0 +1,361 @@
+/* Configurações Globais */
+:root {
+    --bg-color: #0a0a0a;       /* Fundo quase preto */
+    --card-bg: #161616;        /* Fundo dos cards */
+    --primary-color: #007aff;  /* Azul Elétrico (Apple style) */
+    --text-main: #ffffff;
+    --text-dim: #a0a0a0;       /* Texto secundário */
+    --accent: #121212;         /* Referência ao nome DOZE */
+    --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Inter', sans-serif;
+    scroll-behavior: smooth;
+}
+
+body {
+    background-color: var(--bg-color);
+    color: var(--text-main);
+    line-height: 1.6;
+}
+
+.container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 2rem;
+}
+
+/* Header & Logo */
+header {
+    padding: 1.5rem 0;
+    position: sticky;
+    top: 0;
+    background: rgba(10, 10, 10, 0.8);
+    backdrop-filter: blur(10px);
+    z-index: 1000;
+}
+
+nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.logo {
+    font-size: 1.5rem;
+    font-weight: 900;
+    letter-spacing: -1px;
+    text-transform: uppercase;
+}
+
+.logo span {
+    color: var(--primary-color);
+    background: linear-gradient(90deg, #007aff, #00ffcc);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.nav-links {
+    display: flex;
+    list-style: none;
+    gap: 2rem;
+    align-items: center;
+}
+
+.nav-links a {
+    text-decoration: none;
+    color: var(--text-dim);
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: var(--transition);
+}
+
+.nav-links a:hover {
+    color: var(--text-main);
+}
+
+/* Botão de Destaque */
+.btn-nav {
+    background: var(--primary-color);
+    color: white !important;
+    padding: 0.6rem 1.2rem;
+    border-radius: 8px;
+    font-weight: 600 !important;
+}
+
+/* Hero Section */
+.hero {
+    padding: 100px 0;
+    text-align: center;
+}
+
+.tagline {
+    color: var(--primary-color);
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    display: block;
+    margin-bottom: 1rem;
+}
+
+.hero h1 {
+    font-size: 4rem;
+    line-height: 1.1;
+    margin-bottom: 1.5rem;
+    font-weight: 900;
+}
+
+.hero h1 span {
+    display: block;
+    color: var(--text-dim);
+}
+
+.hero p {
+    font-size: 1.2rem;
+    color: var(--text-dim);
+    max-width: 600px;
+    margin: 0 auto 2.5rem;
+}
+
+/* Botões Principais */
+.cta-group {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+}
+
+.btn-primary {
+    padding: 1rem 2rem;
+    background: var(--text-main);
+    color: var(--bg-color);
+    text-decoration: none;
+    border-radius: 5px;
+    font-weight: 700;
+    transition: var(--transition);
+}
+
+.btn-secondary {
+    padding: 1rem 2rem;
+    border: 1px solid #333;
+    color: var(--text-main);
+    text-decoration: none;
+    border-radius: 5px;
+    font-weight: 700;
+    transition: var(--transition);
+}
+
+.btn-primary:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 20px rgba(255,255,255,0.1);
+}
+
+/* Responsividade */
+@media (max-width: 768px) {
+    .hero h1 { font-size: 2.5rem; }
+    .nav-links { display: none; } /* Ideal criar menu hambúrguer depois */
+}
+
+/* ====================================
+   EFEITO REVEAL (ANIMAÇÃO SCROLL)
+==================================== */
+.reveal {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: all 0.8s ease-out;
+}
+
+.reveal.active {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+/* ====================================
+   FOOTER (MINIMALISTA)
+==================================== */
+footer {
+    background-color: var(--bg-color);
+    padding: 3rem 0;
+    margin-top: 5rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.05); 
+}
+
+.footer-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 2rem;
+}
+
+.footer-content p {
+    color: var(--text-main);
+    font-size: 0.85rem;
+    letter-spacing: 0.5px;
+}
+
+.social-links {
+    display: flex;
+    gap: 1.5rem;
+}
+
+.social-links a {
+    color: var(--text-dim);
+    text-decoration: none;
+    font-size: 0.9rem;
+    font-weight: 500;
+    transition: var(--transition);
+    position: relative;
+}
+
+.social-links a:hover {
+    color: var(--primary-color);
+    text-shadow: 0 0 10px rgba(0, 122, 255, 0.8);
+}
+
+.social-links a::after {
+    content: '';
+    position: absolute;
+    width: 0;
+    height: 1px;
+    bottom: -4px;
+    left: 0;
+    background-color: var(--primary-color);
+    transition: var(--transition);
+}
+
+.social-links a:hover::after {
+    width: 100%;
+}
+
+@media (max-width: 768px) {
+    .hero h1 { font-size: 2.5rem; }
+    .nav-links { display: none; }
+    .footer-content { flex-direction: column; text-align: center; }
+}
+
+/* ====================================
+   PORTFÓLIO & CARDS (CORRIGIDO)
+==================================== */
+.projects-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+    padding: 2rem 0;
+}
+
+.project-card {
+    position: relative;
+    border-radius: 10px; /* Bordas um pouco mais arredondadas para um ar moderno */
+    overflow: hidden;
+    min-height: 400px; 
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-image: var(--card-img);
+    background-size: cover;
+    background-position: center;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    transition: var(--transition);
+}
+
+/* CAMADA DE SOBREPOSIÇÃO (OVERLAY) 
+   Esta camada fica entre a imagem e o texto. 
+   Ela torna a imagem translúcida e melhora a leitura.
+*/
+.card-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(10, 10, 10, 0.75); 
+    backdrop-filter: blur(4px); /* Aumentei o blur para destacar o texto central */
+    z-index: 1;
+    transition: var(--transition);
+    
+    /* fundo preto com 80% de transparência */
+    background-color: rgba(10, 10, 10, 0.8); 
+    
+    z-index: 1; /* Fica acima da imagem de fundo */
+    transition: var(--transition);
+}
+
+/* No hover, escurecemos um pouco menos para a imagem aparecer mais */
+.project-card:hover .card-overlay {
+    background: rgba(10, 10, 10, 0.6);
+    backdrop-filter: blur(2px); /* Limpa o desfoque no hover */
+}
+/* CONTEÚDO DO TEXTO */
+.project-info {
+    position: relative;
+    z-index: 2;
+    padding: 2.5rem; /* Mais respiro nas bordas */
+    width: 100%;
+    /* ALINHAMENTO DO TEXTO */
+    text-align: center; 
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* Garante que tags e botões também centralizem */
+}
+
+.project-info h3 {
+    font-size: 2rem;
+    font-weight: 900;
+    margin-bottom: 0.5rem;
+    color: var(--text-main);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.project-info p {
+    color: var(--text-dim);
+    font-size: 1rem;
+    margin-bottom: 1.5rem;
+    max-width: 90%; /* Evita que o texto encoste na borda direita */
+}
+
+/* Tags de Tecnologias */
+.tech-tags {
+    display: flex;
+    gap: 0.8rem;
+    margin-bottom: 1.5rem;
+}
+
+/* Ajuste das Tags para não sumirem no fundo */
+.tech-tags span {
+    background: rgba(0, 122, 255, 0.15); /* Fundo azul translúcido */
+    border: 1px solid rgba(0, 122, 255, 0.3);
+    color: #fff;
+    font-size: 0.7rem;
+    padding: 5px 12px;
+}
+.view-link {
+    text-decoration: none;
+    color: var(--text-main);
+    font-weight: 600;
+    font-size: 0.9rem;
+    transition: var(--transition);
+}
+
+.view-link:hover {
+    color: var(--primary-color);
+    padding-left: 5px;
+}
+
+/* Estado inicial dos elementos para o efeito Reveal */
+.reveal {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: all 0.8s ease-out;
+}
+
+/* Estado quando o elemento entra no campo de visão */
+.reveal.active {
+    opacity: 1;
+    transform: translateY(0);
+}

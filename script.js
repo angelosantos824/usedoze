@@ -17,14 +17,14 @@ window.addEventListener('scroll', reveal);
 window.addEventListener('load', reveal);
 window.addEventListener('resize', reveal);
 
-// Execução imediata
+// Execução imediata de envio de email
 reveal();
 
 const form = document.getElementById("contact-form");
 const status = document.getElementById("form-status");
 
 if (form) {
-    form.addEventListener("submit", async function(event) {
+    // form.addEventListener("submit", async function(event) {
         event.preventDefault(); // Impede o redirecionamento
         const data = new FormData(event.target);
         const button = document.getElementById("form-button");

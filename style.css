@@ -542,3 +542,15 @@ footer {
 .no-js .reveal {
     animation: fallbackShow 0.5s forwards;
 }
+/* email e confirmação  */
+
+#form-status {
+    animation: fadeIn 0.5s ease forwards;
+    font-size: 0.9rem;
+    letter-spacing: 0.5px;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}

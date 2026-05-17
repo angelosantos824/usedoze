@@ -1,67 +1,43 @@
-const reveal = () => {
-    const elements = document.querySelectorAll('.reveal');
-    
-    elements.forEach(el => {
-        const elementTop = el.getBoundingClientRect().top;
-        const windowHeight = window.innerHeight;
-        
-        // Se o elemento estiver visível na tela
-        if (elementTop < windowHeight - 50) {
-            el.classList.add('active');
-        }
-    });
+const revealElements = () => {
+  document.querySelectorAll('.reveal').forEach((element) => {
+    const top = element.getBoundingClientRect().top;
+    if (top < window.innerHeight - 80) element.classList.add('active');
+  });
 };
 
-// Executa ao carregar, ao rolar e ao redimensionar
-window.addEventListener('scroll', reveal);
-window.addEventListener('load', reveal);
-window.addEventListener('resize', reveal);
+const toggle = document.querySelector('.menu-toggle');
+const navLinks = document.querySelector('.nav-links');
 
-// Execução imediata de envio de email
-reveal();
-
-const form = document.getElementById("contact-form");
-const status = document.getElementById("form-status");
-
-if (form) {
-    form.addEventListener("submit", async function(event) {
-        event.preventDefault(); // Impede o redirecionamento
-        const data = new FormData(event.target);
-        const button = document.getElementById("form-button");
-        
-        button.disabled = true;
-        button.innerText = "Enviando...";
-
-        fetch(event.target.action, {
-            method: form.method,
-            body: data,
-            headers: {
-                'Accept': 'application/json'
-            }
-        }).then(response => {
-            if (response.ok) {
-                status.innerHTML = "✅ Proposta enviada! Em breve entrarei em contacto.";
-                status.style.color = "#00ffcc"; // Verde Tech
-                form.reset(); // Limpa os campos
-                button.style.display = "none"; // Esconde o botão após sucesso
-            } else {
-                response.json().then(data => {
-                    if (Object.hasOwn(data, 'errors')) {
-                        status.innerHTML = data["errors"].map(error => error["message"]).join(", ");
-                    } else {
-                        status.innerHTML = "❌ Ocorreu um erro. Tente novamente.";
-                    }
-                    status.style.color = "#ff4d4d";
-                });
-            }
-        }).catch(error => {
-            status.innerHTML = "❌ Erro de conexão. Verifique sua internet.";
-            status.style.color = "#ff4d4d";
-        }).finally(() => {
-            if (status.innerHTML.includes("erro")) {
-                button.disabled = false;
-                button.innerText = "Enviar Proposta";
-            }
-        });
-    });
+if (toggle && navLinks) {
+  toggle.addEventListener('click', () => {
+    const isOpen = navLinks.classList.toggle('open');
+    toggle.setAttribute('aria-expanded', String(isOpen));
+    toggle.textContent = isOpen ? '×' : '☰';
+  });
 }
+
+const contactForm = document.querySelector('#contact-form');
+const formStatus = document.querySelector('#form-status');
+
+if (contactForm) {
+  contactForm.addEventListener('submit', (event) => {
+    event.preventDefault();
+    const data = new FormData(contactForm);
+    const name = data.get('name');
+    const email = data.get('email');
+    const subject = data.get('subject');
+    const message = data.get('message');
+
+    const text = `Olá, sou ${name}.%0A%0AE-mail: ${email}%0ATipo de projeto: ${subject}%0A%0AMensagem:%0A${message}`;
+    const whatsappNumber = '+351924116588';
+    window.open(`https://wa.me/${whatsappNumber}?text=${text}`, '_blank', 'noopener,noreferrer');
+
+    formStatus.textContent = 'Mensagem preparada no WhatsApp. Obrigado pelo contato!';
+    contactForm.reset();
+  });
+}
+
+window.addEventListener('load', revealElements);
+window.addEventListener('scroll', revealElements);
+window.addEventListener('resize', revealElements);
+revealElements();

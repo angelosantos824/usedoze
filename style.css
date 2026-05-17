@@ -1,722 +1,721 @@
-/* Configurações Globais */
+/* =========================================================
+   VARIABLES
+========================================================= */
+
 :root {
-    --bg-color: #0a0a0a;       /* Fundo quase preto */
-    --card-bg: #161616;        /* Fundo dos cards */
-    --primary-color: #007aff;  /* Azul Elétrico (Apple style) */
-    --text-main: #ffffff;
-    --text-dim: #a0a0a0;       /* Texto secundário */
-    --accent: #121212;         /* Referência ao nome DOZE */
-    --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  --bg: #070a12;
+  --surface: rgba(255, 255, 255, 0.06);
+  --surface-strong: rgba(255, 255, 255, 0.1);
+  --line: rgba(255, 255, 255, 0.12);
+  --text: #f7fbff;
+  --muted: #aab5c5;
+  --primary: #4f8cff;
+  --primary-2: #39e6c3;
+  --shadow: 0 24px 70px rgba(0, 0, 0, 0.35);
+  --radius: 24px;
+  --transition: 220ms ease;
 }
 
+/* =========================================================
+   RESET
+========================================================= */
+
 * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    font-family: 'Inter', sans-serif;
-    scroll-behavior: smooth;
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 body {
-    background-color: var(--bg-color);
-    color: var(--text-main);
-    line-height: 1.6;
+  min-height: 100vh;
+
+  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+    sans-serif;
+
+  color: var(--text);
+  background: var(--bg);
+
+  line-height: 1.6;
 }
+
+img {
+  display: block;
+  max-width: 100%;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* =========================================================
+   GLOBAL LAYOUT
+========================================================= */
 
 .container {
-    max-width: 1100px;
-    margin: 0 auto;
-    padding: 0 2rem;
+  width: min(1120px, calc(100% - 40px));
+  margin: 0 auto;
 }
 
-/* Header & Logo */
-/* Ajuste da Logo no Header */
-.logo a {
-    display: flex;
-    align-items: center;
-    text-decoration: none;
+/* =========================================================
+   BACKGROUND
+========================================================= */
+
+.page-bg {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+
+  background:
+    radial-gradient(circle at 15% 15%, rgba(79, 140, 255, 0.22), transparent 30%),
+    radial-gradient(circle at 85% 10%, rgba(57, 230, 195, 0.13), transparent 28%),
+    radial-gradient(circle at 50% 100%, rgba(79, 140, 255, 0.1), transparent 35%),
+    linear-gradient(180deg, #070a12 0%, #090d18 100%);
 }
 
-.logo img {
-    height: 45px; /* Altura aumentada para dar presença */
-    width: auto;
-    margin-right: 5px;
-    border-radius: 15px;
-    transition: var(--transition);
-    /* Remove qualquer fundo ou borda residual da imagem */
-    background: transparent; 
-    filter: drop-shadow(0 0 8px rgba(0, 122, 255, 0.4)); /* Brilho sutil azul */
+.page-bg::after {
+  content: "";
+
+  position: absolute;
+  inset: 0;
+
+  background-image: radial-gradient(
+    rgba(255, 255, 255, 0.08) 1px,
+    transparent 1px
+  );
+  background-size: 34px 34px;
+
+  mask-image: linear-gradient(to bottom, black, transparent 80%);
 }
 
-.logo img:hover {
-    transform: scale(1.05);
-    filter: drop-shadow(0 0 12px rgba(0, 122, 255, 0.7));
+/* =========================================================
+   HEADER / NAVBAR
+========================================================= */
+
+.site-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+
+  border-bottom: 1px solid var(--line);
+
+  background: rgba(7, 10, 18, 0.76);
+  backdrop-filter: blur(18px);
 }
 
-header {
-    padding: 1.5rem 0;
-    position: sticky;
-    top: 0;
-    background: rgba(10, 10, 10, 0.8);
-    backdrop-filter: blur(10px);
-    z-index: 1000;
+.nav {
+  min-height: 76px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
 }
 
-nav {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+.brand {
+  font-size: 1.35rem;
+  font-weight: 900;
+  letter-spacing: -0.04em;
 }
 
-.logo {
-    font-size: 2rem;
-    font-weight: 900;
-    letter-spacing: -1px;
-    text-transform: uppercase;
-}
-
-.logo span {
-    color: var(--primary-color);
-    background: linear-gradient(90deg, #007aff, #00ffcc);
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
+.brand span {
+  color: var(--primary);
 }
 
 .nav-links {
-    display: flex;
-    list-style: none;
-    gap: 2rem;
-    align-items: center;
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+
+  list-style: none;
 }
 
 .nav-links a {
-    text-decoration: none;
-    color: var(--text-dim);
-    font-size: 0.9rem;
-    font-weight: 500;
-    transition: var(--transition);
+  color: var(--muted);
+
+  font-size: 0.94rem;
+  font-weight: 600;
+
+  transition: var(--transition);
 }
 
-.nav-links a:hover {
-    color: var(--text-main);
-}
+.nav-links a:hover,
 .nav-links a.active {
-    color: var(--primary-color);
+  color: var(--text);
 }
 
-/* Efeito de Fundo Tech - Sem exagero */
-.tech-bg {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    /* Padrão de pontos (grid) muito sutil */
-    background-image: radial-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px);
-    background-size: 30px 30px; 
-    z-index: -1;
+.menu-toggle {
+  display: none;
+
+  padding: 0.55rem 0.75rem;
+
+  color: var(--text);
+  font-size: 1.2rem;
+
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 12px;
 }
 
-/* Adicionando dois "Glows" de luz nos cantos para profundidade */
-.tech-bg::before {
-    content: '';
-    position: absolute;
-    top: -10%;
-    right: -10%;
-    width: 500px;
-    height: 500px;
-    background: radial-gradient(circle, rgba(0, 122, 255, 0.15), transparent 70%);
-    border-radius: 50%;
+/* =========================================================
+   BUTTONS
+========================================================= */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  font-weight: 800;
+
+  border: 1px solid transparent;
+  border-radius: 999px;
+
+  cursor: pointer;
+  transition: var(--transition);
 }
 
-.tech-bg::after {
-    content: '';
-    position: absolute;
-    bottom: -10%;
-    left: -10%;
-    width: 600px;
-    height: 600px;
-    background: radial-gradient(circle, rgba(0, 255, 204, 0.1), transparent 70%);
-    border-radius: 50%;
+.btn:hover {
+  transform: translateY(-2px);
 }
 
+.btn-small {
+  padding: 0.58rem 0.9rem;
 
-/* Botão de Destaque */
-.btn-nav {
-    background: var(--primary-color);
-    color: white !important;
-    padding: 0.6rem 1.2rem;
-    border-radius: 8px;
-    font-weight: 600 !important;
-}
+  color: #07101f !important;
 
-/* Hero Section */
-.hero {
-    padding: 160px 0 120px; /* Mais espaço no topo para destacar o fundo tech */
-    min-height: 80vh; /* Faz a seção ocupar quase a tela toda */
-    display: flex;
-    align-items: center;
-}
-.tagline {
-    color: var(--primary-color);
-    font-size: 0.8rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 2px;
-    display: block;
-    margin-bottom: 1rem;
-}
-
-.hero p {
-    font-size: 1.25rem;
-    color: #cecece; /* Um cinza mais claro que o text-dim anterior */
-    max-width: 650px;
-    margin: 0 auto 3rem;
-    font-weight: 400;
-    letter-spacing: -0.2px;
-}/* Estilização da Hero */
-.hero-badge {
-    display: inline-block;
-    padding: 6px 16px;
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 100px;
-    font-size: 0.75rem;
-    color: var(--primary-color);
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    margin-bottom: 2rem;
-}
-
-.hero h1 {
-    font-size: 4.5rem;
-    letter-spacing: -2px;
-}
-
-.hero h1 span {
-    color: #fff;
-    text-shadow: 0 0 20px rgba(0, 122, 255, 0.6), 
-                 0 0 40px rgba(0, 122, 255, 0.2);
-    display: inline-block; /* Ajuda na renderização do efeito */
-}
-
-/* Botões Principais */
-.cta-group {
-    display: flex;
-    gap: 1rem;
-    justify-content: center;
+  background: linear-gradient(135deg, var(--primary), var(--primary-2));
 }
 
 .btn-primary {
-    padding: 1rem 2rem;
-    background: var(--text-main);
-    color: var(--bg-color);
-    text-decoration: none;
-    border-radius: 5px;
-    font-weight: 700;
-    transition: var(--transition);
+  padding: 0.95rem 1.35rem;
+
+  color: #07101f;
+
+  background: linear-gradient(135deg, var(--primary), var(--primary-2));
+  box-shadow: 0 16px 35px rgba(79, 140, 255, 0.22);
 }
 
-/* .btn-secondary {
-    padding: 1rem 2rem;
-    border: 1px solid #333;
-    color: var(--text-main);
-    text-decoration: none;
-    border-radius: 5px;
-    font-weight: 700;
-    transition: var(--transition);
-} */
+.btn-ghost {
+  padding: 0.95rem 1.35rem;
 
-.btn-primary:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 10px 20px rgba(255,255,255,0.1);
-}
-/* Botão Secundário com efeito de vidro */
-.btn-secondary {
-    background: rgba(255, 255, 255, 0.03);
-    backdrop-filter: blur(5px);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+  color: var(--text);
+
+  background: var(--surface);
+  border-color: var(--line);
 }
 
-.btn-secondary:hover {
-    background: rgba(255, 255, 255, 0.08);
-    border-color: var(--primary-color);
+/* =========================================================
+   HERO SECTION
+========================================================= */
+
+.hero {
+  min-height: calc(100vh - 76px);
+  padding: 90px 0;
+
+  display: grid;
+  grid-template-columns: 1.25fr 0.75fr;
+  align-items: center;
+  gap: 3rem;
 }
 
+.hero h1,
+.page-title h1,
+.contact-grid h1,
+.about-grid h1 {
+  max-width: 900px;
 
-/* Responsividade */
-@media (max-width: 768px) {
-    .hero h1 { font-size: 2.5rem; }
-    .nav-links { display: none; } /* Ideal criar menu hambúrguer depois */
+  font-size: clamp(2.4rem, 6vw, 5.4rem);
+  line-height: 0.95;
+  letter-spacing: -0.07em;
 }
 
-/* ====================================
-   PÁGINA DE CONTATO
-==================================== */
-.contact-section {
-    padding: 120px 0;
-    min-height: 90vh;
-    display: flex;
-    align-items: center;
+.hero p,
+.page-title p,
+.contact-grid p,
+.about-grid p {
+  max-width: 720px;
+  margin-top: 1.3rem;
+
+  color: var(--muted);
+  font-size: 1.1rem;
 }
 
+.eyebrow {
+  display: inline-flex;
+
+  margin-bottom: 1.2rem;
+  padding: 0.42rem 0.72rem;
+
+  color: var(--primary-2);
+
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+
+  background: rgba(57, 230, 195, 0.08);
+  border: 1px solid rgba(57, 230, 195, 0.22);
+  border-radius: 999px;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.9rem;
+
+  margin-top: 2rem;
+}
+
+/* =========================================================
+   BASE CARDS
+========================================================= */
+
+.hero-card,
+.feature-card,
+.service-card,
+.project-card,
+.contact-form,
+.about-card {
+  background: linear-gradient(
+    180deg,
+    var(--surface-strong),
+    rgba(255, 255, 255, 0.035)
+  );
+
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+
+  box-shadow: var(--shadow);
+}
+
+/* =========================================================
+   HERO CARD
+========================================================= */
+
+.hero-card {
+  display: grid;
+  gap: 0.85rem;
+
+  padding: 1.2rem;
+}
+
+.card-line {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+
+  padding: 1rem;
+
+  background: rgba(0, 0, 0, 0.22);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 18px;
+}
+
+.card-line span {
+  color: var(--muted);
+}
+
+.card-line strong {
+  text-align: right;
+}
+
+/* =========================================================
+   SECTIONS
+========================================================= */
+
+.section,
+.page-title {
+  padding: 90px 0 30px;
+}
+
+.section-heading {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 2rem;
+
+  margin-bottom: 2rem;
+}
+
+.section h2 {
+  font-size: clamp(2rem, 4vw, 3.2rem);
+  line-height: 1;
+  letter-spacing: -0.05em;
+}
+
+/* =========================================================
+   GRIDS
+========================================================= */
+
+.feature-grid,
+.services-grid,
+.projects-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+
+  padding-bottom: 80px;
+}
+
+/* =========================================================
+   FEATURE / SERVICE / PROJECT CARDS
+========================================================= */
+
+.feature-card,
+.service-card,
+.project-card {
+  padding: 1.45rem;
+
+  transition: var(--transition);
+}
+
+.feature-card:hover,
+.service-card:hover,
+.project-card:hover {
+  transform: translateY(-5px);
+  border-color: rgba(79, 140, 255, 0.45);
+}
+
+.icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  width: 44px;
+  height: 44px;
+  margin-bottom: 1rem;
+
+  background: rgba(79, 140, 255, 0.14);
+  border-radius: 14px;
+}
+
+h3 {
+  margin-bottom: 0.6rem;
+
+  font-size: 1.35rem;
+}
+
+.feature-card p,
+.service-card p,
+.project-card p {
+  color: var(--muted);
+}
+
+/* =========================================================
+   TAGS
+========================================================= */
+
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+
+  margin-top: 1.2rem;
+
+  list-style: none;
+}
+
+.tags li,
+.tags span {
+  padding: 0.35rem 0.6rem;
+
+  color: var(--primary-2);
+
+  font-size: 0.75rem;
+  font-weight: 800;
+
+  background: rgba(57, 230, 195, 0.08);
+  border: 1px solid rgba(57, 230, 195, 0.18);
+  border-radius: 999px;
+}
+
+/* =========================================================
+   PROJECTS
+========================================================= */
+
+.project-label {
+  display: inline-block;
+
+  margin-bottom: 1.2rem;
+
+  color: var(--primary-2);
+
+  font-size: 0.76rem;
+  font-weight: 900;
+}
+
+.project-card a {
+  display: inline-flex;
+
+  margin-top: 1.3rem;
+
+  color: var(--text);
+  font-weight: 800;
+}
+
+/* =========================================================
+   ABOUT / CONTACT LAYOUT
+========================================================= */
+
+.about-grid,
 .contact-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 4rem;
-    align-items: center;
+  min-height: calc(100vh - 76px);
+  padding: 90px 0;
+
+  display: grid;
+  grid-template-columns: 0.8fr 1.2fr;
+  align-items: center;
+  gap: 3rem;
 }
 
-.contact-info h1 {
-    font-size: 3.5rem;
-    margin-bottom: 1.5rem;
+/* =========================================================
+   ABOUT LOGO CARD
+========================================================= */
+
+.about-card {
+  width: 420px;
+  height: 420px;
+  overflow: hidden;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 32px;
+
+  background: rgba(8, 15, 35, 0.85);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+
+  box-shadow:
+    0 0 45px rgba(0, 174, 255, 0.18),
+    inset 0 0 35px rgba(0, 174, 255, 0.08);
 }
 
-.contact-methods {
-    margin-top: 3rem;
-    display: grid;
-    gap: 2rem;
+.about-logo {
+  width: 520px;
+  height: 520px;
+
+  object-fit: cover;
+
+  transform: scale(1.2);
+
+  filter:
+    drop-shadow(0 0 25px rgba(0, 174, 255, 0.6))
+    drop-shadow(0 0 70px rgba(0, 174, 255, 0.25));
 }
 
-.method-item span {
-    color: var(--primary-color);
-    font-size: 0.8rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    display: block;
-    margin-bottom: 0.5rem;
+/* =========================================================
+   STATS
+========================================================= */
+
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.9rem;
+
+  margin-top: 2rem;
 }
 
-/* Container do Formulário (Glassmorphism) */
-.contact-form-container {
-    background: rgba(255, 255, 255, 0.02);
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    padding: 3rem;
-    border-radius: 20px;
+.stats-grid div {
+  padding: 1rem;
+
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 18px;
 }
 
-.input-group {
-    margin-bottom: 1.5rem;
+.stats-grid strong,
+.stats-grid span {
+  display: block;
 }
 
-.input-group label {
-    display: block;
-    color: #fff;
-    font-size: 0.9rem;
-    margin-bottom: 0.5rem;
+.stats-grid strong {
+  color: var(--primary-2);
+
+  font-size: 0.8rem;
+  text-transform: uppercase;
 }
 
-.input-group input, 
-.input-group select, 
-.input-group textarea {
-    width: 100%;
-    padding: 12px 16px;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 8px;
-    color: #fff;
-    font-family: 'Inter', sans-serif;
-    transition: var(--transition);
+.stats-grid span {
+  margin-top: 0.35rem;
+
+  color: var(--text);
 }
 
-.input-group input:focus, 
-.input-group textarea:focus {
-    outline: none;
-    border-color: var(--primary-color);
-    background: rgba(255, 255, 255, 0.1);
+/* =========================================================
+   CONTACT
+========================================================= */
+
+.contact-list {
+  display: grid;
+  gap: 0.7rem;
+
+  margin-top: 2rem;
 }
 
-/* Botão largo no formulário */
-.contact-form-container .btn-primary {
-    width: 100%;
-    border: none;
-    cursor: pointer;
+.contact-form {
+  display: grid;
+  gap: 1rem;
+
+  padding: 1.4rem;
 }
 
-/* ====================================
-   EFEITO REVEAL (ANIMAÇÃO SCROLL)
-==================================== */
-.reveal {
-    opacity: 0;
-    transform: translateY(30px);
-    transition: all 0.8s ease-out;
+.contact-form label {
+  display: grid;
+  gap: 0.45rem;
+
+  color: var(--text);
+  font-weight: 700;
 }
 
-.reveal.active {
-    opacity: 1;
-    transform: translateY(0);
+input,
+select,
+textarea {
+  width: 100%;
+  padding: 0.9rem 1rem;
+
+  color: var(--text);
+  font: inherit;
+
+  background: rgba(0, 0, 0, 0.22);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+
+  outline: none;
 }
 
-/* ====================================
-   FOOTER (MINIMALISTA)
-==================================== */
-footer {
-    background-color: var(--bg-color);
-    padding: 3rem 0;
-    margin-top: 5rem;
-    border-top: 1px solid rgba(255, 255, 255, 0.05); 
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 4px rgba(79, 140, 255, 0.12);
+}
+
+.form-status {
+  min-height: 22px;
+
+  color: var(--primary-2);
+  font-weight: 700;
+}
+
+/* =========================================================
+   FOOTER
+========================================================= */
+
+.footer {
+  padding: 32px 0;
+
+  color: var(--muted);
+
+  border-top: 1px solid var(--line);
 }
 
 .footer-content {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 2rem;
-}
-
-.footer-content p {
-    color: var(--text-main);
-    font-size: 0.85rem;
-    letter-spacing: 0.5px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
 }
 
 .social-links {
-    display: flex;
-    gap: 1.5rem;
-}
-
-.social-links a {
-    color: var(--text-dim);
-    text-decoration: none;
-    font-size: 0.9rem;
-    font-weight: 500;
-    transition: var(--transition);
-    position: relative;
+  display: flex;
+  gap: 1rem;
 }
 
 .social-links a:hover {
-    color: var(--primary-color);
-    text-shadow: 0 0 10px rgba(0, 122, 255, 0.8);
+  color: var(--text);
 }
 
-.social-links a::after {
-    content: '';
-    position: absolute;
-    width: 0;
-    height: 1px;
-    bottom: -4px;
-    left: 0;
-    background-color: var(--primary-color);
-    transition: var(--transition);
-}
+/* =========================================================
+   ANIMATIONS
+========================================================= */
 
-.social-links a:hover::after {
-    width: 100%;
-}
-
-@media (max-width: 768px) {
-    .hero h1 { font-size: 2.5rem; }
-    .nav-links { display: none; }
-    .footer-content { flex-direction: column; text-align: center; }
-}
-
-/* ====================================
-   PORTFÓLIO & CARDS (CORRIGIDO)
-==================================== */
-.projects-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 2rem;
-    padding: 2rem 0;
-}
-
-.project-card {
-    position: relative;
-    border-radius: 10px; /* Bordas um pouco mais arredondadas para um ar moderno */
-    overflow: hidden;
-    min-height: 400px; 
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    background-image: var(--card-img);
-    background-size: cover;
-    background-position: center;
-    border: 1px solid rgba(255, 255, 255, 0.05);
-    transition: var(--transition);
-}
-
-/* CAMADA DE SOBREPOSIÇÃO (OVERLAY) 
-   Esta camada fica entre a imagem e o texto. 
-   Ela torna a imagem translúcida e melhora a leitura.
-*/
-.card-overlay {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(10, 10, 10, 0.75); 
-    backdrop-filter: blur(4px); /* Aumentei o blur para destacar o texto central */
-    z-index: 1;
-    transition: var(--transition);
-    
-    /* fundo preto com 80% de transparência */
-    background-color: rgba(10, 10, 10, 0.8); 
-    
-    z-index: 1; /* Fica acima da imagem de fundo */
-    transition: var(--transition);
-}
-
-/* No hover, escurecemos um pouco menos para a imagem aparecer mais */
-.project-card:hover .card-overlay {
-    background: rgba(10, 10, 10, 0.6);
-    backdrop-filter: blur(2px); /* Limpa o desfoque no hover */
-}
-/* CONTEÚDO DO TEXTO */
-.project-info {
-    position: relative;
-    z-index: 2;
-    padding: 2.5rem; /* Mais respiro nas bordas */
-    width: 100%;
-    /* ALINHAMENTO DO TEXTO */
-    text-align: center; 
-    display: flex;
-    flex-direction: column;
-    align-items: center; /* Garante que tags e botões também centralizem */
-}
-
-.project-info h3 {
-    font-size: 2rem;
-    font-weight: 900;
-    margin-bottom: 0.5rem;
-    color: var(--text-main);
-    text-transform: uppercase;
-    letter-spacing: 1px;
-}
-
-.project-info p {
-    color: var(--text-dim);
-    font-size: 1rem;
-    margin-bottom: 1.5rem;
-    max-width: 90%; /* Evita que o texto encoste na borda direita */
-}
-
-/* Tags de Tecnologias */
-.tech-tags {
-    display: flex;
-    gap: 0.8rem;
-    margin-bottom: 1.5rem;
-}
-
-/* Ajuste das Tags para não sumirem no fundo */
-.tech-tags span {
-    background: rgba(0, 122, 255, 0.15); /* Fundo azul translúcido */
-    border: 1px solid rgba(0, 122, 255, 0.3);
-    color: #fff;
-    font-size: 0.7rem;
-    padding: 5px 12px;
-}
-.view-link {
-    text-decoration: none;
-    color: var(--text-main);
-    font-weight: 600;
-    font-size: 0.9rem;
-    transition: var(--transition);
-}
-
-.view-link:hover {
-    color: var(--primary-color);
-    padding-left: 5px;
-}
-
-/* Estado inicial: Invisível e um pouco abaixo */
 .reveal {
-    opacity: 0;
-    transform: translateY(30px);
-    transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
-    visibility: hidden; /* Garante que não ocupe espaço invisível */
+  opacity: 0;
+  transform: translateY(22px);
+
+  transition: 650ms ease;
 }
 
-/* Estado ativo: Visível e na posição correta */
 .reveal.active {
-    opacity: 1;
-    transform: translateY(0);
-    visibility: visible;
+  opacity: 1;
+  transform: translateY(0);
 }
 
-/* Segurança: Se o JS demorar muito, os elementos aparecem sozinhos 
-   após 2 segundos para o site não ficar vazio */
-@keyframes fallbackShow {
-    to { opacity: 1; transform: translateY(0); visibility: visible; }
-}
-.no-js .reveal {
-    animation: fallbackShow 0.5s forwards;
-}
-/* email e confirmação  */
+/* =========================================================
+   RESPONSIVE
+========================================================= */
 
-#form-status {
-    animation: fadeIn 0.5s ease forwards;
-    font-size: 0.9rem;
-    letter-spacing: 0.5px;
-}
+@media (max-width: 900px) {
+  .menu-toggle {
+    display: inline-flex;
+  }
 
-@keyframes fadeIn {
-    from { opacity: 0; transform: translateY(10px); }
-    to { opacity: 1; transform: translateY(0); }
-}
+  .nav-links {
+    position: absolute;
+    top: 76px;
+    left: 20px;
+    right: 20px;
 
-/* ====================================
-   PÁGINA DE SERVIÇOS
-==================================== */
-.services-hero {
-    padding: 140px 0 80px;
-}
+    display: none;
+    flex-direction: column;
+    align-items: stretch;
 
-.services-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-    gap: 2rem;
-    margin-top: 4rem;
-}
+    padding: 1rem;
 
-.service-card {
-    background: rgba(255, 255, 255, 0.03);
-    backdrop-filter: blur(15px);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    padding: 3rem 2rem;
-    border-radius: 24px;
-    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    position: relative;
-    overflow: hidden;
-}
-
-.service-card:hover {
-    transform: translateY(-10px);
-    background: rgba(255, 255, 255, 0.05);
-    border-color: var(--primary-color);
-    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
-}
-
-.service-icon {
-    font-size: 2.5rem;
-    margin-bottom: 1.5rem;
-    display: inline-block;
-}
-
-.service-card h3 {
-    font-size: 1.5rem;
-    margin-bottom: 1rem;
-    color: #fff;
-}
-
-.service-card p {
-    color: #adadad;
-    line-height: 1.6;
-    margin-bottom: 2rem;
-}
-
-/* Pequenas etiquetas de tecnologias */
-.service-tags {
-    list-style: none;
-    display: flex;
-    gap: 0.8rem;
-    flex-wrap: wrap;
-}
-
-.service-tags li {
-    background: rgba(0, 122, 255, 0.1);
-    color: var(--primary-color);
-    padding: 5px 12px;
+    background: rgba(7, 10, 18, 0.96);
+    border: 1px solid var(--line);
     border-radius: 20px;
-    font-size: 0.75rem;
-    font-weight: 700;
-    text-transform: uppercase;
-}
+  }
 
-/* ====================================
-   PÁGINA SOBRE
-==================================== */
-.about-section {
-    padding: 160px 0 100px;
-}
-
-.about-grid {
-    display: grid;
-    grid-template-columns: 1fr 1.2fr;
-    gap: 5rem;
-    align-items: center;
-}
-
-/* Moldura da Foto Tech */
-.photo-frame {
-    position: relative;
-    width: 100%;
-    max-width: 400px; /* Define um tamanho máximo */
-    height: 400px;    /* Define uma altura fixa para o quadrado */
-    border-radius: 85px;
-    overflow: hidden; /* Garante que a foto não saia da borda */
-    background: #111; /* Cor de fundo caso a imagem falhe */
-}
-
-.my-photo {
-    width: 100%;
-    height: 100%;
-    object-fit: cover; /* Esta linha é a mais importante: ela corta a foto para caber sem deformar */
-    display: block;
-}
-.photo-placeholder {
-    width: 100%;
-    height: 100%;
-    background: #0a0a0a;
-    border-radius: 25px;
+  .nav-links.open {
     display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 5rem;
-    font-weight: 900;
-    color: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.05);
-}
+  }
 
-.about-content p {
-    font-size: 1.1rem;
-    color: #adadad;
-    line-height: 1.8;
-    margin-bottom: 1.5rem;
-}
+  .nav-links a {
+    display: block;
 
-.about-content strong {
-    color: #fff;
-    font-weight: 700;
-}
+    padding: 0.5rem;
+  }
 
-/* Grid de Mini Stats */
-.stats-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 1.5rem;
-    margin-top: 3rem;
-    border-top: 1px solid rgba(255, 255, 255, 0.1);
-    padding-top: 2rem;
-}
+  .hero,
+  .about-grid,
+  .contact-grid {
+    grid-template-columns: 1fr;
 
-.stat-item h4 {
-    color: var(--primary-color);
-    font-size: 0.8rem;
-    text-transform: uppercase;
-    margin-bottom: 0.5rem;
-}
+    padding: 70px 0;
+  }
 
-.stat-item p {
-    color: #fff;
-    font-size: 1rem;
-    margin: 0;
-}
+  .hero-card {
+    order: -1;
+  }
 
-/* Responsividade para o Sobre */
-@media (max-width: 992px) {
-    .about-grid {
-        grid-template-columns: 1fr;
-        text-align: center;
-    }
-    .photo-frame {
-        max-width: 300px;
-        margin: 0 auto;
-    }
-    .stats-grid {
-        justify-content: center;
-    }
+  .feature-grid,
+  .services-grid,
+  .projects-grid,
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .section-heading {
+    display: block;
+  }
+
+  .about-card {
+    width: 100%;
+    max-width: 420px;
+    height: 360px;
+    margin: 0 auto;
+  }
+
+  .about-logo {
+    width: 480px;
+    height: 480px;
+  }
 }

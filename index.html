@@ -1,59 +1,88 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Usedoze - Soluções digitais de alta precisão. Desenvolvimento Fullstack e UI/UX.">
-    <meta property="og:title" content="Usedoze | Dev de Alta Precisão">
-    <meta property="og:image" content="Imagens/logo-preview.jpg">
-    <title>Usedoze | Desenvolvimento Web de Alta Precisão</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="icon" type="image/x-icon" href="Imagens/favicon.ico">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="DOZEDEV.COM: criação de sites, landing pages e soluções web com visual moderno e foco em resultado." />
+  <meta property="og:title" content="DOZEDEV.COM | Soluções Web" />
+  <meta property="og:description" content="Sites, landing pages e sistemas web simples, bonitos e funcionais." />
+  <meta property="og:type" content="website" />
+  <title>DOZEDEV.COM | Soluções Web</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css" />
 </head>
 <body>
+  <div class="page-bg"></div>
+  <header class="site-header">
+    <nav class="container nav">
+      <a class="brand" href="index.html" aria-label="Página inicial DOZEDEV.COM"><span>DOZE</span>DEV.COM</a>
+      <button class="menu-toggle" type="button" aria-label="Abrir menu" aria-expanded="false">☰</button>
+      <ul class="nav-links">
+        <li><a class="active" href="index.html">Home</a></li>
+        <li><a href="servicos.html">Serviços</a></li>
+        <li><a href="portfolio.html">Portfólio</a></li>
+        <li><a href="sobre.html">Sobre</a></li>
+        <li><a href="contato.html">Contato</a></li>
+        <li><a class="btn btn-small" href="https://wa.me/+351924116588" target="_blank" rel="noreferrer">WhatsApp</a></li>
+      </ul>
+    </nav>
+  </header>
 
-    <header>
-        <nav class="container">
-            <div class="logo">
-                <a href="index.html">
-                <img src="imagem/logo.png" alt="Usedoze Desenvolvimento de Precisão"> <div class="logo">USE<span>DOZE</span></div>
-                </a>
-            </div>            
-                <ul class="nav-links">
-                    <li><a href="index.html" class="active">Home</a></li>
-                <li><a href="servicos.html">Serviços</a></li>
-                <li><a href="portfolio.html">Portfólio</a></li>
-                <li><a href="sobre.html">Sobre</a></li>
-                <li><a href="contato.html">Contato</a></li>
-                <li><a href="https://wa.me/+351924116588" class="btn-nav">Falar com Dev</a></li>
-            </ul>
-        </nav>
-    </header>
-            <div class="tech-bg"></div>
-
-<section class="hero">
-    <div class="container">
-        <div class="hero-badge reveal">Disponível para Projetos 2026</div>
-        <h1 class="reveal">Soluções digitais com a precisão da <span>DOZE.</span></h1>
-        <p class="reveal">Desenvolvedor Fullstack especializado em transformar ideias complexas em experiências de alto nível.</p>
-        <div class="cta-group reveal">
-            <a href="portfolio.html" class="btn-primary">Explorar Portfólio</a>
-            <a href="https://wa.me/+351924116588" class="btn-primary">Solicitar Orçamento</a>
+  <main>
+    <section class="hero container reveal">
+      <div class="hero-content">
+        <span class="eyebrow">Disponível para projetos</span>
+        <h1>Sites e soluções web com visual moderno e função de verdade.</h1>
+        <p>Sou desenvolvedor em evolução, criando landing pages, sites institucionais e sistemas simples com foco em clareza, performance e boa experiência para o usuário.</p>
+        <div class="actions">
+          <a class="btn btn-primary" href="portfolio.html">Ver portfólio</a>
+          <a class="btn btn-ghost" href="contato.html">Pedir orçamento</a>
         </div>
+      </div>
+      <aside class="hero-card" aria-label="Resumo de serviços">
+        <div class="card-line"><span>Front-end</span><strong>HTML · CSS · JS</strong></div>
+        <div class="card-line"><span>Back-end</span><strong>Node.js básico</strong></div>
+        <div class="card-line"><span>Entrega</span><strong>Responsivo e online</strong></div>
+      </aside>
+    </section>
+
+    <section class="container section reveal">
+      <div class="section-heading">
+        <span class="eyebrow">Como posso ajudar</span>
+        <h2>Do layout ao site publicado.</h2>
+      </div>
+      <div class="feature-grid">
+        <article class="feature-card">
+          <span class="icon">✦</span>
+          <h3>Landing pages</h3>
+          <p>Páginas objetivas para apresentar serviços, captar contatos e divulgar projetos.</p>
+        </article>
+        <article class="feature-card">
+          <span class="icon">⚙</span>
+          <h3>Sistemas simples</h3>
+          <p>Pequenas soluções para organizar informações, cadastros e fluxos do dia a dia.</p>
+        </article>
+        <article class="feature-card">
+          <span class="icon">↗</span>
+          <h3>Publicação online</h3>
+          <p>Configuração para tirar o projeto do localhost e colocar no ar com domínio ou GitHub Pages.</p>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container footer-content">
+      <p>© 2026 DOZEDEV.COM. Desenvolvido por Angelo Santos.</p>
+      <div class="social-links">
+        <a href="https://github.com/angelosantos824" target="_blank" rel="noreferrer">GitHub</a>
+        <a href="https://www.linkedin.com/" target="_blank" rel="noreferrer">LinkedIn</a>
+        <a href="https://wa.me/+351924116588" target="_blank" rel="noreferrer">WhatsApp</a>
+      </div>
     </div>
-</section>
-    <footer>
-        <div class="container footer-content">
-            <p>&copy; 2024 Usedoze. Todos os direitos reservados.</p>
-            <div class="social-links">
-                <a href="https://www.linkedin.com/in/angelo-santos-45680621/?skipRedirect=true" target="_blank">LinkedIn</a>
-                <a href="https://github.com/angelosantos824" target="_blank">GitHub</a>
-                <a href="https://wa.me/+351924116588" target="_blank">WhatsApp</a>
-            </div>
-        </div>
-    </footer>
-
-    </body>
-    <script src="script.js"></script> </body>
+  </footer>
+  <script src="script.js"></script>
+</body>
 </html>

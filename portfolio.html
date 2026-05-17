@@ -1,96 +1,206 @@
 <!DOCTYPE html>
-<html lang="pt-pt">
+<html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Portfólio | Usedoze - Angelo Santos</title>
-    <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <meta
+    name="description"
+    content="Portfólio dozedev.com com projetos web, landing pages e aplicações modernas."
+  />
+
+  <title>Portfólio | dozedev.com</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
+    rel="stylesheet"
+  />
+
+  <link rel="stylesheet" href="style.css" />
 </head>
+
 <body>
+  <div class="page-bg"></div>
 
-    <header>
-        <nav class="container">
-            <div class="logo">
-    <a href="index.html">
-        <img src="imagem/logo.png" alt="Usedoze Desenvolvimento de Precisão"> <div class="logo">USE<span>DOZE</span></div>
+  <header class="site-header">
+    <nav class="container nav">
+      <a class="brand" href="index.html">
+        <span>DOZE</span>DEV.COM
+      </a>
 
-    </a>
-</div>            
-                <ul class="nav-links">
-                <li><a href="index.html">Home</a></li>
-                <li><a href="servicos.html">Serviços</a></li>
-                <li><a href="portfolio.html" class="active">Portfólio</a></li>
-                <li><a href="sobre.html">Sobre</a></li>
-                <li><a href="contato.html">Contato</a></li>
-                <li><a href="https://wa.me/+351924116588" class="btn-nav">Falar com Dev</a></li>
-            </ul>
-        </nav>
-    </header>
+      <button
+        class="menu-toggle"
+        type="button"
+        aria-label="Abrir menu"
+        aria-expanded="false"
+      >
+        ☰
+      </button>
 
-    <main class="container">
-        <section class="portfolio-header" style="padding: 60px 0; text-align: center;">
-            <span class="tagline">Explorar Trabalhos</span>
-            <h1 style="font-size: 3rem; margin-top: 10px;">Casos de Estudo</h1>
-            <p style="color: var(--text-dim); max-width: 600px; margin: 20px auto;">Uma seleção de projetos onde a estética encontra a funcionalidade.</p>
-        </section>
+      <ul class="nav-links">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="servicos.html">Serviços</a></li>
+        <li><a class="active" href="portfolio.html">Portfólio</a></li>
+        <li><a href="sobre.html">Sobre</a></li>
+        <li><a href="contato.html">Contato</a></li>
 
-        <div class="projects-grid">
-            <div class="projects-grid">
-            <article class="project-card reveal" style="--card-img: url('imagem/WhatsApp\ Image\ 2026-04-26\ at\ 12.19.43.jpeg');">
-                <div class="card-overlay"></div>
-                
-                <div class="project-info">
-                    <h3>Bella Pizza</h3>
-                    <p>Sistema de pedidos otimizado para conversão.</p>
-                    <div class="tech-tags">
-                        <span>UX/UI</span><span>HTML</span>
-                    </div>
-                    <a href="#" class="view-link" target="_blank">Explorar →</a>
-                </div>
-            </article>
+        <li>
+          <a
+            class="btn btn-small"
+            href="https://wa.me/351924116588"
+            target="_blank"
+            rel="noreferrer"
+          >
+            WhatsApp
+          </a>
+        </li>
+      </ul>
+    </nav>
+  </header>
 
-        <article class="project-card reveal" style="--card-img: url('imagem/image.png');">
-                <div class="card-overlay"></div>
+  <main>
+    <section class="container page-title reveal">
+      <span class="eyebrow">Portfólio</span>
 
-                <div class="project-info">
-                    <h3>Michelly Santos Psi</h3>
-                    <p>Sistema de gestão de pacientes e fluxo de caixa.</p>
-                    <div class="tech-tags">
-                        <span>UX/UI</span><span>HTML</span>
-                    </div>
-                    <a href="https://shre.ink/michellysantospsi" class="view-link" target="_blank">Explorar →</a>
-                </div>
-            </article>
+      <h1>Projetos e estudos em evolução.</h1>
 
+      <p>
+        Alguns trabalhos e estudos focados em layout moderno, experiência do
+        usuário e desenvolvimento web.
+      </p>
+    </section>
 
-            <article class="project-card reveal" style="--card-img: url('imagem/WhatsApp\ Image\ 2026-04-26\ at\ 12.17.39.jpeg');">
-                <div class="card-overlay"></div>
-                
-                <div class="project-info">
-                    <h3>DozeCAR</h3>
-                    <p>Aplicação de gestão automóvel intuitiva.</p>
-                    <div class="tech-tags">
-                        <span>Sistemas</span><span>JS</span>
-                    </div>
-                    <a href="#" class="view-link" target="_blank">Explorar →</a>
-                </div>
-            </article>
+    <section class="container projects-grid reveal">
+
+      <!-- ICR -->
+      <article class="project-card">
+        <span class="project-label">Projeto institucional</span>
+
+        <h3>ICR Manacapuru-AM</h3>
+
+        <p>
+          Desenvolvimento de website moderno para apresentação institucional,
+          foco em identidade visual, responsividade e experiência do usuário.
+        </p>
+
+        <div class="tags">
+          <span>HTML</span>
+          <span>CSS</span>
+          <span>JavaScript</span>
         </div>
-        </div>
-    </main>
 
-    <footer>
-        <div class="container footer-content">
-            <p>&copy; 2026 Usedoze. Todos os direitos reservados.</p>
-            <div class="social-links">
-                <a href="https://www.linkedin.com/in/angelo-santos-45680621/?skipRedirect=true" target="_blank">LinkedIn</a>
-                <a href="https://github.com/angelosantos824" target="_blank">GitHub</a>
-                <a href="https://wa.me/+351924116588" target="_blank">WhatsApp</a>
-            </div>
-        </div>
-    </footer>
+        <a href="contato.html">
+          Solicitar projeto parecido →
+        </a>
+      </article>
 
-<script src="script.js"></script>
+      <!-- Bella Pizza -->
+      <article class="project-card">
+        <span class="project-label">Landing Page</span>
+
+        <h3>Bella Pizza</h3>
+
+        <p>
+          Página de apresentação para restaurante, com foco em cardápio,
+          contato rápido e visual atrativo.
+        </p>
+
+        <div class="tags">
+          <span>HTML</span>
+          <span>CSS</span>
+          <span>UX</span>
+        </div>
+
+        <a href="contato.html">
+          Criar algo parecido →
+        </a>
+      </article>
+
+      <!-- Michelly -->
+      <article class="project-card">
+        <span class="project-label">Sistema simples</span>
+
+        <h3>Michelly Santos Psi</h3>
+
+        <p>
+          Estudo de organização para fluxo de pacientes, contatos e rotina
+          administrativa.
+        </p>
+
+        <div class="tags">
+          <span>UI</span>
+          <span>JS</span>
+          <span>Gestão</span>
+        </div>
+
+        <a
+          href="https://shre.ink"
+          target="_blank"
+          rel="noreferrer"
+        >
+          Ver projeto →
+        </a>
+      </article>
+
+      <!-- DozeCAR -->
+      <article class="project-card">
+        <span class="project-label">Aplicação</span>
+
+        <h3>DozeCAR</h3>
+
+        <p>
+          Aplicação conceito para gestão automóvel, simulando cadastro,
+          organização e consulta de informações.
+        </p>
+
+        <div class="tags">
+          <span>JavaScript</span>
+          <span>Cards</span>
+          <span>Layout</span>
+        </div>
+
+        <a href="contato.html">
+          Solicitar projeto →
+        </a>
+      </article>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container footer-content">
+      <p>© 2026 dozedev.com. Desenvolvido por Angelo Santos.</p>
+
+      <div class="social-links">
+        <a
+          href="https://github.com/angelosantos824"
+          target="_blank"
+          rel="noreferrer"
+        >
+          GitHub
+        </a>
+
+        <a
+          href="https://www.linkedin.com/"
+          target="_blank"
+          rel="noreferrer"
+        >
+          LinkedIn
+        </a>
+
+        <a
+          href="https://wa.me/351924116588"
+          target="_blank"
+          rel="noreferrer"
+        >
+          WhatsApp
+        </a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
 </body>
 </html>

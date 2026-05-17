@@ -1,87 +1,228 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Serviços | Usedoze</title>
-    <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <meta
+    name="description"
+    content="Serviços da dozedev.com: sites modernos, landing pages, melhorias visuais e publicação online."
+  />
+
+  <title>Serviços | dozedev.com</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
+    rel="stylesheet"
+  />
+
+  <link rel="stylesheet" href="style.css" />
 </head>
+
 <body>
-    <div class="tech-bg"></div>
+  <div class="page-bg"></div>
 
-    <header>
-        <nav class="container">
-            <div class="logo">
-    <a href="index.html">
-        <img src="imagem/logo.png" alt="Usedoze Desenvolvimento de Precisão"> <div class="logo">USE<span>DOZE</span></div>
+  <header class="site-header">
+    <nav class="container nav">
+      <a class="brand" href="index.html">
+        <span>DOZE</span>DEV.COM
+      </a>
 
-    </a>
-</div>            
-                <ul class="nav-links">
-                <li><a href="index.html">Home</a></li>
-                <li><a href="servicos.html" class="active">Serviços</a></li>
-                <li><a href="portfolio.html">Portfólio</a></li>
-                <li><a href="sobre.html">Sobre</a></li>
-                <li><a href="contato.html">Contato</a></li>
-                <li><a href="https://wa.me/+351924116588" class="btn-nav">Falar com Dev</a></li>
-            </ul>
-        </nav>
-    </header>
+      <button
+        class="menu-toggle"
+        type="button"
+        aria-label="Abrir menu"
+        aria-expanded="false"
+      >
+        ☰
+      </button>
 
-    <section class="services-hero">
-        <div class="container">
-            <div class="hero-badge reveal">Expertise Tech</div>
-            <h1 class="reveal">Soluções moldadas pela <span>tecnologia.</span></h1>
-            
-            <div class="services-grid">
-                <div class="service-card reveal">
-                    <div class="service-icon">🌐</div>
-                    <h3>Desenvolvimento Web</h3>
-                    <p>Criação de Landing Pages, sites institucionais e e-commerces de alta performance, focados em conversão e velocidade extrema.</p>
-                    <ul class="service-tags">
-                        <li>React</li>
-                        <li>Next.js</li>
-                        <li>SEO</li>
-                    </ul>
-                </div>
+      <ul class="nav-links">
+        <li><a href="index.html">Home</a></li>
 
-                <div class="service-card reveal">
-                    <div class="service-icon">⚙️</div>
-                    <h3>Sistemas Sob Medida</h3>
-                    <p>Aplicações complexas para gestão de negócios. Automatizamos processos com foco na segurança e escalabilidade do seu projeto.</p>
-                    <ul class="service-tags">
-                        <li>Fullstack</li>
-                        <li>APIs</li>
-                        <li>Database</li>
-                    </ul>
-                </div>
+        <li>
+          <a class="active" href="servicos.html">
+            Serviços
+          </a>
+        </li>
 
-                <div class="service-card reveal">
-                    <div class="service-icon">🎨</div>
-                    <h3>UI/UX Design</h3>
-                    <p>Interfaces modernas e intuitivas. Desenhamos a jornada do usuário para garantir que cada clique seja fluido e prazeroso.</p>
-                    <ul class="service-tags">
-                        <li>Figma</li>
-                        <li>Prototipagem</li>
-                        <li>User Flow</li>
-                    </ul>
-                </div>
-            </div>
-        </div>
+        <li><a href="portfolio.html">Portfólio</a></li>
+        <li><a href="sobre.html">Sobre</a></li>
+        <li><a href="contato.html">Contato</a></li>
+
+        <li>
+          <a
+            class="btn btn-small"
+            href="https://wa.me/351924116588"
+            target="_blank"
+            rel="noreferrer"
+          >
+            WhatsApp
+          </a>
+        </li>
+      </ul>
+    </nav>
+  </header>
+
+  <main>
+    <section class="container page-title reveal">
+      <span class="eyebrow">Serviços</span>
+
+      <h1>Soluções práticas para tirar ideias do papel.</h1>
+
+      <p>
+        O foco é criar projetos modernos, funcionais e responsivos,
+        com visual profissional e fácil manutenção.
+      </p>
     </section>
-        <footer>
-        <div class="container footer-content">
-            <p>&copy; 2026 Usedoze. Todos os direitos reservados.</p>
-            <div class="social-links">
-                <a href="https://www.linkedin.com/in/angelo-santos-45680621/?skipRedirect=true" target="_blank">LinkedIn</a>
-                <a href="https://github.com/angelosantos824" target="_blank">GitHub</a>
-                <a href="https://wa.me/+351924116588" target="_blank">WhatsApp</a>
-            </div>
-        </div>
-    </footer>
 
+    <section class="container services-grid reveal">
 
-    <script src="script.js"></script>
+      <!-- Sites -->
+      <article class="service-card">
+        <span class="icon">💻</span>
+
+        <h3>Sites institucionais</h3>
+
+        <p>
+          Desenvolvimento de sites modernos para empresas,
+          negócios locais, profissionais autônomos e projetos pessoais.
+        </p>
+
+        <ul class="tags">
+          <li>HTML</li>
+          <li>CSS</li>
+          <li>SEO básico</li>
+        </ul>
+      </article>
+
+      <!-- Landing -->
+      <article class="service-card">
+        <span class="icon">🚀</span>
+
+        <h3>Landing pages</h3>
+
+        <p>
+          Páginas focadas em divulgação de serviços,
+          campanhas e captação de clientes com integração ao WhatsApp.
+        </p>
+
+        <ul class="tags">
+          <li>Conversão</li>
+          <li>Responsivo</li>
+          <li>WhatsApp</li>
+        </ul>
+      </article>
+
+      <!-- Melhorias -->
+      <article class="service-card">
+        <span class="icon">🛠</span>
+
+        <h3>Ajustes e melhorias</h3>
+
+        <p>
+          Correções visuais, organização de código,
+          responsividade e melhorias em projetos já existentes.
+        </p>
+
+        <ul class="tags">
+          <li>JavaScript</li>
+          <li>UI</li>
+          <li>Deploy</li>
+        </ul>
+      </article>
+
+      <!-- UI -->
+      <article class="service-card">
+        <span class="icon">🎨</span>
+
+        <h3>UI moderna</h3>
+
+        <p>
+          Interfaces com design limpo, visual moderno,
+          animações suaves e melhor experiência do usuário.
+        </p>
+
+        <ul class="tags">
+          <li>UI Design</li>
+          <li>UX</li>
+          <li>Layouts</li>
+        </ul>
+      </article>
+
+      <!-- Deploy -->
+      <article class="service-card">
+        <span class="icon">☁️</span>
+
+        <h3>Publicação online</h3>
+
+        <p>
+          Configuração e publicação do projeto online
+          utilizando GitHub Pages, Vercel ou Render.
+        </p>
+
+        <ul class="tags">
+          <li>GitHub</li>
+          <li>Vercel</li>
+          <li>Render</li>
+        </ul>
+      </article>
+
+      <!-- Sistemas -->
+      <article class="service-card">
+        <span class="icon">⚡</span>
+
+        <h3>Sistemas simples</h3>
+
+        <p>
+          Desenvolvimento de sistemas leves para organização,
+          cadastro, consultas e automações básicas.
+        </p>
+
+        <ul class="tags">
+          <li>Node.js</li>
+          <li>JavaScript</li>
+          <li>API</li>
+        </ul>
+      </article>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container footer-content">
+      <p>© 2026 dozedev.com. Desenvolvido por Angelo Santos.</p>
+
+      <div class="social-links">
+        <a
+          href="https://github.com/angelosantos824"
+          target="_blank"
+          rel="noreferrer"
+        >
+          GitHub
+        </a>
+
+        <a
+          href="https://www.linkedin.com/"
+          target="_blank"
+          rel="noreferrer"
+        >
+          LinkedIn
+        </a>
+
+        <a
+          href="https://wa.me/351924116588"
+          target="_blank"
+          rel="noreferrer"
+        >
+          WhatsApp
+        </a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
 </body>
 </html>

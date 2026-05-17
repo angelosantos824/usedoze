@@ -1,86 +1,164 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Contato | Usedoze</title>
-    <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700;900&display=swap" rel="stylesheet">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta
+    name="description"
+    content="Entre em contato com a dozedev.com para solicitar orçamento de site, landing page ou sistema simples."
+  />
+
+  <title>Contato | dozedev.com</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
+    rel="stylesheet"
+  />
+  <link rel="stylesheet" href="style.css" />
 </head>
+
 <body>
-    <div class="tech-bg"></div>
+  <div class="page-bg"></div>
 
-    <header>
-        <nav class="container">
-            <div class="logo">
-                <a href="index.html"><img src="imagem/logo.png" alt="Usedoze Desenvolvimento de Precisão"> <div class="logo">USE<span>DOZE</span></div>
+  <header class="site-header">
+    <nav class="container nav">
+      <a class="brand" href="index.html">
+        <span>DOZE</span>DEV.COM
+      </a>
 
-            </div>
-            <ul class="nav-links">
-                <li><a href="index.html">Home</a></li>
-                <li><a href="servicos.html">Serviços</a></li>
-                <li><a href="portfolio.html">Portfólio</a></li>
-                <li><a href="sobre.html">Sobre</a></li>
-                <li><a href="contato.html" class="active">Contato</a></li>
-                <li><a href="https://wa.me/+351924116588" class="btn-nav">Falar com Dev</a></li>
-            </ul>
-        </nav>
-    </header>
+      <button
+        class="menu-toggle"
+        type="button"
+        aria-label="Abrir menu"
+        aria-expanded="false"
+      >
+        ☰
+      </button>
 
-    <section class="contact-section">
-        <div class="container">
-            <div class="contact-grid">
-                <div class="contact-info reveal">
-                    <div class="hero-badge">Vamos Conversar</div>
-                    <h1>Inicie seu projeto de <span>Alta Precisão.</span></h1>
-                    <p>Tem uma ideia ou um sistema complexo que precisa ganhar vida? Estou pronto para codar a solução.</p>
-                    
-                    <div class="contact-methods">
-                        <div class="method-item">
-                            <span>E-mail</span>
-                            <p>angelo_rsantos@hotmail.com</p>
-                        </div>
-                        <div class="method-item">
-                            <span>Praia da Vagueira - Vagos - Aveiro - Portugal</span>
-                            <p>Portugal / Remoto</p>
-                        </div>
-                    </div>
-                </div>
+      <ul class="nav-links">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="servicos.html">Serviços</a></li>
+        <li><a href="portfolio.html">Portfólio</a></li>
+        <li><a href="sobre.html">Sobre</a></li>
+        <li><a class="active" href="contato.html">Contato</a></li>
+        <li>
+          <a
+            class="btn btn-small"
+            href="https://wa.me/351924116588"
+            target="_blank"
+            rel="noreferrer"
+          >
+            WhatsApp
+          </a>
+        </li>
+      </ul>
+    </nav>
+  </header>
 
-                <div class="contact-form-container reveal">
-                        <form action="https://formspree.io/f/xaqakzeb" method="POST" id="contact-form">                        
-                            <div class="input-group">
-                            <label>Nome</label>
-                            <input type="text" name="name" placeholder="Como te chamamos?" required>
-                        </div>
-                        <div class="input-group">
-                            <label>E-mail</label>
-                            <input type="email" name="email" placeholder="angelo_rsantos@hotmail.com" required>
-                        </div>
-                        <div class="input-group">
-                            <label>Assunto</label>
-                            <select name="subject">
-                                <option value="Landing Page">Landing Page / Site</option>
-                                <option value="Sistema">Sistema Sob Medida</option>
-                                <option value="UI/UX">UI/UX Design</option>
-                                <option value="Outro">Outro</option>
-                            </select>
-                        </div>
-                <div class="input-group">
-                    <label>Mensagem</label>
-                    <textarea name="message" rows="5" placeholder="Descreva seu projeto brevemente..." required></textarea>
-                </div>
-    
-                <input type="text" name="_gotcha" style="display:none">
+  <main>
+    <section class="container contact-grid reveal">
+      <div>
+        <span class="eyebrow">Contato</span>
 
-                    <button type="submit" class="btn-primary" id="form-button">Enviar Proposta</button>
-                        <div id="form-status" style="margin-top: 1.5rem; text-align: center; font-weight: 700;"></div>
-                    </form>
-                </div>
-            </div>
+        <h1>Vamos conversar sobre seu projeto?</h1>
+
+        <p>
+          Preencha o formulário ou chame no WhatsApp. Quanto mais detalhes você
+          enviar, mais fácil será entender o que precisa ser feito.
+        </p>
+
+        <div class="contact-list">
+          <p><strong>E-mail:</strong> angelo_rsantos@hotmail.com</p>
+          <p><strong>WhatsApp:</strong> +351 924 116 588</p>
+          <p><strong>Local:</strong> Portugal / Remoto</p>
         </div>
-    </section>
+      </div>
 
-    <script src="script.js"></script>
+      <form class="contact-form" id="contact-form">
+        <label>
+          Nome
+          <input
+            type="text"
+            name="name"
+            placeholder="Seu nome"
+            required
+          />
+        </label>
+
+        <label>
+          E-mail
+          <input
+            type="email"
+            name="email"
+            placeholder="seuemail@email.com"
+            required
+          />
+        </label>
+
+        <label>
+          Tipo de projeto
+          <select name="subject" required>
+            <option value="">Selecione</option>
+            <option>Landing Page / Site</option>
+            <option>Sistema simples</option>
+            <option>Ajustes em projeto existente</option>
+            <option>Outro</option>
+          </select>
+        </label>
+
+        <label>
+          Mensagem
+          <textarea
+            name="message"
+            rows="5"
+            placeholder="Conte um pouco sobre a ideia"
+            required
+          ></textarea>
+        </label>
+
+        <button class="btn btn-primary" type="submit">
+          Enviar pelo WhatsApp
+        </button>
+
+        <p id="form-status" class="form-status"></p>
+      </form>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="container footer-content">
+      <p>© 2026 dozedev.com. Desenvolvido por Angelo Santos.</p>
+
+      <div class="social-links">
+        <a
+          href="https://github.com/angelosantos824"
+          target="_blank"
+          rel="noreferrer"
+        >
+          GitHub
+        </a>
+
+        <a
+          href="https://www.linkedin.com/"
+          target="_blank"
+          rel="noreferrer"
+        >
+          LinkedIn
+        </a>
+
+        <a
+          href="https://wa.me/351924116588"
+          target="_blank"
+          rel="noreferrer"
+        >
+          WhatsApp
+        </a>
+      </div>
+    </div>
+  </footer>
+
+  <script src="script.js"></script>
 </body>
 </html>

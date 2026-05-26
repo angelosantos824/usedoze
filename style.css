@@ -892,3 +892,22 @@ textarea:focus {
     flex-direction: column;
   }
 }
+
+.logo-dozedev{
+    width: 70px;
+    height: 70px;
+    border-radius: 20%;
+    object-fit: contain;
+    transition: 0.3s ease;
+    filter: drop-shadow(0 0 18px rgba(140, 82, 255, 0.35));
+}
+
+.logo-dozedev:hover{
+    transform: scale(1.05);
+    filter: drop-shadow(0 0 28px rgba(140, 82, 255, 0.55));
+}
+
+.site-header{
+    backdrop-filter: blur(14px);
+    border-bottom: 1px solid rgba(255,255,255,0.06);
+}

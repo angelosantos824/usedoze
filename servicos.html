@@ -1,16 +1,45 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
+  <title>Serviços | DOZEDEV.PT</title>
+
   <meta
     name="description"
-    content="Serviços da dozedev.com: sites modernos, landing pages, melhorias visuais e publicação online."
+    content="Serviços da DOZEDEV.PT: criação de sites modernos, landing pages, melhorias visuais, sistemas simples e publicação online."
   />
 
-  <title>Serviços | dozedev.com</title>
+  <meta
+    name="keywords"
+    content="serviços web, criação de sites, landing pages, html, css, javascript, desenvolvimento web portugal"
+  />
 
+  <meta name="author" content="Angelo Santos - DOZEDEV.PT" />
+  <meta name="robots" content="index, follow" />
+
+  <meta property="og:title" content="Serviços | DOZEDEV.PT" />
+  <meta
+    property="og:description"
+    content="Sites modernos, landing pages, melhorias visuais e soluções web profissionais."
+  />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://dozedev.pt/servicos.html" />
+  <meta property="og:image" content="https://dozedev.pt/imagem/web-app-manifest-512x512.png" />
+
+  <meta name="theme-color" content="#0f172a" />
+  <link rel="canonical" href="https://dozedev.pt/servicos.html" />
+
+  <!-- FAVICON -->
+  <link rel="icon" type="image/png" href="imagem/favicon-96x96.png" sizes="96x96" />
+  <link rel="icon" type="image/svg+xml" href="imagem/favicon.svg" />
+  <link rel="shortcut icon" href="imagem/favicon.ico" />
+  <link rel="apple-touch-icon" sizes="180x180" href="imagem/apple-touch-icon.png" />
+  <link rel="manifest" href="imagem/site.webmanifest" />
+
+  <!-- FONTES -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 
@@ -19,62 +48,96 @@
     rel="stylesheet"
   />
 
+  <!-- CSS -->
   <link rel="stylesheet" href="style.css" />
 </head>
 
 <body>
+
   <div class="page-bg"></div>
 
+  <!-- HEADER -->
   <header class="site-header">
-  <nav class="container nav">
 
-    <!-- LOGO -->
-     <a href="index.html" class="brand">
-      <img src="imagem/favicon-96x96.png" alt="DOZEDEV.COM" class="logo-dozedev">
-    </a>
+    <nav class="container nav">
 
-    <!-- BOTÃO MENU -->
-    <button class="menu-toggle" type="button" aria-label="Abrir menu" aria-expanded="false">
-      ☰
-    </button>
+      <!-- LOGO -->
+      <a href="index.html" class="brand">
+        <img
+          src="imagem/favicon-96x96.png"
+          alt="DOZEDEV.PT"
+          class="logo-dozedev"
+        />
+      </a>
 
-    <!-- MENU -->
-    <ul class="nav-links">
-      <li><a href="index.html">Home</a></li>
-      <li><a class="active" href="servicos.html">Serviços</a></li>
-      <li><a href="portfolio.html">Portfólio</a></li>
-      <li><a href="sobre.html">Sobre</a></li>
-      <li><a href="contato.html">Contato</a></li>
+      <!-- MENU MOBILE -->
+      <button
+        class="menu-toggle"
+        type="button"
+        aria-label="Abrir menu"
+        aria-expanded="false"
+      >
+        ☰
+      </button>
 
-      <li>
-        <a class="btn btn-small"
-           href="https://wa.me/351924116588"
-           target="_blank"
-           rel="noreferrer">
-          WhatsApp
-        </a>
-      </li>
-    </ul>
+      <!-- MENU -->
+      <ul class="nav-links">
+        <li><a href="index.html">Home</a></li>
 
-  </nav>
-</header>
+        <li>
+          <a class="active" href="servicos.html">
+            Serviços
+          </a>
+        </li>
 
+        <li><a href="portfolio.html">Portfólio</a></li>
+        <li><a href="sobre.html">Sobre</a></li>
+        <li><a href="contato.html">Contato</a></li>
+
+        <li>
+          <a
+            class="btn btn-small"
+            href="https://wa.me/351924116588"
+            target="_blank"
+            rel="noreferrer"
+          >
+            WhatsApp
+          </a>
+        </li>
+      </ul>
+
+    </nav>
+
+  </header>
+
+  <!-- MAIN -->
   <main>
-    <section class="container page-title reveal">
-      <span class="eyebrow">Serviços</span>
 
-      <h1>Soluções práticas para tirar ideias do papel.</h1>
+    <!-- TOPO -->
+    <section class="container page-title reveal">
+
+      <span class="eyebrow">
+        Serviços
+      </span>
+
+      <h1>
+        Soluções modernas para transformar ideias em presença digital.
+      </h1>
 
       <p>
-        O foco é criar projetos modernos, funcionais e responsivos,
-        com visual profissional e fácil manutenção.
+        Desenvolvimento de sites profissionais, landing pages,
+        melhorias visuais e soluções web modernas com foco
+        em performance, responsividade e experiência do usuário.
       </p>
+
     </section>
 
+    <!-- SERVIÇOS -->
     <section class="container services-grid reveal">
 
-      <!-- Sites -->
+      <!-- SITE -->
       <article class="service-card">
+
         <span class="icon">💻</span>
 
         <h3>Sites institucionais</h3>
@@ -87,12 +150,14 @@
         <ul class="tags">
           <li>HTML</li>
           <li>CSS</li>
-          <li>SEO básico</li>
+          <li>SEO</li>
         </ul>
+
       </article>
 
-      <!-- Landing -->
+      <!-- LANDING -->
       <article class="service-card">
+
         <span class="icon">🚀</span>
 
         <h3>Landing pages</h3>
@@ -107,10 +172,12 @@
           <li>Responsivo</li>
           <li>WhatsApp</li>
         </ul>
+
       </article>
 
-      <!-- Melhorias -->
+      <!-- AJUSTES -->
       <article class="service-card">
+
         <span class="icon">🛠</span>
 
         <h3>Ajustes e melhorias</h3>
@@ -125,16 +192,18 @@
           <li>UI</li>
           <li>Deploy</li>
         </ul>
+
       </article>
 
       <!-- UI -->
       <article class="service-card">
+
         <span class="icon">🎨</span>
 
         <h3>UI moderna</h3>
 
         <p>
-          Interfaces com design limpo, visual moderno,
+          Interfaces com design limpo, visual premium,
           animações suaves e melhor experiência do usuário.
         </p>
 
@@ -143,10 +212,12 @@
           <li>UX</li>
           <li>Layouts</li>
         </ul>
+
       </article>
 
-      <!-- Deploy -->
+      <!-- PUBLICAÇÃO -->
       <article class="service-card">
+
         <span class="icon">☁️</span>
 
         <h3>Publicação online</h3>
@@ -161,10 +232,12 @@
           <li>Vercel</li>
           <li>Render</li>
         </ul>
+
       </article>
 
-      <!-- Sistemas -->
+      <!-- SISTEMAS -->
       <article class="service-card">
+
         <span class="icon">⚡</span>
 
         <h3>Sistemas simples</h3>
@@ -179,45 +252,115 @@
           <li>JavaScript</li>
           <li>API</li>
         </ul>
+
       </article>
+
     </section>
+
   </main>
 
+  <!-- FOOTER -->
   <footer class="footer">
-  <div class="container footer-content">
-    <div class="footer-brand">
-      <a class="brand footer-logo" href="index.html">
-        <span class="brand-mark">12</span>
-        <span class="brand-text">
-          <strong>DOZE</strong><small>DEV.COM</small>
-        </span>
-      </a>
-      <p>Sites, landing pages e soluções web modernas para negócios que querem aparecer melhor online.</p>
+
+    <div class="container footer-content">
+
+      <!-- MARCA -->
+      <div class="footer-brand">
+
+        <a class="brand footer-logo" href="index.html">
+
+          <span class="brand-mark">
+            12
+          </span>
+
+          <span class="brand-text">
+            <strong>DOZE</strong>
+            <small>DEV.PT</small>
+          </span>
+
+        </a>
+
+        <p>
+          Sites, landing pages e soluções web modernas
+          para negócios que querem crescer online.
+        </p>
+
+      </div>
+
+      <!-- LINKS -->
+      <div class="footer-links">
+
+        <h4>Navegação</h4>
+
+        <a href="index.html">Home</a>
+        <a href="servicos.html">Serviços</a>
+        <a href="portfolio.html">Portfólio</a>
+        <a href="sobre.html">Sobre</a>
+        <a href="contato.html">Contato</a>
+
+      </div>
+
+      <!-- CONTATO -->
+      <div class="footer-links">
+
+        <h4>Contato</h4>
+
+        <a
+          href="https://wa.me/351924116588"
+          target="_blank"
+          rel="noreferrer"
+        >
+          WhatsApp
+        </a>
+
+        <a
+          href="https://github.com/angelosantos824"
+          target="_blank"
+          rel="noreferrer"
+        >
+          GitHub
+        </a>
+
+        <a
+          href="https://www.linkedin.com/"
+          target="_blank"
+          rel="noreferrer"
+        >
+          LinkedIn
+        </a>
+
+      </div>
+
     </div>
 
-    <div class="footer-links">
-      <h4>Navegação</h4>
-      <a href="index.html">Home</a>
-      <a href="servicos.html">Serviços</a>
-      <a href="portfolio.html">Portfólio</a>
-      <a href="sobre.html">Sobre</a>
-      <a href="contato.html">Contato</a>
+    <!-- COPYRIGHT -->
+    <div class="container footer-bottom">
+
+      <p>
+        © 2026 DOZEDEV.PT. Desenvolvido por Angelo Santos.
+      </p>
+
+      <span>
+        HTML · CSS · JavaScript
+      </span>
+
     </div>
 
-    <div class="footer-links">
-      <h4>Contato</h4>
-      <a href="https://wa.me/351924116588" target="_blank" rel="noreferrer">WhatsApp</a>
-      <a href="https://github.com/angelosantos824" target="_blank" rel="noreferrer">GitHub</a>
-      <a href="https://www.linkedin.com/" target="_blank" rel="noreferrer">LinkedIn</a>
-    </div>
-  </div>
+  </footer>
 
-  <div class="container footer-bottom">
-    <p>© 2026 DOZEDEV.COM. Desenvolvido por Angelo Santos.</p>
-    <span>HTML · CSS · JavaScript</span>
-  </div>
-</footer>
+  <!-- BOTÃO FLUTUANTE -->
+  <a
+    href="https://wa.me/351924116588"
+    class="whatsapp-float"
+    target="_blank"
+    rel="noreferrer"
+  >
+    WhatsApp
+  </a>
 
+  <!-- JS -->
   <script src="script.js"></script>
+
 </body>
+
 </html>

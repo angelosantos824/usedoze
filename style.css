@@ -142,10 +142,10 @@ h3 {
 }
 
 .logo-dozedev {
-  width: 70px;
+  width: 120px;
   height: 70px;
   object-fit: contain;
-  border-radius: 20%;
+  border-radius: 50%;
   transition: 0.3s ease;
   filter: drop-shadow(0 0 18px rgba(140, 82, 255, 0.35));
 }
@@ -908,14 +908,14 @@ textarea:focus {
 
   .about-card {
     width: 100%;
-    max-width: 420px;
+    max-width: 920px;
     height: 360px;
     margin: 0 auto;
   }
 
   .about-logo {
-    width: 480px;
-    height: 480px;
+    width: 980px;
+    height: 380px;
   }
 
   .footer-content {

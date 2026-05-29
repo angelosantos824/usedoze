@@ -535,8 +535,8 @@ h3 {
 ========================================================= */
 
 .about-card {
-  width: 420px;
-  height: 420px;
+  width: 720px;
+  height: 320px;
   overflow: hidden;
   display: flex;
   align-items: center;
@@ -550,8 +550,8 @@ h3 {
 }
 
 .about-logo {
-  width: 520px;
-  height: 520px;
+  width: 620px;
+  height: 320px;
   object-fit: cover;
   transform: scale(1.2);
   filter:
@@ -915,7 +915,7 @@ textarea:focus {
 
   .about-logo {
     width: 980px;
-    height: 380px;
+    height: 300px;
   }
 
   .footer-content {

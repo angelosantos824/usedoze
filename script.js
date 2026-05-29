@@ -59,3 +59,18 @@ window.addEventListener('scroll', revealElements);
 window.addEventListener('resize', revealElements);
 
 revealElements();
+
+function resgatarVoucher(event) {
+  event.preventDefault();
+
+  const codigo = document.getElementById("voucherCode").value.trim();
+  const telefone = "351924116588";
+
+  const mensagem = `Olá!
+Tenho o voucher CLAIM-DEV-001
+e gostaria de resgatar minha criação de site de 3 abas.`;
+
+  const link = `https://wa.me/${telefone}?text=${encodeURIComponent(mensagem)}`;
+
+  window.open(link, "_blank");
+}

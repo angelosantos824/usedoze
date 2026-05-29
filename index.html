@@ -93,7 +93,7 @@
 
   <!-- MAIN -->
   <main>
-
+      
     <!-- HERO -->
     <section class="hero container reveal">
 
@@ -140,10 +140,10 @@
             <strong>24h</strong>
             <span>Suporte</span>
           </div>
-
+          
         </div>
 
-      </div>
+        </div>
 
       <!-- CARD HERO -->
       <aside class="hero-card" aria-label="Resumo de serviços">
@@ -158,6 +158,7 @@
       </aside>
 
     </section>
+    
 
     <!-- SERVIÇOS -->
     <section class="container section reveal">
@@ -339,7 +340,25 @@
         Valores promocionais. O preço pode variar conforme funcionalidades extras,
         quantidade de páginas e nível de personalização.
       </p>
+<br>
+<br>
+    <section class="voucher-section">
+            <h2>Resgatar Voucher</h2>
+            <br>
+            <p>Digite o código do seu voucher promocional.</p>
 
+        <form onsubmit="resgatarVoucher(event)">
+            <input 
+              type="text" 
+              id="voucherCode" 
+              placeholder="Ex: CODIGO AQUI"
+              required>
+
+        <button type="submit">
+            Resgatar pelo WhatsApp
+        </button>
+        </form>
+        </section>
     </section>
 
   </main>

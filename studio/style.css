@@ -226,7 +226,7 @@
       }
     }
 
-    /* ==========================================
+/* ==========================================
    AJUSTES BRIEFING.HTML NOVO
 ========================================== */
 
@@ -457,6 +457,107 @@
   .modal-actions{
     flex-direction:column;
   }
+}
+
+/* ==========================================
+   INPUTS BRIEFING MODERNO
+========================================== */
+
+.input-group{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+}
+
+.input-group label{
+    color:#f1f1f1;
+    font-size:.95rem;
+    font-weight:600;
+}
+
+.input-group input,
+.input-group textarea,
+.input-group select{
+    width:100%;
+    background:#0b0b14;
+
+    border:1px solid rgba(139,92,246,.18);
+
+    border-radius:18px;
+
+    padding:16px 18px;
+
+    color:#fff;
+
+    font-size:1rem;
+
+    outline:none;
+
+    transition:.3s ease;
+}
+
+/* ALTURA INPUTS */
+
+.input-group input,
+.input-group select{
+    height:58px;
+}
+
+/* TEXTAREA */
+
+.input-group textarea{
+    min-height:160px;
+    resize:vertical;
+    padding-top:18px;
+}
+
+/* PLACEHOLDER */
+
+.input-group input::placeholder,
+.input-group textarea::placeholder{
+    color:#7e7a92;
+}
+
+/* SELECT */
+
+.input-group select{
+    appearance:none;
+    cursor:pointer;
+}
+
+/* FOCUS */
+
+.input-group input:focus,
+.input-group textarea:focus,
+.input-group select:focus{
+
+    border-color:#8b5cf6;
+
+    box-shadow:
+        0 0 0 4px rgba(139,92,246,.12),
+        0 0 30px rgba(139,92,246,.22);
+
+}
+
+/* FILE INPUT */
+
+.upload-box input[type="file"]{
+    background:#131320;
+    border:none;
+    padding:10px;
+    border-radius:12px;
+}
+
+/* CHECKBOX */
+
+.check-card{
+    background:#11111c;
+    border:1px solid rgba(255,255,255,.06);
+}
+
+.check-card:hover{
+    border-color:#8b5cf6;
+    box-shadow:0 0 25px rgba(139,92,246,.15);
 }
 
 /* ==========================================

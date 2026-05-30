@@ -224,97 +224,6 @@ h3 {
 }
 
 /* =========================================================
-   HERO SECTION
-========================================================= */
-
-.hero {
-  min-height: calc(100vh - 76px);
-  padding: 90px 0;
-  display: grid;
-  grid-template-columns: 1.25fr 0.75fr;
-  align-items: center;
-  gap: 3rem;
-}
-
-.hero h1,
-.page-title h1,
-.contact-grid h1,
-.about-grid h1 {
-  max-width: 900px;
-  font-size: clamp(2.4rem, 6vw, 5.4rem);
-  line-height: 0.92;
-  letter-spacing: -0.07em;
-  text-shadow: 0 10px 40px rgba(79, 140, 255, 0.18);
-}
-
-.hero p,
-.page-title p,
-.contact-grid p,
-.about-grid p {
-  max-width: 720px;
-  margin-top: 1.3rem;
-  color: var(--muted);
-  font-size: 1.1rem;
-}
-
-.eyebrow {
-  display: inline-flex;
-  margin-bottom: 1.2rem;
-  padding: 0.42rem 0.72rem;
-  color: var(--primary-2);
-  font-size: 0.72rem;
-  font-weight: 900;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  background: rgba(57, 230, 195, 0.08);
-  border: 1px solid rgba(57, 230, 195, 0.22);
-  border-radius: 999px;
-}
-
-.actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.9rem;
-  margin-top: 2rem;
-}
-
-/* =========================================================
-   HERO STATS
-========================================================= */
-
-.hero-stats {
-  display: flex;
-  gap: 16px;
-  margin-top: 28px;
-  flex-wrap: wrap;
-}
-
-.hero-stats div {
-  min-width: 135px;
-  padding: 16px 18px;
-  border-radius: 18px;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  backdrop-filter: blur(14px);
-  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.22);
-}
-
-.hero-stats strong {
-  display: block;
-  font-size: 1.45rem;
-  font-weight: 900;
-  color: #ffffff;
-  line-height: 1;
-  margin-bottom: 8px;
-}
-
-.hero-stats span {
-  display: block;
-  font-size: 0.88rem;
-  color: #b8c7e6;
-}
-
-/* =========================================================
    BASE CARDS
 ========================================================= */
 
@@ -355,34 +264,6 @@ h3 {
 .feature-card:hover::before,
 .plan-card:hover::before {
   opacity: 1;
-}
-
-/* =========================================================
-   HERO CARD
-========================================================= */
-
-.hero-card {
-  display: grid;
-  gap: 0.85rem;
-  padding: 1.2rem;
-}
-
-.card-line {
-  display: flex;
-  justify-content: space-between;
-  gap: 1rem;
-  padding: 1rem;
-  background: rgba(0, 0, 0, 0.22);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 18px;
-}
-
-.card-line span {
-  color: var(--muted);
-}
-
-.card-line strong {
-  text-align: right;
 }
 
 /* =========================================================
@@ -535,8 +416,7 @@ h3 {
 ========================================================= */
 
 .about-card {
-  width: 720px;
-  height: 320px;
+  
   overflow: hidden;
   display: flex;
   align-items: center;
@@ -550,8 +430,6 @@ h3 {
 }
 
 .about-logo {
-  width: 620px;
-  height: 320px;
   object-fit: cover;
   transform: scale(1.2);
   filter:
@@ -986,4 +864,385 @@ textarea:focus {
 .client-area-btn:hover{
   transform: translateY(-2px);
   box-shadow: 0 16px 40px rgba(139,92,246,.42);
+}
+
+/* HERO HOME CORRIGIDA */
+.hero{
+  min-height: calc(100vh - 76px);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 50px;
+  padding: 40px 0;
+}
+
+.hero-content{
+  flex: 1;
+  max-width: 620px;
+}
+
+.hero h1{
+  font-size: clamp(3rem, 5vw, 3.3rem);
+  line-height: .95;
+  letter-spacing: -0.07em;
+  margin-bottom: 22px;
+}
+
+.hero p{
+  max-width: 560px;
+  color: var(--muted);
+  font-size: 1.05rem;
+}
+
+.hero-card{
+  flex: 1;
+  max-width: 520px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  padding: 0;
+}
+
+.hero-card .about-card{
+  width: 100%;
+  height: 360px;
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  overflow: visible;
+}
+
+.hero-card .about-logo{
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  transform: none;
+  filter:
+    drop-shadow(0 0 35px rgba(139,92,246,.45))
+    drop-shadow(0 0 80px rgba(59,130,246,.18));
+}
+
+@media(max-width: 900px){
+  .hero{
+    min-height: auto;
+    flex-direction: column;
+    padding: 45px 0 70px;
+  }
+
+  .hero-content{
+    order: 1;
+    max-width: 100%;
+  }
+
+  .hero-card{
+    order: 2;
+    max-width: 100%;
+  }
+
+  .hero-card .about-card{
+    height: 260px;
+  }
+
+  .hero h1{
+    font-size: clamp(2.4rem, 11vw, 4rem);
+  }
+}
+
+/* =========================================================
+   FIX HERO HOME
+========================================================= */
+
+.hero .eyebrow{
+  display: inline-flex;
+  width: fit-content;
+  margin-bottom: 1.2rem;
+  padding: .42rem .72rem;
+  color: var(--primary-2);
+  font-size: .72rem;
+  font-weight: 900;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  background: rgba(57,230,195,.08);
+  border: 1px solid rgba(57,230,195,.22);
+  border-radius: 999px;
+}
+
+.hero-card .about-card{
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  overflow: visible !important;
+}
+
+.hero-card .about-logo{
+  object-fit: contain !important;
+  background: transparent !important;
+  transform: scale(1.08) !important;
+  filter:
+    drop-shadow(0 0 35px rgba(139,92,246,.55))
+    drop-shadow(0 0 90px rgba(139,92,246,.35)) !important;
+}
+
+.hero-stats{
+  display: flex !important;
+  gap: 16px;
+  margin-top: 28px;
+  flex-wrap: wrap;
+}
+
+.hero-stats div{
+  min-width: 135px;
+  padding: 16px 18px;
+  border-radius: 18px;
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.12);
+  backdrop-filter: blur(14px);
+  box-shadow: 0 18px 45px rgba(0,0,0,.22);
+}
+
+.hero-stats strong{
+  display: block;
+  font-size: 1.45rem;
+  font-weight: 900;
+  color: #fff;
+  line-height: 1;
+  margin-bottom: 8px;
+}
+
+.hero-stats span{
+  display: block;
+  font-size: .88rem;
+  color: #b8c7e6;
+}
+
+/* RESTAURAR CARDS DA SEÇÃO SERVIÇOS */
+.section{
+  padding: 90px 0 30px;
+}
+
+.section-heading{
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 2rem;
+  margin-bottom: 2rem;
+}
+
+.section h2{
+  font-size: clamp(2rem, 4vw, 3.2rem);
+  line-height: 1;
+  letter-spacing: -0.05em;
+}
+
+.feature-grid{
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  padding-bottom: 80px;
+}
+
+.feature-card{
+  padding: 1.45rem;
+  min-height: 220px;
+  background: linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.035));
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: 24px;
+  box-shadow: 0 24px 70px rgba(0,0,0,.35);
+  transition: .25s ease;
+}
+
+.feature-card:hover{
+  transform: translateY(-5px);
+  border-color: rgba(79,140,255,.45);
+}
+
+.icon{
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  margin-bottom: 1rem;
+  background: rgba(79,140,255,.14);
+  border-radius: 14px;
+}
+
+@media(max-width: 900px){
+  .section-heading{
+    display: block;
+  }
+
+  .feature-grid{
+    grid-template-columns: 1fr;
+  }
+}
+
+.section-heading .eyebrow{
+  display: inline-flex;
+  width: fit-content;
+  margin-bottom: 1.2rem;
+  padding: .42rem .72rem;
+  color: var(--primary-2);
+  font-size: .72rem;
+  font-weight: 900;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  background: rgba(57,230,195,.08);
+  border: 1px solid rgba(57,230,195,.22);
+  border-radius: 999px;
+}
+
+/* =========================================================
+   FOOTER PREMIUM
+========================================================= */
+
+.footer{
+  margin-top: 120px;
+  padding-top: 70px;
+  background:
+    linear-gradient(
+      180deg,
+      rgba(10,15,35,.2),
+      rgba(5,8,20,.95)
+    );
+  border-top: 1px solid rgba(255,255,255,.08);
+}
+
+.footer-content{
+  display: grid;
+  grid-template-columns: 1.4fr .8fr .8fr;
+  gap: 60px;
+  padding-bottom: 50px;
+}
+
+.footer-brand p{
+  max-width: 420px;
+  margin-top: 22px;
+  color: #aeb9d6;
+  line-height: 1.8;
+}
+
+.footer-logo-img{
+  width: 190px;
+  object-fit: contain;
+  filter:
+    drop-shadow(0 0 25px rgba(139,92,246,.35));
+}
+
+.footer-column h4{
+  margin-bottom: 22px;
+  color: #fff;
+  font-size: 1rem;
+}
+
+.footer-column,
+.footer-links{
+  display: flex;
+  flex-direction: column;
+}
+
+.footer-column a,
+.footer-links a{
+  margin-bottom: 14px;
+  color: #9ba8c7;
+  text-decoration: none;
+  transition: .25s ease;
+}
+
+.footer-column a:hover,
+.footer-links a:hover{
+  color: #8b5cf6;
+  transform: translateX(4px);
+}
+
+.footer-socials{
+  display: flex;
+  gap: 14px;
+  margin-top: 26px;
+  flex-wrap: wrap;
+}
+
+.footer-socials a{
+  padding: 10px 16px;
+  border-radius: 999px;
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.08);
+  color: #fff;
+  text-decoration: none;
+  transition: .25s ease;
+}
+
+.footer-socials a:hover{
+  background: #8b5cf6;
+  border-color: #8b5cf6;
+}
+
+.footer-bottom{
+  padding: 24px 0;
+  border-top: 1px solid rgba(255,255,255,.06);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.footer-bottom p,
+.footer-bottom span{
+  color: #7f8aa8;
+  font-size: .92rem;
+}
+
+@media(max-width: 900px){
+
+  .footer-content{
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+
+  .footer-bottom{
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .footer-logo-img{
+    width: 160px;
+  }
+
+}
+/* AJUSTE FINO FOOTER */
+.footer{
+  margin-top: 70px;
+  padding-top: 38px;
+  padding-bottom: 0;
+}
+
+.footer-content{
+  align-items: start;
+  gap: 44px;
+  padding-bottom: 28px;
+}
+
+.footer-column{
+  padding-top: 38px;
+}
+
+.footer-brand{
+  padding-top: 0;
+}
+
+.footer-brand p{
+  margin-top: 18px;
+  max-width: 410px;
+}
+
+.footer-socials{
+  margin-top: 22px;
+}
+
+.footer-bottom{
+  padding: 16px 0;
+  margin-top: 0;
 }

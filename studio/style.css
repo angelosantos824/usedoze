@@ -685,6 +685,26 @@
     color:#fff;
 }
 
+.logout-btn{
+  padding: 12px 22px;
+  border: none;
+  border-radius: 14px;
+  background: linear-gradient(
+    135deg,
+    #8b5cf6,
+    #6d28d9
+  );
+  color: #fff;
+  font-weight: 700;
+  cursor: pointer;
+  transition: .25s ease;
+}
+
+.logout-btn:hover{
+  transform: translateY(-2px);
+  box-shadow: 0 12px 30px rgba(139,92,246,.35);
+}
+
 /* ==========================================
    INPUTS LOGIN FIX
 ========================================== */

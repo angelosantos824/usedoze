@@ -1,6 +1,66 @@
 document.addEventListener("DOMContentLoaded", () => {
 
   /* ==========================================
+   PROTEGER PÁGINAS PRIVADAS
+========================================== */
+
+async function protegerPaginasPrivadas() {
+  const paginasPrivadas = [
+    "dashboard.html",
+    "admin.html",
+    "briefing.html"
+  ];
+
+  const paginaAtual = window.location.pathname.split("/").pop();
+
+  if (!paginasPrivadas.includes(paginaAtual)) {
+    return;
+  }
+
+  if (typeof supabaseClient === "undefined") {
+    alert("Erro: Supabase não carregou.");
+    window.location.href = "login.html";
+    return;
+  }
+
+  const { data, error } = await supabaseClient.auth.getSession();
+
+  if (error || !data.session) {
+    alert("Faça login para acessar o DOZEDEV Studio.");
+    window.location.href = "login.html";
+  }
+}
+
+protegerPaginasPrivadas();
+
+/* ==========================================
+   LOGOUT
+========================================== */
+
+const logoutBtn = document.getElementById("logoutBtn");
+
+if (logoutBtn) {
+
+  logoutBtn.addEventListener("click", async () => {
+
+    const confirmar = confirm("Deseja sair do DOZEDEV Studio?");
+
+    if (!confirmar) return;
+
+    const { error } = await supabaseClient.auth.signOut();
+
+    if (error) {
+      alert(error.message);
+      return;
+    }
+
+    window.location.href = "login.html";
+
+  });
+
+}
+  
+  /* ==========================================
      BRIEFING / VOUCHER
   ========================================== */
 

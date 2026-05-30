@@ -417,3 +417,36 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
 });
+
+/* ==========================================
+   PROTEGER PÁGINAS PRIVADAS
+========================================== */
+
+async function protegerPagina() {
+  const paginasPrivadas = [
+    "dashboard.html",
+    "admin.html",
+    "briefing.html"
+  ];
+
+  const paginaAtual = window.location.pathname.split("/").pop();
+
+  if (!paginasPrivadas.includes(paginaAtual)) {
+    return;
+  }
+
+  if (typeof supabaseClient === "undefined") {
+    alert("Supabase não carregou.");
+    window.location.href = "login.html";
+    return;
+  }
+
+  const { data, error } = await supabaseClient.auth.getSession();
+
+  if (error || !data.session) {
+    alert("Faça login para acessar o DOZEDEV Studio.");
+    window.location.href = "login.html";
+  }
+}
+
+protegerPagina();

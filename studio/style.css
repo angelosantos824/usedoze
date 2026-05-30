@@ -943,3 +943,22 @@
     grid-template-columns: 1fr;
   }
 }
+
+.modal-status-control{
+  margin-top: 20px;
+  display: grid;
+  gap: 12px;
+}
+
+.modal-status-control label{
+  color: #8b5cf6;
+  font-weight: 700;
+}
+
+.modal-status-control select{
+  background: #0b0b14;
+  border: 1px solid rgba(139,92,246,.25);
+  color: #fff;
+  border-radius: 14px;
+  padding: 14px;
+}

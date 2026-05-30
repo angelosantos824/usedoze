@@ -1,5 +1,51 @@
 document.addEventListener("DOMContentLoaded", () => {
 
+    let briefingAtualId = null;
+
+    /* ==========================================
+   PROTEGER PÁGINAS PRIVADAS
+========================================== */
+
+async function protegerPaginasPrivadas() {
+
+  const paginasPrivadas = [
+    "dashboard.html",
+    "admin.html",
+    "briefing.html"
+  ];
+
+  const paginaAtual =
+    window.location.pathname.split("/").pop();
+
+  if (!paginasPrivadas.includes(paginaAtual)) {
+    return;
+  }
+
+  if (typeof supabaseClient === "undefined") {
+
+    alert("Erro: Supabase não carregou.");
+
+    window.location.href = "login.html";
+
+    return;
+  }
+
+  const { data, error } =
+    await supabaseClient.auth.getSession();
+
+  if (error || !data.session) {
+
+    alert(
+      "Faça login para acessar o DOZEDEV Studio."
+    );
+
+    window.location.href = "login.html";
+  }
+
+}
+
+protegerPaginasPrivadas();
+
  /* ==========================================
    DASHBOARD - LISTAR BRIEFINGS
 ========================================== */
@@ -79,7 +125,6 @@ async function carregarDashboard() {
         abrirModalBriefing(briefing);
       });
 
-
       briefingsContainer.appendChild(card);
 
     });
@@ -95,9 +140,20 @@ async function carregarDashboard() {
 carregarDashboard();
 
 function abrirModalBriefing(briefing) {
+
   const modal = document.getElementById("briefingModal");
 
   if (!modal) return;
+
+  briefingAtualId = briefing.id;
+
+  const modalStatusSelect =
+    document.getElementById("modalStatusSelect");
+
+  if (modalStatusSelect) {
+    modalStatusSelect.value =
+      briefing.status || "Novo";
+  }
 
   document.getElementById("modalClienteNome").textContent =
     briefing.nome || "Detalhes do Briefing";
@@ -136,6 +192,7 @@ function abrirModalBriefing(briefing) {
     briefing.funcionalidades?.join(", ") || "Não informado";
 
   modal.classList.add("active");
+
 }
 
 const closeBriefingModal = document.getElementById("closeBriefingModal");
@@ -151,41 +208,39 @@ if (closeBriefingModal && briefingModal) {
       briefingModal.classList.remove("active");
     }
   });
+  }
+
+const salvarStatusBtn = document.getElementById("salvarStatusBtn");
+
+if (salvarStatusBtn) {
+  salvarStatusBtn.addEventListener("click", async () => {
+    const modalStatusSelect = document.getElementById("modalStatusSelect");
+
+    if (!briefingAtualId || !modalStatusSelect) {
+      alert("Nenhum briefing selecionado.");
+      return;
+    }
+
+    const novoStatus = modalStatusSelect.value;
+
+    const { error } = await supabaseClient
+      .from("briefings")
+      .update({ status: novoStatus })
+      .eq("id", briefingAtualId);
+
+    if (error) {
+      console.error(error);
+      alert("Erro ao atualizar status.");
+      return;
+    }
+
+    document.getElementById("modalStatus").textContent = novoStatus;
+
+    alert("Status atualizado com sucesso!");
+    location.reload();
+  });
 }
-
-  /* ==========================================
-   PROTEGER PÁGINAS PRIVADAS
-========================================== */
-
-async function protegerPaginasPrivadas() {
-  const paginasPrivadas = [
-    "dashboard.html",
-    "admin.html",
-    "briefing.html"
-  ];
-
-  const paginaAtual = window.location.pathname.split("/").pop();
-
-  if (!paginasPrivadas.includes(paginaAtual)) {
-    return;
-  }
-
-  if (typeof supabaseClient === "undefined") {
-    alert("Erro: Supabase não carregou.");
-    window.location.href = "login.html";
-    return;
-  }
-
-  const { data, error } = await supabaseClient.auth.getSession();
-
-  if (error || !data.session) {
-    alert("Faça login para acessar o DOZEDEV Studio.");
-    window.location.href = "login.html";
-  }
-}
-
-protegerPaginasPrivadas();
-
+  
 /* ==========================================
    LOGOUT
 ========================================== */
@@ -675,35 +730,3 @@ if (briefingForm) {
 
 });
 
-/* ==========================================
-   PROTEGER PÁGINAS PRIVADAS
-========================================== */
-
-async function protegerPagina() {
-  const paginasPrivadas = [
-    "dashboard.html",
-    "admin.html",
-    "briefing.html"
-  ];
-
-  const paginaAtual = window.location.pathname.split("/").pop();
-
-  if (!paginasPrivadas.includes(paginaAtual)) {
-    return;
-  }
-
-  if (typeof supabaseClient === "undefined") {
-    alert("Supabase não carregou.");
-    window.location.href = "login.html";
-    return;
-  }
-
-  const { data, error } = await supabaseClient.auth.getSession();
-
-  if (error || !data.session) {
-    alert("Faça login para acessar o DOZEDEV Studio.");
-    window.location.href = "login.html";
-  }
-}
-
-protegerPagina();

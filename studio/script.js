@@ -75,6 +75,10 @@ async function carregarDashboard() {
         </span>
 
       `;
+      card.addEventListener("click", () => {
+        abrirModalBriefing(briefing);
+      });
+
 
       briefingsContainer.appendChild(card);
 
@@ -89,6 +93,65 @@ async function carregarDashboard() {
 }
 
 carregarDashboard();
+
+function abrirModalBriefing(briefing) {
+  const modal = document.getElementById("briefingModal");
+
+  if (!modal) return;
+
+  document.getElementById("modalClienteNome").textContent =
+    briefing.nome || "Detalhes do Briefing";
+
+  document.getElementById("modalEmpresa").textContent =
+    briefing.empresa || "Não informado";
+
+  document.getElementById("modalEmail").textContent =
+    briefing.email || "Não informado";
+
+  document.getElementById("modalTelefone").textContent =
+    briefing.telefone || "Não informado";
+
+  document.getElementById("modalInstagram").textContent =
+    briefing.instagram || "Não informado";
+
+  document.getElementById("modalTipo").textContent =
+    briefing.tipo_projeto || "Normal";
+
+  document.getElementById("modalVoucher").textContent =
+    briefing.voucher_codigo || "Não informado";
+
+  document.getElementById("modalPaginas").textContent =
+    briefing.paginas || "Não informado";
+
+  document.getElementById("modalPrazo").textContent =
+    briefing.prazo || "Não informado";
+
+  document.getElementById("modalStatus").textContent =
+    briefing.status || "Novo";
+
+  document.getElementById("modalDescricao").textContent =
+    briefing.descricao || "Sem descrição.";
+
+  document.getElementById("modalFuncionalidades").textContent =
+    briefing.funcionalidades?.join(", ") || "Não informado";
+
+  modal.classList.add("active");
+}
+
+const closeBriefingModal = document.getElementById("closeBriefingModal");
+const briefingModal = document.getElementById("briefingModal");
+
+if (closeBriefingModal && briefingModal) {
+  closeBriefingModal.addEventListener("click", () => {
+    briefingModal.classList.remove("active");
+  });
+
+  briefingModal.addEventListener("click", (event) => {
+    if (event.target === briefingModal) {
+      briefingModal.classList.remove("active");
+    }
+  });
+}
 
   /* ==========================================
    PROTEGER PÁGINAS PRIVADAS

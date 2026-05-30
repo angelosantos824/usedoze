@@ -1,5 +1,95 @@
 document.addEventListener("DOMContentLoaded", () => {
 
+ /* ==========================================
+   DASHBOARD - LISTAR BRIEFINGS
+========================================== */
+
+async function carregarDashboard() {
+
+  const briefingsContainer =
+    document.getElementById("briefingsContainer");
+
+  if (!briefingsContainer) return;
+
+  try {
+
+    const { data, error } = await supabaseClient
+      .from("briefings")
+      .select("*")
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      console.error(error);
+      return;
+    }
+
+    /* CARDS SUPERIORES */
+
+    document.getElementById("totalBriefings").textContent =
+      data.length;
+
+    document.getElementById("novosProjetos").textContent =
+      data.filter(item => item.status === "Novo").length;
+
+    document.getElementById("totalVouchers").textContent =
+      data.filter(item => item.tipo_projeto === "voucher").length;
+
+    /* LISTA */
+
+    briefingsContainer.innerHTML = "";
+
+    data.forEach((briefing) => {
+
+      const card = document.createElement("article");
+
+      card.classList.add("briefing-item");
+
+      card.innerHTML = `
+
+        <h3>
+          ${briefing.nome || "Sem nome"}
+        </h3>
+
+        <p>
+          <strong>Empresa:</strong>
+          ${briefing.empresa || "Não informado"}
+        </p>
+
+        <p>
+          <strong>Email:</strong>
+          ${briefing.email || "Não informado"}
+        </p>
+
+        <p>
+          <strong>Projeto:</strong>
+          ${briefing.tipo_projeto || "normal"}
+        </p>
+
+        <p>
+          <strong>Status:</strong>
+          ${briefing.status || "Novo"}
+        </p>
+
+        <span class="briefing-badge">
+          ${briefing.paginas || "Sem páginas"}
+        </span>
+
+      `;
+
+      briefingsContainer.appendChild(card);
+
+    });
+
+  } catch (err) {
+
+    console.error(err);
+
+  }
+
+}
+
+carregarDashboard();
+
   /* ==========================================
    PROTEGER PÁGINAS PRIVADAS
 ========================================== */
@@ -336,50 +426,94 @@ if (logoutBtn) {
   }
 
   /* ==========================================
-     FORMULÁRIO BRIEFING
-  ========================================== */
+   ENVIAR BRIEFING
+========================================== */
 
-  const briefingForm = document.getElementById(
-    "briefingForm"
-  );
+const briefingForm = document.getElementById("briefingForm");
 
-  if (briefingForm) {
+if (briefingForm) {
 
-    briefingForm.addEventListener(
-      "submit",
-      (event) => {
+  briefingForm.addEventListener("submit", async (event) => {
 
-        event.preventDefault();
+    event.preventDefault();
 
-        if (
-          voucherCode &&
-          voucherCode.hasAttribute("required")
-        ) {
+    try {
 
-          if (
-            voucherCode.value.trim() === ""
-          ) {
+      const funcionalidadesSelecionadas = [];
 
-            alert(
-              "Digite o número do voucher."
-            );
+      document
+        .querySelectorAll(".funcionalidade:checked")
+        .forEach((item) => {
+          funcionalidadesSelecionadas.push(item.value);
+        });
 
-            voucherCode.focus();
+      const dadosBriefing = {
 
-            return;
+        nome:
+          document.getElementById("nome")?.value || "",
 
-          }
+        email:
+          document.getElementById("email")?.value || "",
 
-        }
+        telefone:
+          document.getElementById("telefone")?.value || "",
 
-        alert(
-          "Briefing enviado com sucesso! Depois vamos ligar isso ao Supabase."
-        );
+        empresa:
+          document.getElementById("empresa")?.value || "",
 
+        instagram:
+          document.getElementById("instagram")?.value || "",
+
+        tipo_projeto:
+          document.querySelector('input[name="tipoProjeto"]:checked')?.value || "normal",
+
+        voucher_codigo:
+          document.getElementById("voucherCode")?.value || "",
+
+        paginas:
+          document.getElementById("quantidadePaginas")?.value || "",
+
+        prazo:
+          document.getElementById("prazoDesejado")?.value || "",
+
+        descricao:
+          document.getElementById("descricaoProjeto")?.value || "",
+
+        funcionalidades:
+          funcionalidadesSelecionadas
+
+      };
+
+      const { error } = await supabaseClient
+        .from("briefings")
+        .insert([dadosBriefing]);
+
+      if (error) {
+        console.error(error);
+        alert("Erro ao enviar briefing.");
+        return;
       }
-    );
 
-  }
+      alert("Briefing enviado com sucesso!");
+
+      briefingForm.reset();
+
+      window.scrollTo({
+        top: 0,
+        behavior: "smooth"
+      });
+
+    } catch (err) {
+
+      console.error(err);
+
+      alert("Erro inesperado ao enviar briefing.");
+
+    }
+
+  });
+
+}
 
   /* ==========================================
      LOGIN

@@ -971,3 +971,19 @@ textarea:focus {
   position: relative;
   z-index: 1;
 }
+/* área do cliente */
+.client-area-btn{
+  padding: 10px 18px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #8b5cf6, #5b21b6);
+  color: #fff !important;
+  font-weight: 700;
+  text-decoration: none;
+  box-shadow: 0 10px 30px rgba(139,92,246,.28);
+  transition: .3s ease;
+}
+
+.client-area-btn:hover{
+  transform: translateY(-2px);
+  box-shadow: 0 16px 40px rgba(139,92,246,.42);
+}

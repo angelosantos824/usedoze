@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin | DOZEDEV Studio</title>
+
+  <link rel="icon" href="../imagem/Logo.png">
+ <link rel="stylesheet" href="/studio/style.css">
+</head>
+
+<body>
+
+  <div class="admin-layout">
+
+    <aside class="sidebar">
+      <div class="admin-logo">
+        <img src="../imagem/Logo.png" alt="DOZEDEV">
+        <h2>DOZE<span>DEV</span><br><small>Studio Admin</small></h2>
+      </div>
+
+      <nav class="menu">
+        <a href="#" class="active">Dashboard</a>
+        <a href="#">Clientes</a>
+        <a href="#">Briefings</a>
+        <a href="#">Projetos</a>
+        <a href="#">Vouchers</a>
+        <a href="#">Uploads</a>
+        <a href="../index.html">Voltar ao Site</a>
+      </nav>
+    </aside>
+
+    <main class="admin-main">
+
+      <div class="topbar">
+        <div>
+          <h1>Painel Administrativo</h1>
+          <p>Gerencie clientes, briefings, projetos e vouchers da DOZEDEV Studio.</p>
+        </div>
+
+        <div class="admin-user">
+          Admin DOZEDEV
+        </div>
+      </div>
+
+      <section class="cards">
+        <div class="card">
+          <h3>Clientes</h3>
+          <strong>12</strong>
+          <p><span>+3</span> este mês</p>
+        </div>
+
+        <div class="card">
+          <h3>Briefings Recebidos</h3>
+          <strong>08</strong>
+          <p><span>5</span> aguardando análise</p>
+        </div>
+
+        <div class="card">
+          <h3>Projetos Ativos</h3>
+          <strong>04</strong>
+          <p><span>2</span> em desenvolvimento</p>
+        </div>
+
+        <div class="card">
+          <h3>Vouchers</h3>
+          <strong>03</strong>
+          <p><span>1</span> ativo</p>
+        </div>
+      </section>
+
+      <section class="panel">
+        <div class="panel-header">
+          <h2>Últimos Briefings</h2>
+          <button class="btn">Novo Projeto</button>
+        </div>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Cliente</th>
+              <th>Empresa</th>
+              <th>Serviço</th>
+              <th>Status</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+
+          <tbody>
+            <tr>
+              <td>Michelly Santos</td>
+              <td>Clínica Psicanálise</td>
+              <td>Site Institucional</td>
+              <td><span class="status andamento">Em andamento</span></td>
+              <td class="acoes">
+                <button>Ver</button>
+                <button>Editar</button>
+              </td>
+            </tr>
+
+            <tr>
+              <td>Casa Vera Cruz</td>
+              <td>Social / Migrantes</td>
+              <td>Landing Page</td>
+              <td><span class="status recebido">Recebido</span></td>
+              <td class="acoes">
+                <button>Ver</button>
+                <button>Editar</button>
+              </td>
+            </tr>
+
+            <tr>
+              <td>Voucher CLAIM</td>
+              <td>CLAIM Aveiro</td>
+              <td>Site 3 Abas</td>
+              <td><span class="status finalizado">Finalizado</span></td>
+              <td class="acoes">
+                <button>Ver</button>
+                <button>Editar</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+    </main>
+  </div>
+
+</body>
+</html>

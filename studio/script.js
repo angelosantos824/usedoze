@@ -686,99 +686,127 @@ if (briefingForm) {
 }
 
   /* ==========================================
-     LOGIN
-  ========================================== */
+   LOGIN
+========================================== */
 
-  const loginForm = document.getElementById(
-    "loginForm"
-  );
+const loginForm = document.getElementById(
+  "loginForm"
+);
 
-  if (loginForm) {
+if (loginForm) {
 
-    loginForm.addEventListener(
-      "submit",
-      async (event) => {
+  loginForm.addEventListener(
+    "submit",
+    async (event) => {
 
-        event.preventDefault();
+      event.preventDefault();
 
-        const emailInput =
-          document.getElementById(
-            "loginEmail"
-          );
+      const emailInput =
+        document.getElementById(
+          "loginEmail"
+        );
 
-        const passwordInput =
-          document.getElementById(
-            "loginPassword"
-          );
+      const passwordInput =
+        document.getElementById(
+          "loginPassword"
+        );
 
-        const email = emailInput
-          ? emailInput.value.trim()
-          : "";
+      const email = emailInput
+        ? emailInput.value.trim()
+        : "";
 
-        const password = passwordInput
-          ? passwordInput.value.trim()
-          : "";
+      const password = passwordInput
+        ? passwordInput.value.trim()
+        : "";
 
-        if (!email || !password) {
+      if (!email || !password) {
 
-          alert(
-            "Preencha email e senha."
-          );
+        alert(
+          "Preencha email e senha."
+        );
+
+        return;
+
+      }
+
+      if (
+        typeof supabaseClient ===
+        "undefined"
+      ) {
+
+        alert(
+          "Erro: Supabase não carregou. Verifique o config.js."
+        );
+
+        return;
+
+      }
+
+      try {
+
+        const { error } =
+          await supabaseClient.auth.signInWithPassword({
+            email,
+            password
+          });
+
+        if (error) {
+
+          alert(error.message);
 
           return;
 
         }
 
-        if (
-          typeof supabaseClient ===
-          "undefined"
-        ) {
+        const {
+          data: { session }
+        } = await supabaseClient.auth.getSession();
+
+        const {
+          data: profile,
+          error: profileError
+        } = await supabaseClient
+          .from("profiles")
+          .select("role")
+          .eq("id", session.user.id)
+          .single();
+
+        if (profileError || !profile) {
 
           alert(
-            "Erro: Supabase não carregou. Verifique o config.js."
-          );
-
-          return;
-
-        }
-
-        try {
-
-          const { data, error } =
-            await supabaseClient.auth.signInWithPassword({
-              email,
-              password
-            });
-
-          if (error) {
-
-            alert(error.message);
-
-            return;
-
-          }
-
-          alert(
-            "Login realizado com sucesso!"
+            "Login realizado, mas perfil não encontrado."
           );
 
           window.location.href =
             "dashboard.html";
 
-        } catch (err) {
-
-          console.error(err);
-
-          alert(
-            "Erro ao iniciar sessão."
-          );
+          return;
 
         }
 
+        if (profile.role === "admin") {
+
+          window.location.href =
+            "admin.html";
+
+        } else {
+
+          window.location.href =
+            "dashboard.html";
+
+        }
+
+      } catch (err) {
+
+        console.error(err);
+
+        alert(
+          "Erro ao iniciar sessão."
+        );
+
       }
-    );
 
-  }
+    }
+  );
 
-});
-
+}

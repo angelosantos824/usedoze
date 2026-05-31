@@ -345,6 +345,135 @@ if (logoutBtn) {
   );
 
   /* ==========================================
+   GERADOR DE VOUCHER
+========================================== */
+
+const gerarVoucherBtn =
+  document.getElementById("gerarVoucherBtn");
+
+const voucherList =
+  document.getElementById("voucherList");
+
+function gerarCodigoVoucher() {
+
+  const numero =
+    Math.floor(Math.random() * 900 + 100);
+
+  return `CLAIM-DOZE-${numero}`;
+
+}
+
+async function carregarVouchers() {
+
+  if (!voucherList) return;
+
+  const { data, error } =
+    await supabaseClient
+      .from("vouchers")
+      .select("*")
+      .order("criado_em", {
+        ascending:false
+      });
+
+  if (error) {
+    console.error(error);
+    return;
+  }
+
+  voucherList.innerHTML = "";
+
+  data.forEach((voucher) => {
+
+    const card =
+      document.createElement("div");
+
+    card.classList.add("voucher-card");
+
+    card.innerHTML = `
+
+      <h3>
+        ${voucher.codigo}
+      </h3>
+
+      <p>
+        Limite:
+        ${voucher.limite_uso}
+      </p>
+
+      <p>
+        Usos:
+        ${voucher.usos}
+      </p>
+
+      <span>
+        ${voucher.ativo ? "Ativo" : "Inativo"}
+      </span>
+
+    `;
+
+    voucherList.appendChild(card);
+
+  });
+
+}
+
+if (gerarVoucherBtn) {
+
+  gerarVoucherBtn.addEventListener(
+    "click",
+    async () => {
+
+      const codigo =
+        gerarCodigoVoucher();
+
+      const validade =
+        new Date();
+
+      validade.setDate(
+        validade.getDate() + 30
+      );
+
+      const { error } =
+        await supabaseClient
+          .from("vouchers")
+          .insert([{
+
+            codigo,
+
+            validade,
+
+            ativo:true,
+
+            limite_uso:1
+
+          }]);
+
+      if (error) {
+
+        console.error(error);
+
+        alert(
+          "Erro ao gerar voucher."
+        );
+
+        return;
+
+      }
+
+      alert(
+        `Voucher criado: ${codigo}`
+      );
+
+      carregarVouchers();
+
+    }
+  );
+
+}
+
+carregarVouchers();
+
+  /* ==========================================
      MODAL
   ========================================== */
 

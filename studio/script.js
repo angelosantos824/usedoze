@@ -355,9 +355,14 @@ const voucherList =
   document.getElementById("voucherList");
 
 function gerarCodigoVoucher() {
-  const numero = String(Math.floor(Math.random() * 9999)).padStart(4, "0");
+
+  const numero =
+    String(
+      Math.floor(Math.random() * 9999)
+    ).padStart(4, "0");
 
   return `VOUCHERDOZE-${numero}`;
+
 }
 
 async function carregarVouchers() {
@@ -369,12 +374,15 @@ async function carregarVouchers() {
       .from("vouchers")
       .select("*")
       .order("criado_em", {
-        ascending:false
+        ascending: false
       });
 
   if (error) {
+
     console.error(error);
+
     return;
+
   }
 
   voucherList.innerHTML = "";
@@ -406,9 +414,60 @@ async function carregarVouchers() {
         ${voucher.ativo ? "Ativo" : "Inativo"}
       </span>
 
+      <button
+        class="voucher-toggle-btn"
+        data-id="${voucher.id}"
+        data-ativo="${voucher.ativo}"
+        type="button"
+      >
+        ${voucher.ativo ? "Desativar" : "Reativar"}
+      </button>
+
     `;
 
     voucherList.appendChild(card);
+
+    const toggleBtn =
+      card.querySelector(".voucher-toggle-btn");
+
+    if (toggleBtn) {
+
+      toggleBtn.addEventListener(
+        "click",
+        async () => {
+
+          const id =
+            toggleBtn.dataset.id;
+
+          const ativoAtual =
+            toggleBtn.dataset.ativo === "true";
+
+          const { error } =
+            await supabaseClient
+              .from("vouchers")
+              .update({
+                ativo: !ativoAtual
+              })
+              .eq("id", id);
+
+          if (error) {
+
+            console.error(error);
+
+            alert(
+              "Erro ao atualizar voucher."
+            );
+
+            return;
+
+          }
+
+          carregarVouchers();
+
+        }
+      );
+
+    }
 
   });
 
@@ -439,9 +498,9 @@ if (gerarVoucherBtn) {
 
             validade,
 
-            ativo:true,
+            ativo: true,
 
-            limite_uso:1
+            limite_uso: 1
 
           }]);
 

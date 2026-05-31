@@ -30,11 +30,12 @@ async function protegerPaginasPrivadas() {
     return;
   }
 
-  const { data, error } =
-    await supabaseClient.auth.getSession();
+  const {
+  data: { session },
+  error
+} = await supabaseClient.auth.getSession();
 
-  if (error || !data.session) {
-
+if (error || !session){
     alert(
       "Faça login para acessar o DOZEDEV Studio."
     );

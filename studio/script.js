@@ -47,6 +47,57 @@ if (error || !session){
 
 protegerPaginasPrivadas();
 
+/* ==========================================
+   PROTEGER ÁREA ADMIN
+========================================== */
+
+async function protegerAdmin() {
+
+  const paginaAtual =
+    window.location.pathname.split("/").pop();
+
+  if (paginaAtual !== "admin.html") {
+    return;
+  }
+
+  const {
+    data: { session }
+  } = await supabaseClient.auth.getSession();
+
+  if (!session) {
+    window.location.href = "login.html";
+    return;
+  }
+
+  const { data, error } = await supabaseClient
+    .from("profiles")
+    .select("role")
+    .eq("id", session.user.id)
+    .single();
+
+  if (error || !data) {
+
+    alert("Perfil não encontrado.");
+
+    window.location.href = "dashboard.html";
+
+    return;
+  }
+
+  if (data.role !== "admin") {
+
+    alert(
+      "Acesso permitido apenas para administradores."
+    );
+
+    window.location.href = "dashboard.html";
+
+  }
+
+}
+
+protegerAdmin();
+
  /* ==========================================
    DASHBOARD - LISTAR BRIEFINGS
 ========================================== */

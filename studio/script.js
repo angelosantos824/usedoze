@@ -355,12 +355,9 @@ const voucherList =
   document.getElementById("voucherList");
 
 function gerarCodigoVoucher() {
+  const numero = String(Math.floor(Math.random() * 9999)).padStart(4, "0");
 
-  const numero =
-    Math.floor(Math.random() * 900 + 100);
-
-  return `VOUCHER-DOZE-${numero}`;
-
+  return `VOUCHERDOZE-${numero}`;
 }
 
 async function carregarVouchers() {

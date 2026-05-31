@@ -687,13 +687,13 @@ if (briefingForm) {
 
   /* ==========================================
    LOGIN
-========================================== */
+  ========================================== */
 
-const loginForm = document.getElementById(
+  const loginForm = document.getElementById(
   "loginForm"
-);
+  );
 
-if (loginForm) {
+  if (loginForm) {
 
   loginForm.addEventListener(
     "submit",
@@ -810,3 +810,4 @@ if (loginForm) {
   );
 
 }
+});

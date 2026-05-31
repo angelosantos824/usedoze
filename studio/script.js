@@ -876,11 +876,20 @@ if (
 
       if (voucherValidado) {
 
-       await supabaseClient
-        .from("vouchers")
-        .update({
-        usos:
-        voucherValidado.usos + 1
+  const novosUsos =
+    voucherValidado.usos + 1;
+
+  const limiteAtingido =
+    novosUsos >= voucherValidado.limite_uso;
+
+  await supabaseClient
+    .from("vouchers")
+    .update({
+
+      usos: novosUsos,
+
+      ativo: !limiteAtingido
+
     })
     .eq("id", voucherValidado.id);
 

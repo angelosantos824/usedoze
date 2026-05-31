@@ -497,6 +497,8 @@ carregarVouchers();
   function ativarVoucher() {
 
     abrirModalVoucher();
+    const codigo =
+      voucherCode?.value.trim();
 
     if (voucherCodeGroup) {
       voucherCodeGroup.style.display = "flex";
@@ -510,7 +512,7 @@ carregarVouchers();
       );
 
       voucherCode.placeholder =
-        "Ex: CLAIM-DOZE-001";
+        "Ex: VOUCHERDOZE-0001";
 
     }
 
@@ -721,7 +723,66 @@ carregarVouchers();
 
   }
 
-  /* ==========================================
+/* ==========================================
+   VALIDAR VOUCHER
+========================================== */
+
+async function validarVoucher(codigo) {
+
+  if (!codigo) {
+    return false;
+  }
+
+  const { data, error } =
+    await supabaseClient
+      .from("vouchers")
+      .select("*")
+      .eq("codigo", codigo)
+      .single();
+
+  if (error || !data) {
+
+    alert("Voucher inválido.");
+
+    return false;
+
+  }
+
+  if (!data.ativo) {
+
+    alert("Voucher desativado.");
+
+    return false;
+
+  }
+
+  const hoje = new Date();
+  const validade =
+    new Date(data.validade);
+
+  if (hoje > validade) {
+
+    alert("Voucher expirado.");
+
+    return false;
+
+  }
+
+  if (data.usos >= data.limite_uso) {
+
+    alert(
+      "Voucher já utilizado."
+    );
+
+    return false;
+
+  }
+
+  return data;
+
+}
+
+/* ==========================================
    ENVIAR BRIEFING
 ========================================== */
 
@@ -742,6 +803,29 @@ if (briefingForm) {
         .forEach((item) => {
           funcionalidadesSelecionadas.push(item.value);
         });
+      
+        let voucherValidado = null;
+
+const tipoProjetoSelecionado =
+  document.querySelector(
+    'input[name="tipoProjeto"]:checked'
+  )?.value;
+
+if (
+  tipoProjetoSelecionado ===
+  "voucher"
+) {
+
+  voucherValidado =
+    await validarVoucher(
+      voucherCode?.value.trim()
+    );
+
+  if (!voucherValidado) {
+    return;
+  }
+
+}
 
       const dadosBriefing = {
 
@@ -789,6 +873,18 @@ if (briefingForm) {
         alert("Erro ao enviar briefing.");
         return;
       }
+
+      if (voucherValidado) {
+
+       await supabaseClient
+        .from("vouchers")
+        .update({
+        usos:
+        voucherValidado.usos + 1
+    })
+    .eq("id", voucherValidado.id);
+
+}
 
       alert("Briefing enviado com sucesso!");
 

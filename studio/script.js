@@ -359,7 +359,7 @@ function gerarCodigoVoucher() {
   const numero =
     Math.floor(Math.random() * 900 + 100);
 
-  return `CLAIM-DOZE-${numero}`;
+  return `VOUCHER-DOZE-${numero}`;
 
 }
 

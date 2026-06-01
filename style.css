@@ -1278,6 +1278,7 @@ textarea:focus {
   z-index:9999;
   display:none;
   justify-content:center;
+  animation:fadeUp 0.4s ease;
 }
 
 .cookie-banner.show{
@@ -1285,45 +1286,103 @@ textarea:focus {
 }
 
 .cookie-content{
-  max-width:900px;
+  max-width:720px;
   width:100%;
-  background:#111822;
-  border:1px solid rgba(255,255,255,0.12);
-  border-radius:20px;
-  padding:24px;
-  box-shadow:0 20px 60px rgba(0,0,0,0.45);
+  background:rgba(17,24,34,0.96);
+  backdrop-filter:blur(12px);
+  border:1px solid rgba(168,85,247,0.18);
+  border-radius:18px;
+  padding:18px 22px;
+  box-shadow:0 15px 40px rgba(0,0,0,0.35);
   color:#fff;
 }
 
 .cookie-content h3{
-  color:#39d36f;
-  margin-bottom:8px;
+  color:#c084fc;
+  margin-bottom:6px;
+  font-size:1rem;
+  font-weight:600;
 }
 
 .cookie-content p{
-  color:#d6d6d6;
-  font-size:0.95rem;
+  color:#d7d7d7;
+  font-size:0.88rem;
+  line-height:1.5;
 }
 
 .cookie-actions{
-  margin-top:18px;
+  margin-top:14px;
   display:flex;
-  gap:14px;
+  gap:12px;
   align-items:center;
   flex-wrap:wrap;
 }
 
 .cookie-actions a{
-  color:#39d36f;
+  color:#c084fc;
   text-decoration:none;
+  font-size:0.88rem;
+  transition:0.3s;
+}
+
+.cookie-actions a:hover{
+  opacity:0.8;
 }
 
 .cookie-actions button{
-  background:#39d36f;
-  color:#07100b;
+  background:linear-gradient(135deg,#a855f7,#7c3aed);
+  color:#fff;
   border:none;
-  padding:12px 22px;
+  padding:10px 18px;
   border-radius:999px;
-  font-weight:700;
+  font-size:0.85rem;
+  font-weight:600;
   cursor:pointer;
+  transition:0.3s;
+  box-shadow:0 8px 20px rgba(168,85,247,0.35);
+}
+
+.cookie-actions button:hover{
+  transform:translateY(-2px);
+  box-shadow:0 12px 25px rgba(168,85,247,0.45);
+}
+
+@keyframes fadeUp{
+  from{
+    opacity:0;
+    transform:translateY(20px);
+  }
+
+  to{
+    opacity:1;
+    transform:translateY(0);
+  }
+}
+
+@media(max-width:768px){
+
+  .cookie-banner{
+    left:12px;
+    right:12px;
+    bottom:12px;
+  }
+
+  .cookie-content{
+    padding:16px;
+  }
+
+  .cookie-content p{
+    font-size:0.82rem;
+  }
+
+  .cookie-actions{
+    width:100%;
+    flex-direction:column;
+    align-items:flex-start;
+  }
+
+  .cookie-actions button{
+    width:100%;
+    text-align:center;
+  }
 }

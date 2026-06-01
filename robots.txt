@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://dozedev.pt/sitemap.xml
+Sitemap: https://www.dozedev.pt/sitemap.xml

@@ -74,3 +74,23 @@ e gostaria de resgatar minha criação de site de 3 abas.`;
 
   window.open(link, "_blank");
 }
+
+/* ===============================
+   RGPD / COOKIES
+================================ */
+
+const cookieBanner = document.getElementById("cookieBanner");
+const acceptCookies = document.getElementById("acceptCookies");
+
+if (cookieBanner && acceptCookies) {
+  const cookiesAccepted = localStorage.getItem("dozedevCookiesAccepted");
+
+  if (!cookiesAccepted) {
+    cookieBanner.classList.add("show");
+  }
+
+  acceptCookies.addEventListener("click", () => {
+    localStorage.setItem("dozedevCookiesAccepted", "true");
+    cookieBanner.classList.remove("show");
+  });
+}

@@ -1246,3 +1246,84 @@ textarea:focus {
   padding: 16px 0;
   margin-top: 0;
 }
+
+.footer-links{
+  display:flex;
+  gap:20px;
+  justify-content:center;
+  flex-wrap:wrap;
+  margin-top:20px;
+}
+
+.footer-links a{
+  color:#bdbdbd;
+  text-decoration:none;
+  font-size:0.95rem;
+  transition:0.3s;
+}
+
+.footer-links a:hover{
+  color:#39d36f;
+}
+
+/* ===============================
+   BANNER RGPD / COOKIES
+================================ */
+
+.cookie-banner{
+  position:fixed;
+  left:20px;
+  right:20px;
+  bottom:20px;
+  z-index:9999;
+  display:none;
+  justify-content:center;
+}
+
+.cookie-banner.show{
+  display:flex;
+}
+
+.cookie-content{
+  max-width:900px;
+  width:100%;
+  background:#111822;
+  border:1px solid rgba(255,255,255,0.12);
+  border-radius:20px;
+  padding:24px;
+  box-shadow:0 20px 60px rgba(0,0,0,0.45);
+  color:#fff;
+}
+
+.cookie-content h3{
+  color:#39d36f;
+  margin-bottom:8px;
+}
+
+.cookie-content p{
+  color:#d6d6d6;
+  font-size:0.95rem;
+}
+
+.cookie-actions{
+  margin-top:18px;
+  display:flex;
+  gap:14px;
+  align-items:center;
+  flex-wrap:wrap;
+}
+
+.cookie-actions a{
+  color:#39d36f;
+  text-decoration:none;
+}
+
+.cookie-actions button{
+  background:#39d36f;
+  color:#07100b;
+  border:none;
+  padding:12px 22px;
+  border-radius:999px;
+  font-weight:700;
+  cursor:pointer;
+}

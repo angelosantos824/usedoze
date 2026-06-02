@@ -2532,3 +2532,25 @@ textarea:focus {
   }
 
 }
+
+.admin-edit-label{
+  display:grid;
+  gap:10px;
+  margin-bottom:22px;
+  color:#d1d5db;
+  font-weight:700;
+}
+
+.admin-edit-label select{
+  width:100%;
+  padding:14px 16px;
+  border-radius:16px;
+  border:1px solid rgba(168,85,247,0.18);
+  background:rgba(255,255,255,0.06);
+  color:#fff;
+  outline:none;
+}
+
+html{
+  scroll-behavior:smooth;
+}

@@ -2,433 +2,418 @@
 <html lang="pt-PT">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Dashboard | DOZEDEV Studio</title>
+  <title>Dashboard | DOZEDEV Studio</title>
 
-    <link rel="icon" href="../imagem/favicon-96x96.png">
-    <link rel="stylesheet" href="style.css">
+  <link rel="icon" href="../imagem/favicon-96x96.png">
+  
+  <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
 
-    <div class="admin-layout">
+  <div class="admin-layout">
 
-        <!-- SIDEBAR -->
-        <aside class="sidebar">
+    <!-- SIDEBAR -->
+    <aside class="sidebar">
 
-            <div class="admin-logo">
+      <div class="admin-logo">
 
-                <img src="../imagem/favicon-96x96.png" alt="DOZEDEV">
+        <img src="../imagem/favicon-96x96.png" alt="DOZEDEV">
 
-                <h2>
-                    DOZE<span>DEV</span><br>
-                    <small>Studio</small>
-                </h2>
+        <h2>
+          DOZE<span>DEV</span><br>
+          <small>Área do Cliente</small>
+        </h2>
+        
+      </div>
+      
+      <nav class="menu">
 
-            </div>
+  <div class="sidebar-user-card">
 
-            <nav class="menu">
+    <div class="sidebar-avatar" id="sidebarAvatar">
+      D
+    </div>
 
-                <a href="dashboard.html" class="active">
-                    Dashboard
-                </a>
+    <div class="sidebar-user-info">
 
-                <a href="briefing.html">
-                    Briefing
-                </a>
+      <strong id="sidebarUserName">
+        Cliente
+      </strong>
 
-                <a href="#">
-                    Meus Projetos
-                </a>
-
-                <a href="#">
-                    Uploads
-                </a>
-
-                <a href="#">
-                    Suporte
-                </a>
-
-                <a href="../index.html">
-                    Voltar ao Site
-                </a>
-
-                <button id="logoutBtn" class="logout-btn">
-                     Sair
-                </button>
-
-            </nav>
-
-        </aside>
-
-        <!-- MAIN -->
-        <main class="admin-main">
-
-            <main class="dashboard">
-
-  <div class="dashboard-header">
-
-    <div>
-      <span class="dashboard-tag">
-        DOZEDEV Studio
+      <span>
+        Cliente DOZEDEV
       </span>
 
-      <h1>
-        Dashboard
-      </h1>
-    </div>
-
-    </div>
-
-  <!-- CARDS -->
-  <section class="dashboard-cards">
-
-    <article class="dashboard-card">
-      <span>Total Briefings</span>
-      <strong id="totalBriefings">0</strong>
-    </article>
-
-    <article class="dashboard-card">
-      <span>Projetos Novos</span>
-      <strong id="novosProjetos">0</strong>
-    </article>
-
-    <article class="dashboard-card">
-      <span>Vouchers</span>
-      <strong id="totalVouchers">0</strong>
-    </article>
-
-  </section>
-
-  <!-- LISTA -->
-  <section class="dashboard-list">
-
-    <div class="dashboard-list-header">
-
-      <h2>
-        Últimos Briefings
-      </h2>
-
-    </div>
-
-    <div id="briefingsContainer" class="briefings-grid">
-
-      <!-- CARDS VIA JS -->
-
-    </div>
-
-  </section>
-
-</main>
-
-            <!-- TOPO -->
-            <div class="topbar">
-
-                <div>
-
-                    <h1>
-                        Bem-vindo ao DOZEDEV Studio
-                    </h1>
-
-                    <p>
-                        Acompanhe seus projetos, uploads e andamento.
-                    </p>
-
-                </div>
-
-                <div class="admin-user">
-                    Cliente DOZEDEV
-                </div>
-
-            </div>
-
-            <!-- CARDS -->
-            <section class="cards">
-
-                <div class="card">
-
-                    <h3>Projetos Ativos</h3>
-
-                    <strong>2</strong>
-
-                    <p>
-                        <span>1</span> em desenvolvimento
-                    </p>
-
-                </div>
-
-                <div class="card">
-
-                    <h3>Uploads Enviados</h3>
-
-                    <strong>12</strong>
-
-                    <p>
-                        Arquivos recebidos
-                    </p>
-
-                </div>
-
-                <div class="card">
-
-                    <h3>Status Atual</h3>
-
-                    <strong>
-                        Em andamento
-                    </strong>
-
-                    <p>
-                        Atualizado hoje
-                    </p>
-
-                </div>
-
-                <div class="card">
-
-                    <h3>Voucher</h3>
-
-                    <strong>
-                        CLAIM
-                    </strong>
-
-                    <p>
-                        Voucher ativo
-                    </p>
-
-                </div>
-
-            </section>
-
-            <!-- STATUS -->
-            <section class="panel">
-
-                <div class="panel-header">
-
-                    <h2>
-                        Status do Projeto
-                    </h2>
-
-                    <button class="btn">
-                        Atualizar
-                    </button>
-
-                </div>
-
-                <div class="timeline">
-
-                    <div class="timeline-item completed">
-
-                        <div class="timeline-icon"></div>
-
-                        <div class="timeline-content">
-
-                            <h3>
-                                Briefing Recebido
-                            </h3>
-
-                            <p>
-                                Todas as informações foram enviadas com sucesso.
-                            </p>
-
-                        </div>
-
-                    </div>
-
-                    <div class="timeline-item completed">
-
-                        <div class="timeline-icon"></div>
-
-                        <div class="timeline-content">
-
-                            <h3>
-                                Layout em Desenvolvimento
-                            </h3>
-
-                            <p>
-                                O design do projeto está sendo criado.
-                            </p>
-
-                        </div>
-
-                    </div>
-
-                    <div class="timeline-item active">
-
-                        <div class="timeline-icon"></div>
-
-                        <div class="timeline-content">
-
-                            <h3>
-                                Desenvolvimento Frontend
-                            </h3>
-
-                            <p>
-                                Estrutura e responsividade em andamento.
-                            </p>
-
-                        </div>
-
-                    </div>
-
-                    <div class="timeline-item">
-
-                        <div class="timeline-icon"></div>
-
-                        <div class="timeline-content">
-
-                            <h3>
-                                Finalização
-                            </h3>
-
-                            <p>
-                                Etapa ainda não iniciada.
-                            </p>
-
-                        </div>
-
-                    </div>
-
-                </div>
-
-            </section>
-
-            <!-- UPLOADS -->
-            <section class="panel">
-
-                <div class="panel-header">
-
-                    <h2>
-                        Arquivos Recentes
-                    </h2>
-
-                    <button class="btn">
-                        Enviar Arquivos
-                    </button>
-
-                </div>
-
-                <table>
-
-                    <thead>
-
-                        <tr>
-
-                            <th>Arquivo</th>
-                            <th>Tipo</th>
-                            <th>Data</th>
-                            <th>Status</th>
-
-                        </tr>
-
-                    </thead>
-
-                    <tbody>
-
-                        <tr>
-
-                            <td>logo-principal.png</td>
-                            <td>Imagem</td>
-                            <td>Hoje</td>
-
-                            <td>
-                                <span class="status finalizado">
-                                    Recebido
-                                </span>
-                            </td>
-
-                        </tr>
-
-                        <tr>
-
-                            <td>textos-site.pdf</td>
-                            <td>PDF</td>
-                            <td>Ontem</td>
-
-                            <td>
-                                <span class="status andamento">
-                                    Analisando
-                                </span>
-                            </td>
-
-                        </tr>
-
-                        <tr>
-
-                            <td>fotos-clinica.zip</td>
-                            <td>ZIP</td>
-                            <td>2 dias</td>
-
-                            <td>
-                                <span class="status recebido">
-                                    Processado
-                                </span>
-                            </td>
-
-                        </tr>
-
-                    </tbody>
-
-                </table>
-
-            </section>
-
-        </main>
-
-    </div>
-
-    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-<script src="/studio/config.js"></script>
-<script src="/studio/script.js"></script>
-
-<div id="briefingModal" class="briefing-modal">
-  <div class="briefing-modal-content">
-
-    <button id="closeBriefingModal" class="briefing-modal-close" type="button">
-      ×
-    </button>
-
-    <h2 id="modalClienteNome">Detalhes do Briefing</h2>
-
-    <div class="modal-info-grid">
-      <p><strong>Empresa:</strong> <span id="modalEmpresa"></span></p>
-      <p><strong>Email:</strong> <span id="modalEmail"></span></p>
-      <p><strong>Telefone:</strong> <span id="modalTelefone"></span></p>
-      <p><strong>Instagram:</strong> <span id="modalInstagram"></span></p>
-      <p><strong>Tipo:</strong> <span id="modalTipo"></span></p>
-      <p><strong>Voucher:</strong> <span id="modalVoucher"></span></p>
-      <p><strong>Páginas:</strong> <span id="modalPaginas"></span></p>
-      <p><strong>Prazo:</strong> <span id="modalPrazo"></span></p>
-      <p><strong>Status:</strong> <span id="modalStatus"></span></p>
-    </div>
-
-    <div class="modal-status-control">
-  <label for="modalStatusSelect">Alterar Status</label>
-
-  <select id="modalStatusSelect">
-    <option value="Novo">Novo</option>
-    <option value="Em andamento">Em andamento</option>
-    <option value="Concluído">Concluído</option>
-  </select>
-
-  <button id="salvarStatusBtn" class="btn-primary" type="button">
-    Salvar Status
-  </button>
-</div>
-
-    <div class="modal-description">
-      <h3>Descrição do Projeto</h3>
-      <p id="modalDescricao"></p>
-    </div>
-
-    <div class="modal-description">
-      <h3>Funcionalidades</h3>
-      <p id="modalFuncionalidades"></p>
     </div>
 
   </div>
+
+  <a href="#dashboardTop" class="active">
+    Dashboard
+  </a>
+
+  <a href="briefing.html">
+    Novo Briefing
+  </a>
+
+  <a href="#briefingsSection">
+    Meus Projetos
+  </a>
+
+  <a href="#uploadsSection">
+    Uploads
+  </a>
+
+  <a href="#supportSection">
+    Suporte
+  </a>
+
+  <a href="../index.html">
+    Voltar ao Site
+  </a>
+
+  <button id="logoutBtn" class="logout-btn">
+    Sair
+  </button>
+
+</nav>
+
+        <div class="sidebar-project-card">
+
+  <small>Projeto Atual</small>
+
+  <h3 id="sidebarProjetoNome">
+    Website Institucional
+  </h3>
+
+  <span id="sidebarProjetoStatus">
+    Em desenvolvimento
+  </span>
+
+  <div class="sidebar-progress">
+
+    <div
+      id="sidebarProgressFill"
+      class="sidebar-progress-fill"
+    ></div>
+
+  </div>
+
 </div>
+
+      </nav>
+
+    </aside>
+
+    <!-- MAIN -->
+    <main class="admin-main">
+
+      <!-- TOPO -->
+      <div class="topbar" id="dashboardTop">
+
+        <div>
+
+          <h1>
+            Bem-vindo ao DOZEDEV Studio
+          </h1>
+
+          <p>
+            Acompanhe seus projetos, briefings e andamento em tempo real.
+          </p>
+
+        </div>
+
+        <div class="admin-user">
+          Cliente DOZEDEV
+        </div>
+
+      </div>
+
+      <!-- CARDS -->
+
+      <div class="card">
+
+  <h3>Progresso</h3>
+
+  <strong id="clienteProgresso">
+    0%
+  </strong>
+
+  <div class="progress-bar">
+    <div id="clienteProgressFill" class="progress-fill"></div>
+  </div>
+
+</div>
+      <section class="cards">
+
+        <div class="card">
+
+          <h3>Projeto Atual</h3>
+
+          <strong id="clienteProjeto">
+            --
+          </strong>
+
+          <p>
+            Tipo de serviço
+          </p>
+
+        </div>
+
+        <div class="card">
+
+          <h3>Status Atual</h3>
+
+          <strong id="clienteStatus">
+            --
+          </strong>
+
+          <p>
+            Atualizado em tempo real
+          </p>
+
+        </div>
+
+        <div class="card">
+
+          <h3>Prazo</h3>
+
+          <strong id="clientePrazo">
+            --
+          </strong>
+
+          <p>
+            Estimativa atual
+          </p>
+
+        </div>
+
+        <div class="card">
+
+          <h3>Voucher</h3>
+
+          <strong id="clienteVoucher">
+            --
+          </strong>
+
+          <p>
+            Voucher utilizado
+          </p>
+
+        </div>
+
+      </section>
+
+      <!-- BRIEFINGS -->
+      <section class="panel" id="briefingsSection">
+
+        <div class="panel-header">
+
+          <h2>
+            Meus Briefings
+          </h2>
+
+        </div>
+
+        <div id="briefingsContainer" class="briefings-grid">
+
+          <!-- VIA JS -->
+
+        </div>
+
+      </section>
+
+      <!-- UPLOADS -->
+      <section class="panel" id="uploadsSection">
+
+        <div class="panel-header">
+
+          <h2>
+            Arquivos Recentes
+          </h2>
+
+        <label class="btn upload-btn">
+            Enviar Arquivos
+
+            <input
+                type="file"
+                id="clienteUploadInput"
+                multiple
+                hidden>
+        </label>
+
+        </div>
+
+        <table>
+
+          <thead>
+
+            <tr>
+
+              <th>Arquivo</th>
+              <th>Tipo</th>
+              <th>Data</th>
+              <th>Status</th>
+
+            </tr>
+
+          </thead>
+
+          <tbody id="clienteUploadsTable">
+
+</tbody>
+
+        </table>
+
+      </section>
+
+    </main>
+
+  </div>
+
+  <section class="panel" id="supportSection">
+
+  <div class="panel-header">
+    <h2>Comentários do Projeto</h2>
+  </div>
+
+  <div id="projectComments" class="comments-list">
+
+  </div>
+
+  <form id="commentForm" class="comment-form">
+
+    <textarea
+      id="commentInput"
+      placeholder="Escreva uma mensagem..."
+      required
+    ></textarea>
+
+    <button class="btn" type="submit">
+      Enviar Comentário
+    </button>
+
+  </form>
+
+</section>
+
+  <!-- MODAL BRIEFING -->
+  <div id="briefingModal" class="briefing-modal">
+
+    <div class="briefing-modal-content">
+
+      <button
+        id="closeBriefingModal"
+        class="briefing-modal-close"
+        type="button"
+      >
+        ×
+      </button>
+
+      <h2 id="modalClienteNome">
+        Detalhes do Briefing
+      </h2>
+
+      <div class="modal-info-grid">
+
+        <p>
+          <strong>Empresa:</strong>
+          <span id="modalEmpresa"></span>
+        </p>
+
+        <p>
+          <strong>Email:</strong>
+          <span id="modalEmail"></span>
+        </p>
+
+        <p>
+          <strong>Telefone:</strong>
+          <span id="modalTelefone"></span>
+        </p>
+
+        <p>
+          <strong>Instagram:</strong>
+          <span id="modalInstagram"></span>
+        </p>
+
+        <p>
+          <strong>Tipo:</strong>
+          <span id="modalTipo"></span>
+        </p>
+
+        <p>
+          <strong>Voucher:</strong>
+          <span id="modalVoucher"></span>
+        </p>
+
+        <p>
+          <strong>Páginas:</strong>
+          <span id="modalPaginas"></span>
+        </p>
+
+        <p>
+          <strong>Prazo:</strong>
+          <span id="modalPrazo"></span>
+        </p>
+
+        <p>
+          <strong>Status:</strong>
+          <span id="modalStatus"></span>
+        </p>
+
+      </div>
+
+      <div class="modal-description">
+
+        <h3>
+          Descrição do Projeto
+        </h3>
+
+        <p id="modalDescricao"></p>
+
+      </div>
+
+      <div class="modal-description">
+
+        <h3>
+          Funcionalidades
+        </h3>
+
+        <p id="modalFuncionalidades"></p>
+
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- MODAL PREVIEW ARQUIVO -->
+<div class="admin-modal" id="filePreviewModal">
+
+  <div class="admin-modal-content file-preview-content">
+
+    <button class="admin-modal-close" id="closeFilePreviewModal">
+      ×
+    </button>
+
+    <h2 id="filePreviewTitle">
+      Visualizar arquivo
+    </h2>
+
+    <div id="filePreviewArea" class="file-preview-area">
+    </div>
+
+  </div>
+
+</div>
+
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <script src="/studio/config.js"></script>
+  <script src="/studio/script.js"></script>
 
 </body>
 

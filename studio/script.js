@@ -99,7 +99,7 @@ async function protegerAdmin() {
 protegerAdmin();
 
  /* ==========================================
-   DASHBOARD - LISTAR BRIEFINGS
+   DASHBOARD CLIENTE - DADOS REAIS
 ========================================== */
 
 async function carregarDashboard() {
@@ -109,83 +109,99 @@ async function carregarDashboard() {
 
   if (!briefingsContainer) return;
 
-  try {
+  const {
+    data: { session },
+    error: sessionError
+  } = await supabaseClient.auth.getSession();
 
-    const { data, error } = await supabaseClient
-      .from("briefings")
-      .select("*")
-      .order("created_at", { ascending: false });
+  if (sessionError || !session) {
+    window.location.href = "login.html";
+    return;
+  }
 
-    if (error) {
-      console.error(error);
-      return;
-    }
+  const emailCliente =
+    session.user.email;
 
-    /* CARDS SUPERIORES */
+  const { data, error } = await supabaseClient
+    .from("briefings")
+    .select("*")
+    .eq("email", emailCliente)
+    .order("created_at", { ascending: false });
 
-    document.getElementById("totalBriefings").textContent =
-      data.length;
+  if (error) {
+    console.error(error);
 
-    document.getElementById("novosProjetos").textContent =
-      data.filter(item => item.status === "Novo").length;
+    briefingsContainer.innerHTML = `
+      <p>Erro ao carregar seus briefings.</p>
+    `;
 
-    document.getElementById("totalVouchers").textContent =
-      data.filter(item => item.tipo_projeto === "voucher").length;
+    return;
+  }
 
-    /* LISTA */
+  briefingsContainer.innerHTML = "";
 
-    briefingsContainer.innerHTML = "";
+  if (!data || data.length === 0) {
+    briefingsContainer.innerHTML = `
+      <p>Nenhum briefing encontrado para este utilizador.</p>
+    `;
+    return;
+  }
 
-    data.forEach((briefing) => {
+  const briefingPrincipal = data[0];
 
-      const card = document.createElement("article");
+  document.getElementById("clienteProjeto").textContent =
+    briefingPrincipal.tipo_projeto || "Projeto Web";
 
-      card.classList.add("briefing-item");
+  document.getElementById("clienteStatus").textContent =
+    briefingPrincipal.status || "Recebido";
 
-      card.innerHTML = `
+  document.getElementById("clientePrazo").textContent =
+    briefingPrincipal.prazo || "A definir";
 
-        <h3>
-          ${briefing.nome || "Sem nome"}
-        </h3>
+  document.getElementById("clienteVoucher").textContent =
+    briefingPrincipal.voucher_codigo || "Nenhum";
 
-        <p>
-          <strong>Empresa:</strong>
-          ${briefing.empresa || "Não informado"}
-        </p>
+  data.forEach((briefing) => {
 
-        <p>
-          <strong>Email:</strong>
-          ${briefing.email || "Não informado"}
-        </p>
+    const card =
+      document.createElement("article");
 
-        <p>
-          <strong>Projeto:</strong>
-          ${briefing.tipo_projeto || "normal"}
-        </p>
+    card.classList.add("briefing-item");
 
-        <p>
-          <strong>Status:</strong>
-          ${briefing.status || "Novo"}
-        </p>
+    card.innerHTML = `
 
-        <span class="briefing-badge">
-          ${briefing.paginas || "Sem páginas"}
-        </span>
+      <h3>
+        ${briefing.nome || "Sem nome"}
+      </h3>
 
-      `;
-      card.addEventListener("click", () => {
-        abrirModalBriefing(briefing);
-      });
+      <p>
+        <strong>Empresa:</strong>
+        ${briefing.empresa || "Não informado"}
+      </p>
 
-      briefingsContainer.appendChild(card);
+      <p>
+        <strong>Projeto:</strong>
+        ${briefing.tipo_projeto || "Projeto web"}
+      </p>
 
+      <p>
+        <strong>Status:</strong>
+        ${briefing.status || "Recebido"}
+      </p>
+
+      <span class="briefing-badge">
+        ${briefing.paginas || "Sem páginas"}
+      </span>
+
+    `;
+
+    card.addEventListener("click", () => {
+      abrirModalBriefing(briefing);
     });
 
-  } catch (err) {
+    briefingsContainer.appendChild(card);
 
-    console.error(err);
-
-  }
+  });
 
 }
 
@@ -193,19 +209,12 @@ carregarDashboard();
 
 function abrirModalBriefing(briefing) {
 
-  const modal = document.getElementById("briefingModal");
+  const modal =
+    document.getElementById("briefingModal");
 
   if (!modal) return;
 
   briefingAtualId = briefing.id;
-
-  const modalStatusSelect =
-    document.getElementById("modalStatusSelect");
-
-  if (modalStatusSelect) {
-    modalStatusSelect.value =
-      briefing.status || "Novo";
-  }
 
   document.getElementById("modalClienteNome").textContent =
     briefing.nome || "Detalhes do Briefing";
@@ -235,7 +244,7 @@ function abrirModalBriefing(briefing) {
     briefing.prazo || "Não informado";
 
   document.getElementById("modalStatus").textContent =
-    briefing.status || "Novo";
+    briefing.status || "Recebido";
 
   document.getElementById("modalDescricao").textContent =
     briefing.descricao || "Sem descrição.";
@@ -245,52 +254,6 @@ function abrirModalBriefing(briefing) {
 
   modal.classList.add("active");
 
-}
-
-const closeBriefingModal = document.getElementById("closeBriefingModal");
-const briefingModal = document.getElementById("briefingModal");
-
-if (closeBriefingModal && briefingModal) {
-  closeBriefingModal.addEventListener("click", () => {
-    briefingModal.classList.remove("active");
-  });
-
-  briefingModal.addEventListener("click", (event) => {
-    if (event.target === briefingModal) {
-      briefingModal.classList.remove("active");
-    }
-  });
-  }
-
-const salvarStatusBtn = document.getElementById("salvarStatusBtn");
-
-if (salvarStatusBtn) {
-  salvarStatusBtn.addEventListener("click", async () => {
-    const modalStatusSelect = document.getElementById("modalStatusSelect");
-
-    if (!briefingAtualId || !modalStatusSelect) {
-      alert("Nenhum briefing selecionado.");
-      return;
-    }
-
-    const novoStatus = modalStatusSelect.value;
-
-    const { error } = await supabaseClient
-      .from("briefings")
-      .update({ status: novoStatus })
-      .eq("id", briefingAtualId);
-
-    if (error) {
-      console.error(error);
-      alert("Erro ao atualizar status.");
-      return;
-    }
-
-    document.getElementById("modalStatus").textContent = novoStatus;
-
-    alert("Status atualizado com sucesso!");
-    location.reload();
-  });
 }
   
 /* ==========================================
@@ -381,6 +344,11 @@ async function carregarVouchers() {
 
     console.error(error);
 
+    mostrarToast(
+      "Erro ao carregar vouchers.",
+      "error"
+    );
+
     return;
 
   }
@@ -454,8 +422,9 @@ async function carregarVouchers() {
 
             console.error(error);
 
-            alert(
-              "Erro ao atualizar voucher."
+            mostrarToast(
+              "Erro ao atualizar voucher.",
+              "error"
             );
 
             return;
@@ -463,6 +432,13 @@ async function carregarVouchers() {
           }
 
           carregarVouchers();
+
+          mostrarToast(
+            ativoAtual
+              ? "Voucher desativado."
+              : "Voucher reativado.",
+            "success"
+          );
 
         }
       );
@@ -508,16 +484,18 @@ if (gerarVoucherBtn) {
 
         console.error(error);
 
-        alert(
-          "Erro ao gerar voucher."
+        mostrarToast(
+          "Erro ao gerar voucher.",
+          "error"
         );
 
         return;
 
       }
 
-      alert(
-        `Voucher criado: ${codigo}`
+      mostrarToast(
+        "Voucher criado com sucesso!",
+        "success"
       );
 
       carregarVouchers();
@@ -954,7 +932,7 @@ if (
 
 }
 
-      alert("Briefing enviado com sucesso!");
+      mostrarToast("Briefing enviado com sucesso!", "success");
 
       briefingForm.reset();
 
@@ -1101,3 +1079,1894 @@ if (
 
 }
 });
+
+/* ==========================================
+   ADMIN PAINEL - NAVEGAÇÃO E BOTÕES
+========================================== */
+
+const menuLinks = document.querySelectorAll(".menu a[data-section]");
+const panelTitle = document.querySelector(".panel-header h2");
+const tableBody = document.querySelector("tbody");
+const novoProjetoBtn = document.getElementById("novoProjetoBtn");
+const logoutBtn = document.getElementById("logoutBtn");
+
+/* ==========================================
+   ADMIN - BRIEFINGS REAIS
+========================================== */
+
+async function carregarAdminReal() {
+
+  const tableBody =
+    document.querySelector("tbody");
+
+  const panelTitle =
+    document.querySelector(".panel-header h2");
+
+  if (!tableBody) return;
+
+  if (panelTitle) {
+    panelTitle.textContent =
+      "Briefings Recebidos";
+  }
+
+  const { data, error } =
+    await supabaseClient
+      .from("briefings")
+      .select("*")
+      .order("created_at", {
+        ascending: false
+      });
+
+  if (error) {
+
+    console.error(error);
+
+    tableBody.innerHTML = `
+      <tr>
+        <td colspan="5">
+          Erro ao carregar dados.
+        </td>
+      </tr>
+    `;
+
+    return;
+
+  }
+
+  tableBody.innerHTML = "";
+
+  if (!data || data.length === 0) {
+
+    tableBody.innerHTML = `
+      <tr>
+        <td colspan="5">
+          Nenhum briefing encontrado.
+        </td>
+      </tr>
+    `;
+
+    return;
+
+  }
+
+  data.forEach((briefing) => {
+
+    const tr =
+      document.createElement("tr");
+
+    tr.innerHTML = `
+
+      <td>
+        ${briefing.nome || "Sem nome"}
+      </td>
+
+      <td>
+        ${briefing.empresa || "Não informado"}
+      </td>
+
+      <td>
+        ${briefing.tipo_projeto || "Projeto"}
+      </td>
+
+      <td>
+        <span class="status recebido">
+          ${briefing.status || "Recebido"}
+        </span>
+      </td>
+
+      <td class="acoes">
+
+  <button
+    class="verBtn"
+    data-id="${briefing.id}"
+  >
+    Ver
+  </button>
+
+  <button
+    class="editarBtn"
+    data-id="${briefing.id}"
+  >
+    Editar
+  </button>
+
+  <button
+    class="excluirBtn"
+    data-id="${briefing.id}"
+  >
+    Excluir
+  </button>
+
+</td>
+
+    `;
+
+    tableBody.appendChild(tr);
+
+  });
+
+  ativarAcoesAdmin();
+
+}
+
+/* ==========================================
+   BOTÕES ADMIN
+========================================== */
+
+function ativarAcoesAdmin() {
+
+  document
+    .querySelectorAll(".verBtn")
+    .forEach((btn) => {
+
+      btn.addEventListener("click", async () => {
+
+        const id = btn.dataset.id;
+
+        const { data } = await supabaseClient
+          .from("briefings")
+          .select("*")
+          .eq("id", id)
+          .single();
+
+        if (!data) return;
+
+        const modal =
+          document.getElementById("adminBriefingModal");
+
+        if (!modal) return;
+
+        document.getElementById("adminModalNome").textContent =
+          data.nome || "Detalhes do Briefing";
+
+        document.getElementById("adminModalEmpresa").textContent =
+          data.empresa || "Não informado";
+
+        document.getElementById("adminModalEmail").textContent =
+          data.email || "Não informado";
+
+        document.getElementById("adminModalTelefone").textContent =
+          data.telefone || "Não informado";
+
+        document.getElementById("adminModalProjeto").textContent =
+          data.tipo_projeto || "Projeto";
+
+        document.getElementById("adminModalPaginas").textContent =
+          data.paginas || "Não informado";
+
+        document.getElementById("adminModalPrazo").textContent =
+          data.prazo || "Não informado";
+
+        document.getElementById("adminModalStatus").textContent =
+          data.status || "Recebido";
+
+        document.getElementById("adminModalDescricao").textContent =
+          data.descricao || "Sem descrição.";
+
+        modal.classList.add("active");
+
+        carregarComentariosAdmin(data.id);
+
+      });
+
+    });
+
+    document
+  .querySelectorAll(".excluirBtn")
+  .forEach((btn) => {
+
+    btn.addEventListener("click", async () => {
+
+      const id = btn.dataset.id;
+
+      const confirmar = confirm(
+        "Tem certeza que deseja excluir este briefing?"
+      );
+
+      if (!confirmar) return;
+
+      const { error } = await supabaseClient
+        .from("briefings")
+        .delete()
+        .eq("id", id);
+
+      if (error) {
+        console.error(error);
+        alert("Erro ao excluir briefing.");
+        return;
+      }
+
+      carregarAdminReal();
+      carregarCardsAdmin();
+
+    });
+
+  });
+
+  document
+  .querySelectorAll(".editarBtn")
+  .forEach((btn) => {
+
+    btn.addEventListener("click", async () => {
+
+      const id = btn.dataset.id;
+
+      const { data } = await supabaseClient
+        .from("briefings")
+        .select("id,status")
+        .eq("id", id)
+        .single();
+
+      if (!data) return;
+
+      document.getElementById("editBriefingId").value =
+        data.id;
+
+      document.getElementById("editStatusSelect").value =
+        data.status || "Recebido";
+
+      document
+        .getElementById("adminEditModal")
+        .classList.add("active");
+
+    });
+
+  });
+}
+
+/* ==========================================
+   INICIAR ADMIN
+========================================== */
+
+if (
+  window.location.pathname.includes(
+    "admin.html"
+  )
+) {
+
+  carregarAdminReal();
+
+}
+
+/* ==========================================
+   ADMIN - MENU REAL
+========================================== */
+
+const adminMenuLinks =
+  document.querySelectorAll(".menu a[data-section]");
+
+adminMenuLinks.forEach((link) => {
+
+  link.addEventListener("click", async (event) => {
+
+    event.preventDefault();
+
+    adminMenuLinks.forEach((item) => {
+      item.classList.remove("active");
+    });
+
+    link.classList.add("active");
+
+    const secao = link.dataset.section;
+
+    if (secao === "dashboard" || secao === "briefings") {
+      carregarAdminReal();
+      return;
+    }
+
+    if (secao === "vouchers") {
+      carregarAdminVouchers();
+      return;
+    }
+
+    if (secao === "uploads") {
+      carregarAdminUploads();
+      return;
+    }
+
+    mostrarSecaoEmBreve(secao);
+
+  });
+
+});
+
+/* ==========================================
+   ADMIN - VOUCHERS REAIS
+========================================== */
+
+async function carregarAdminVouchers() {
+
+  const tableBody =
+    document.querySelector("tbody");
+
+  const panelTitle =
+    document.querySelector(".panel-header h2");
+
+  if (!tableBody) return;
+
+  if (panelTitle) {
+    panelTitle.textContent = "Vouchers";
+  }
+
+  const { data, error } =
+    await supabaseClient
+      .from("vouchers")
+      .select("*")
+      .order("criado_em", {
+        ascending: false
+      });
+
+  if (error) {
+    console.error(error);
+
+    tableBody.innerHTML = `
+      <tr>
+        <td colspan="5">
+          Erro ao carregar vouchers.
+        </td>
+      </tr>
+    `;
+
+    return;
+  }
+
+  tableBody.innerHTML = "";
+
+  if (!data || data.length === 0) {
+    tableBody.innerHTML = `
+      <tr>
+        <td colspan="5">
+          Nenhum voucher encontrado.
+        </td>
+      </tr>
+    `;
+
+    return;
+  }
+
+  data.forEach((voucher) => {
+
+    const tr =
+      document.createElement("tr");
+
+    tr.innerHTML = `
+      <td>${voucher.codigo}</td>
+      <td>Limite: ${voucher.limite_uso}</td>
+      <td>Usos: ${voucher.usos}</td>
+      <td>
+        <span class="status ${voucher.ativo ? "recebido" : "finalizado"}">
+          ${voucher.ativo ? "Ativo" : "Inativo"}
+        </span>
+      </td>
+      <td class="acoes">
+        <button
+          class="toggleVoucherBtn"
+          data-id="${voucher.id}"
+          data-ativo="${voucher.ativo}"
+        >
+          ${voucher.ativo ? "Desativar" : "Reativar"}
+        </button>
+      </td>
+    `;
+
+    tableBody.appendChild(tr);
+
+  });
+
+  ativarBotoesVoucherAdmin();
+
+}
+
+function ativarBotoesVoucherAdmin() {
+
+  document
+    .querySelectorAll(".toggleVoucherBtn")
+    .forEach((btn) => {
+
+      btn.addEventListener("click", async () => {
+
+        const id = btn.dataset.id;
+        const ativoAtual = btn.dataset.ativo === "true";
+
+        const { error } =
+          await supabaseClient
+            .from("vouchers")
+            .update({
+              ativo: !ativoAtual
+            })
+            .eq("id", id);
+
+        if (error) {
+          console.error(error);
+          alert("Erro ao atualizar voucher.");
+          return;
+        }
+
+        carregarAdminVouchers();
+
+      });
+
+    });
+
+}
+
+/* ==========================================
+   ADMIN - SEÇÕES EM BREVE
+========================================== */
+
+function mostrarSecaoEmBreve(secao) {
+
+  const tableBody =
+    document.querySelector("tbody");
+
+  const panelTitle =
+    document.querySelector(".panel-header h2");
+
+  if (panelTitle) {
+    panelTitle.textContent =
+      secao.charAt(0).toUpperCase() + secao.slice(1);
+  }
+
+  if (tableBody) {
+    tableBody.innerHTML = `
+      <tr>
+        <td colspan="5">
+          Módulo "${secao}" em desenvolvimento.
+        </td>
+      </tr>
+    `;
+  }
+
+}
+
+/* ==========================================
+   ADMIN - CARDS REAIS
+========================================== */
+
+async function carregarCardsAdmin() {
+
+  if (
+    !window.location.pathname.includes("admin.html")
+  ) {
+    return;
+  }
+
+  const { data: briefings } =
+    await supabaseClient
+      .from("briefings")
+      .select("*");
+
+  const { data: vouchers } =
+    await supabaseClient
+      .from("vouchers")
+      .select("*");
+
+  const totalBriefingsAdmin =
+    document.getElementById("totalBriefingsAdmin");
+
+  const briefingsPendentes =
+    document.getElementById("briefingsPendentes");
+
+  const totalVouchersAdmin =
+    document.getElementById("totalVouchersAdmin");
+
+  const vouchersAtivos =
+    document.getElementById("vouchersAtivos");
+
+  const totalClientes =
+    document.getElementById("totalClientes");
+
+  const totalProjetos =
+    document.getElementById("totalProjetos");
+
+  const projetosAndamento =
+    document.getElementById("projetosAndamento");
+
+  if (totalBriefingsAdmin) {
+    totalBriefingsAdmin.textContent =
+      briefings?.length || 0;
+  }
+
+  if (briefingsPendentes) {
+    briefingsPendentes.textContent =
+      briefings?.filter(
+        (item) =>
+          item.status === "Novo" ||
+          item.status === "Recebido" ||
+          !item.status
+      ).length || 0;
+  }
+
+  if (totalVouchersAdmin) {
+    totalVouchersAdmin.textContent =
+      vouchers?.length || 0;
+  }
+
+  if (vouchersAtivos) {
+    vouchersAtivos.textContent =
+      vouchers?.filter(
+        (item) => item.ativo
+      ).length || 0;
+  }
+
+  if (totalClientes) {
+    const clientesUnicos =
+      new Set(
+        briefings?.map((item) => item.email)
+      );
+
+    totalClientes.textContent =
+      clientesUnicos.size || 0;
+  }
+
+  if (totalProjetos) {
+    totalProjetos.textContent =
+      briefings?.filter(
+        (item) =>
+          item.status === "Em andamento" ||
+          item.status === "Em desenvolvimento"
+      ).length || 0;
+  }
+
+  if (projetosAndamento) {
+    projetosAndamento.textContent =
+      briefings?.filter(
+        (item) =>
+          item.status === "Em andamento" ||
+          item.status === "Em desenvolvimento"
+      ).length || 0;
+  }
+
+}
+
+carregarCardsAdmin();
+
+/* ==========================================
+   ADMIN - FECHAR MODAL BRIEFING
+========================================== */
+
+const adminBriefingModal =
+  document.getElementById("adminBriefingModal");
+
+const closeAdminBriefingModal =
+  document.getElementById("closeAdminBriefingModal");
+
+if (adminBriefingModal && closeAdminBriefingModal) {
+
+  closeAdminBriefingModal.addEventListener("click", () => {
+    adminBriefingModal.classList.remove("active");
+  });
+
+  adminBriefingModal.addEventListener("click", (event) => {
+    if (event.target === adminBriefingModal) {
+      adminBriefingModal.classList.remove("active");
+    }
+  });
+
+}
+
+/* ==========================================
+   ADMIN - MODAL EDITAR STATUS
+========================================== */
+
+const adminEditModal =
+  document.getElementById("adminEditModal");
+
+const closeAdminEditModal =
+  document.getElementById("closeAdminEditModal");
+
+const salvarEditStatusBtn =
+  document.getElementById("salvarEditStatusBtn");
+
+if (adminEditModal && closeAdminEditModal) {
+
+  closeAdminEditModal.addEventListener("click", () => {
+    adminEditModal.classList.remove("active");
+  });
+
+  adminEditModal.addEventListener("click", (event) => {
+    if (event.target === adminEditModal) {
+      adminEditModal.classList.remove("active");
+    }
+  });
+
+}
+
+if (salvarEditStatusBtn) {
+
+  salvarEditStatusBtn.addEventListener("click", async () => {
+
+    const id =
+      document.getElementById("editBriefingId").value;
+
+    const status =
+      document.getElementById("editStatusSelect").value;
+
+    if (!id || !status) return;
+
+    const { error } = await supabaseClient
+      .from("briefings")
+      .update({ status })
+      .eq("id", id);
+
+    if (error) {
+      console.error(error);
+
+      mostrarToast(
+        "Erro ao atualizar status.",
+        "error"
+      );
+
+      return;
+    }
+
+    adminEditModal.classList.remove("active");
+
+    mostrarToast(
+      "Status atualizado com sucesso!",
+      "success"
+    );
+
+    carregarAdminReal();
+    carregarCardsAdmin();
+
+  });
+
+}
+
+/* ==========================================
+   ADMIN - BUSCA E FILTROS
+========================================== */
+
+const adminSearch =
+  document.getElementById("adminSearch");
+
+const adminStatusFilter =
+  document.getElementById("adminStatusFilter");
+
+function aplicarFiltrosAdmin() {
+
+  const linhas =
+    document.querySelectorAll("tbody tr");
+
+  const termo =
+    adminSearch?.value.toLowerCase() || "";
+
+  const statusFiltro =
+    adminStatusFilter?.value || "";
+
+  linhas.forEach((linha) => {
+
+    const texto =
+      linha.textContent.toLowerCase();
+
+    const status =
+      linha.querySelector(".status")
+        ?.textContent.trim() || "";
+
+    const correspondeBusca =
+      texto.includes(termo);
+
+    const correspondeStatus =
+      !statusFiltro ||
+      status === statusFiltro;
+
+    linha.style.display =
+      correspondeBusca &&
+      correspondeStatus
+        ? ""
+        : "none";
+
+  });
+
+}
+
+if (adminSearch) {
+
+  adminSearch.addEventListener(
+    "input",
+    aplicarFiltrosAdmin
+  );
+
+}
+
+if (adminStatusFilter) {
+
+  adminStatusFilter.addEventListener(
+    "change",
+    aplicarFiltrosAdmin
+  );
+
+}
+
+/* ==========================================
+   TOASTS PREMIUM
+========================================== */
+
+function mostrarToast(
+  mensagem,
+  tipo = "info"
+) {
+
+  const toastContainer =
+    document.getElementById("toastContainer");
+
+  if (!toastContainer) return;
+
+  const toast =
+    document.createElement("div");
+
+  toast.classList.add("toast", tipo);
+
+  toast.textContent = mensagem;
+
+  toastContainer.appendChild(toast);
+
+  setTimeout(() => {
+
+    toast.style.opacity = "0";
+    toast.style.transform = "translateY(-10px)";
+
+    setTimeout(() => {
+      toast.remove();
+    }, 300);
+
+  }, 3000);
+
+}
+
+/* ==========================================
+   REALTIME ADMIN
+========================================== */
+
+if (
+  window.location.pathname.includes(
+    "admin.html"
+  )
+) {
+
+  supabaseClient
+    .channel("admin-realtime")
+
+    /* BRIEFINGS */
+    .on(
+      "postgres_changes",
+      {
+        event: "*",
+        schema: "public",
+        table: "briefings"
+      },
+      () => {
+
+        carregarAdminReal();
+        carregarCardsAdmin();
+
+      }
+    )
+
+    /* VOUCHERS */
+    .on(
+      "postgres_changes",
+      {
+        event: "*",
+        schema: "public",
+        table: "vouchers"
+      },
+      () => {
+
+        carregarVouchers();
+        carregarCardsAdmin();
+
+      }
+    )
+
+    .subscribe();
+
+}
+
+/* ==========================================
+   CLIENTE - UPLOAD DE ARQUIVOS
+========================================== */
+
+const clienteUploadInput =
+  document.getElementById("clienteUploadInput");
+
+const clienteUploadsTable =
+  document.getElementById("clienteUploadsTable");
+
+if (clienteUploadInput) {
+
+  clienteUploadInput.addEventListener("change", async () => {
+
+    const arquivos =
+      Array.from(clienteUploadInput.files);
+
+    if (arquivos.length === 0) return;
+
+    const {
+      data: { session }
+    } = await supabaseClient.auth.getSession();
+
+    if (!session) {
+      window.location.href = "login.html";
+      return;
+    }
+
+    for (const arquivo of arquivos) {
+
+      const caminho =
+        `${session.user.id}/${Date.now()}-${arquivo.name}`;
+
+      const { error } =
+        await supabaseClient.storage
+          .from("project-files")
+          .upload(caminho, arquivo);
+
+      if (error) {
+        console.error(error);
+
+        mostrarToast(
+          `Erro ao enviar ${arquivo.name}`,
+          "error"
+        );
+
+        continue;
+      }
+      await supabaseClient
+        .from("project_uploads")
+        .insert([{
+        user_id: session.user.id,
+        email: session.user.email,
+        nome_arquivo: arquivo.name,
+        caminho: caminho,
+        tipo: arquivo.type
+  }]);
+
+      mostrarToast(
+        `${arquivo.name} enviado com sucesso!`,
+        "success"
+      );
+
+    }
+
+    clienteUploadInput.value = "";
+
+    carregarUploadsCliente();
+
+  });
+
+}
+
+async function carregarUploadsCliente() {
+
+  if (!clienteUploadsTable) return;
+
+  const {
+    data: { session }
+  } = await supabaseClient.auth.getSession();
+
+  if (!session) return;
+
+  const { data, error } =
+    await supabaseClient.storage
+      .from("project-files")
+      .list(session.user.id, {
+        limit: 50,
+        sortBy: {
+          column: "created_at",
+          order: "desc"
+        }
+      });
+
+  if (error) {
+    console.error(error);
+    return;
+  }
+
+  clienteUploadsTable.innerHTML = "";
+
+  if (!data || data.length === 0) {
+    clienteUploadsTable.innerHTML = `
+      <tr>
+        <td colspan="4">
+          Nenhum arquivo enviado ainda.
+        </td>
+      </tr>
+    `;
+    return;
+  }
+
+  data.forEach((arquivo) => {
+
+    const tr =
+      document.createElement("tr");
+
+    const filePath =
+      `${session.user.id}/${arquivo.name}`;
+
+    tr.innerHTML = `
+
+      <td>
+        ${arquivo.name}
+      </td>
+
+      <td>
+        ${arquivo.metadata?.mimetype || "Arquivo"}
+      </td>
+
+      <td>
+        ${new Date(
+          arquivo.created_at
+        ).toLocaleDateString("pt-PT")}
+      </td>
+
+      <td>
+
+        <button
+          class="upload-action-btn visualizarArquivoBtn"
+          data-path="${filePath}"
+        >
+          Ver
+        </button>
+
+        <button
+          class="upload-action-btn baixarArquivoBtn"
+          data-path="${filePath}"
+          data-name="${arquivo.name}"
+        >
+          Download
+        </button>
+
+      </td>
+
+    `;
+
+    clienteUploadsTable.appendChild(tr);
+
+    /* VISUALIZAR */
+    const visualizarBtn =
+      tr.querySelector(".visualizarArquivoBtn");
+
+    if (visualizarBtn) {
+
+      visualizarBtn.addEventListener("click", async () => {
+
+        const path =
+          visualizarBtn.dataset.path;
+
+        const { data, error } =
+          await supabaseClient.storage
+            .from("project-files")
+            .createSignedUrl(path, 120);
+
+        if (error) {
+          console.error(error);
+
+          mostrarToast(
+            "Erro ao abrir arquivo.",
+            "error"
+          );
+
+          return;
+        }
+
+        abrirPreviewArquivo(
+          arquivo.name,
+          arquivo.metadata?.mimetype,
+          data.signedUrl);
+
+      });
+
+    }
+
+    /* DOWNLOAD */
+    const baixarBtn =
+      tr.querySelector(".baixarArquivoBtn");
+
+    if (baixarBtn) {
+
+      baixarBtn.addEventListener("click", async () => {
+
+        const path =
+          baixarBtn.dataset.path;
+
+        const nome =
+          baixarBtn.dataset.name;
+
+        const { data, error } =
+          await supabaseClient.storage
+            .from("project-files")
+            .download(path);
+
+        if (error) {
+          console.error(error);
+
+          mostrarToast(
+            "Erro ao baixar arquivo.",
+            "error"
+          );
+
+          return;
+        }
+
+        const url =
+          URL.createObjectURL(data);
+
+        const link =
+          document.createElement("a");
+
+        link.href = url;
+        link.download = nome;
+
+        document.body.appendChild(link);
+        link.click();
+
+        link.remove();
+
+        URL.revokeObjectURL(url);
+
+      });
+
+    }
+
+  });
+
+}
+
+carregarUploadsCliente();
+
+/* ==========================================
+   CLIENTE - PREVIEW DE ARQUIVO EM MODAL
+========================================== */
+
+function abrirPreviewArquivo(nome, tipo, url) {
+
+  const modal =
+    document.getElementById("filePreviewModal");
+
+  const title =
+    document.getElementById("filePreviewTitle");
+
+  const area =
+    document.getElementById("filePreviewArea");
+
+  if (!modal || !title || !area) return;
+
+  title.textContent = nome;
+
+  area.innerHTML = "";
+
+  if (tipo && tipo.startsWith("image/")) {
+
+    area.innerHTML = `
+      <img src="${url}" alt="${nome}">
+    `;
+
+  } else if (tipo === "application/pdf") {
+
+    area.innerHTML = `
+      <iframe src="${url}"></iframe>
+    `;
+
+  } else {
+
+    area.innerHTML = `
+      <p>
+        Pré-visualização indisponível para este tipo de arquivo.
+        Use o botão Download.
+      </p>
+    `;
+
+  }
+
+  modal.classList.add("active");
+
+}
+
+const filePreviewModal =
+  document.getElementById("filePreviewModal");
+
+const closeFilePreviewModal =
+  document.getElementById("closeFilePreviewModal");
+
+if (filePreviewModal && closeFilePreviewModal) {
+
+  closeFilePreviewModal.addEventListener("click", () => {
+    filePreviewModal.classList.remove("active");
+  });
+
+  filePreviewModal.addEventListener("click", (event) => {
+    if (event.target === filePreviewModal) {
+      filePreviewModal.classList.remove("active");
+    }
+  });
+
+}
+
+/* ==========================================
+   ADMIN - UPLOADS DOS CLIENTES
+========================================== */
+
+async function carregarAdminUploads() {
+
+  const tableBody =
+    document.querySelector("tbody");
+
+  const panelTitle =
+    document.querySelector(".panel-header h2");
+
+  if (!tableBody) return;
+
+  if (panelTitle) {
+    panelTitle.textContent = "Uploads dos Clientes";
+  }
+
+  const { data, error } =
+    await supabaseClient
+      .from("project_uploads")
+      .select("*")
+      .order("criado_em", {
+        ascending: false
+      });
+
+  if (error) {
+    console.error(error);
+
+    tableBody.innerHTML = `
+      <tr>
+        <td colspan="5">
+          Erro ao carregar uploads.
+        </td>
+      </tr>
+    `;
+
+    return;
+  }
+
+  tableBody.innerHTML = "";
+
+  if (!data || data.length === 0) {
+    tableBody.innerHTML = `
+      <tr>
+        <td colspan="5">
+          Nenhum upload encontrado.
+        </td>
+      </tr>
+    `;
+
+    return;
+  }
+
+  data.forEach((upload) => {
+
+    const tr =
+      document.createElement("tr");
+
+    tr.innerHTML = `
+      <td>${upload.nome_arquivo}</td>
+      <td>${upload.email || "Cliente"}</td>
+      <td>${upload.tipo || "Arquivo"}</td>
+      <td>
+        <span class="status recebido">
+          Recebido
+        </span>
+      </td>
+      <td class="acoes">
+        <button
+          class="adminVerUploadBtn"
+          data-path="${upload.caminho}"
+          data-name="${upload.nome_arquivo}"
+          data-type="${upload.tipo}"
+        >
+          Ver
+        </button>
+
+        <button
+          class="adminBaixarUploadBtn"
+          data-path="${upload.caminho}"
+          data-name="${upload.nome_arquivo}"
+        >
+          Download
+        </button>
+      </td>
+    `;
+
+    tableBody.appendChild(tr);
+
+  });
+
+  ativarBotoesAdminUploads();
+
+}
+
+function ativarBotoesAdminUploads() {
+
+  document
+    .querySelectorAll(".adminVerUploadBtn")
+    .forEach((btn) => {
+
+      btn.addEventListener("click", async () => {
+
+        const path = btn.dataset.path;
+
+        const { data, error } =
+          await supabaseClient.storage
+            .from("project-files")
+            .createSignedUrl(path, 120);
+
+        if (error) {
+          console.error(error);
+          mostrarToast("Erro ao abrir arquivo.", "error");
+          return;
+        }
+
+        abrirPreviewArquivo(
+          btn.dataset.name,
+          btn.dataset.type,
+          data.signedUrl
+        );
+
+      });
+
+    });
+
+  document
+    .querySelectorAll(".adminBaixarUploadBtn")
+    .forEach((btn) => {
+
+      btn.addEventListener("click", async () => {
+
+        const path = btn.dataset.path;
+        const nome = btn.dataset.name;
+
+        const { data, error } =
+          await supabaseClient.storage
+            .from("project-files")
+            .download(path);
+
+        if (error) {
+          console.error(error);
+          mostrarToast("Erro ao baixar arquivo.", "error");
+          return;
+        }
+
+        const url = URL.createObjectURL(data);
+
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = nome;
+
+        document.body.appendChild(link);
+        link.click();
+
+        link.remove();
+        URL.revokeObjectURL(url);
+
+      });
+
+    });
+
+}
+
+/* ==========================================
+   COMENTÁRIOS DO PROJETO
+========================================== */
+
+const projectComments =
+  document.getElementById("projectComments");
+
+const commentForm =
+  document.getElementById("commentForm");
+
+const commentInput =
+  document.getElementById("commentInput");
+
+async function carregarComentariosProjeto() {
+
+  if (!projectComments) return;
+
+  const {
+    data: { session }
+  } = await supabaseClient.auth.getSession();
+
+  if (!session) return;
+
+  const { data: briefings } =
+    await supabaseClient
+      .from("briefings")
+      .select("id")
+      .eq("email", session.user.email)
+      .limit(1);
+
+  if (!briefings || briefings.length === 0) return;
+
+  const briefingId =
+    briefings[0].id;
+
+  const { data, error } =
+    await supabaseClient
+      .from("project_comments")
+      .select("*")
+      .eq("briefing_id", briefingId)
+      .order("criado_em", {
+        ascending: true
+      });
+
+  if (error) {
+    console.error(error);
+    return;
+  }
+
+  projectComments.innerHTML = "";
+
+  if (!data || data.length === 0) {
+
+    projectComments.innerHTML = `
+      <p>Nenhum comentário ainda.</p>
+    `;
+
+    return;
+
+  }
+
+  data.forEach((comentario) => {
+
+    const div =
+      document.createElement("div");
+
+    div.classList.add("comment-item");
+
+    div.innerHTML = `
+      <strong>
+        ${comentario.user_nome}
+      </strong>
+
+      <p>
+        ${comentario.mensagem}
+      </p>
+
+      <span>
+        ${new Date(
+          comentario.criado_em
+        ).toLocaleString("pt-PT")}
+      </span>
+    `;
+
+    projectComments.appendChild(div);
+
+  });
+
+}
+
+if (commentForm) {
+
+  commentForm.addEventListener("submit", async (event) => {
+
+    event.preventDefault();
+
+    const mensagem =
+      commentInput.value.trim();
+
+    if (!mensagem) return;
+
+    const {
+      data: { session }
+    } = await supabaseClient.auth.getSession();
+
+    if (!session) return;
+
+    const { data: briefings } =
+      await supabaseClient
+        .from("briefings")
+        .select("id,nome")
+        .eq("email", session.user.email)
+        .limit(1);
+
+    if (!briefings || briefings.length === 0) return;
+
+    const briefing =
+      briefings[0];
+
+    const { error } =
+      await supabaseClient
+        .from("project_comments")
+        .insert([{
+
+          briefing_id:
+            briefing.id,
+
+          user_id:
+            session.user.id,
+
+          user_nome:
+            briefing.nome,
+
+          mensagem
+
+        }]);
+
+      if (error) {
+      console.error(error);
+
+      mostrarToast(
+        "Erro ao enviar comentário.",
+        "error"
+      );
+
+      return;
+    }
+
+    commentInput.value = "";
+
+    mostrarToast(
+      "Comentário enviado!",
+      "success"
+    );
+
+    carregarComentariosProjeto();
+
+  });
+
+}
+
+carregarComentariosProjeto();
+
+/* ==========================================
+   CLIENTE - PREVIEW DE ARQUIVO EM MODAL
+========================================== */
+
+function abrirPreviewArquivo(nome, tipo, url) {
+
+  const modal =
+    document.getElementById("filePreviewModal");
+
+  const title =
+    document.getElementById("filePreviewTitle");
+
+  const area =
+    document.getElementById("filePreviewArea");
+
+  if (!modal || !title || !area) return;
+
+  title.textContent = nome;
+
+  area.innerHTML = "";
+
+  if (tipo && tipo.startsWith("image/")) {
+
+    area.innerHTML = `
+      <img src="${url}" alt="${nome}">
+    `;
+
+  } else if (tipo === "application/pdf") {
+
+    area.innerHTML = `
+      <iframe src="${url}"></iframe>
+    `;
+
+  } else {
+
+    area.innerHTML = `
+      <p>
+        Pré-visualização indisponível para este tipo de arquivo.
+        Use o botão Download.
+      </p>
+    `;
+
+  }
+
+  modal.classList.add("active");
+
+}
+
+/* ==========================================
+   ADMIN - COMENTÁRIOS DO BRIEFING
+========================================== */
+
+let adminBriefingComentarioId = null;
+
+async function carregarComentariosAdmin(briefingId) {
+
+  adminBriefingComentarioId = briefingId;
+
+  const adminProjectComments =
+    document.getElementById("adminProjectComments");
+
+  if (!adminProjectComments) return;
+
+  const { data, error } =
+    await supabaseClient
+      .from("project_comments")
+      .select("*")
+      .eq("briefing_id", briefingId)
+      .order("criado_em", {
+        ascending: true
+      });
+
+  if (error) {
+    console.error(error);
+    return;
+  }
+
+  adminProjectComments.innerHTML = "";
+
+  if (!data || data.length === 0) {
+    adminProjectComments.innerHTML = `
+      <p>Nenhum comentário ainda.</p>
+    `;
+    return;
+  }
+
+  data.forEach((comentario) => {
+
+    const div =
+      document.createElement("div");
+
+    div.classList.add("comment-item");
+
+    div.innerHTML = `
+      <strong>
+        ${comentario.user_nome || "Cliente"}
+      </strong>
+
+      <p>
+        ${comentario.mensagem}
+      </p>
+
+      <span>
+        ${new Date(
+          comentario.criado_em
+        ).toLocaleString("pt-PT")}
+      </span>
+    `;
+
+    adminProjectComments.appendChild(div);
+
+  });
+
+}
+
+const adminCommentForm =
+  document.getElementById("adminCommentForm");
+
+const adminCommentInput =
+  document.getElementById("adminCommentInput");
+
+if (adminCommentForm) {
+
+  adminCommentForm.addEventListener("submit", async (event) => {
+
+    event.preventDefault();
+
+    const mensagem =
+      adminCommentInput.value.trim();
+
+    if (!mensagem || !adminBriefingComentarioId) return;
+
+    const {
+      data: { session }
+    } = await supabaseClient.auth.getSession();
+
+    if (!session) return;
+
+    const { error } =
+      await supabaseClient
+        .from("project_comments")
+        .insert([{
+          briefing_id: adminBriefingComentarioId,
+          user_id: session.user.id,
+          user_nome: "Admin DOZEDEV",
+          mensagem
+        }]);
+
+    if (error) {
+      console.error(error);
+
+      mostrarToast(
+        "Erro ao enviar resposta.",
+        "error"
+      );
+
+      return;
+    }
+
+    const { data: briefingCliente } =
+      await supabaseClient
+        .from("briefings")
+        .select("email")
+        .eq("id", adminBriefingComentarioId)
+        .single();
+
+    if (briefingCliente?.email) {
+
+      const { data: userCliente } =
+        await supabaseClient
+          .from("profiles")
+          .select("id")
+          .eq("email", briefingCliente.email)
+          .single();
+
+      if (userCliente) {
+
+        await supabaseClient
+          .from("notifications")
+          .insert([{
+            user_id: userCliente.id,
+            titulo: "Nova resposta da DOZEDEV",
+            mensagem: "O administrador respondeu ao seu projeto."
+          }]);
+
+      }
+
+    }
+
+    adminCommentInput.value = "";
+
+    mostrarToast(
+      "Resposta enviada!",
+      "success"
+    );
+
+    carregarComentariosAdmin(
+      adminBriefingComentarioId
+    );
+
+  });
+
+}
+
+/* ==========================================
+   REALTIME CLIENTE - NOTIFICAÇÕES
+========================================== */
+
+async function iniciarRealtimeCliente() {
+
+  if (
+    !window.location.pathname.includes(
+      "dashboard.html"
+    )
+  ) {
+    return;
+  }
+
+  const {
+    data: { session }
+  } = await supabaseClient.auth.getSession();
+
+  if (!session) return;
+
+  supabaseClient
+    .channel("cliente-notificacoes")
+
+    .on(
+      "postgres_changes",
+      {
+        event: "INSERT",
+        schema: "public",
+        table: "notifications",
+        filter: `user_id=eq.${session.user.id}`
+      },
+      () => {
+
+        carregarNotificacoes();
+
+        mostrarToast(
+          "Nova notificação recebida!",
+          "info"
+        );
+
+      }
+    )
+
+    .subscribe();
+
+}
+
+iniciarRealtimeCliente();
+
+/* ==========================================
+   TIMELINE DO PROJETO
+========================================== */
+
+const projectTimeline =
+  document.getElementById("projectTimeline");
+
+async function carregarTimelineProjeto() {
+
+  if (!projectTimeline) return;
+
+  const {
+    data: { session }
+  } = await supabaseClient.auth.getSession();
+
+  if (!session) return;
+
+  const { data: briefings } =
+    await supabaseClient
+      .from("briefings")
+      .select("*")
+      .eq("email", session.user.email)
+      .limit(1);
+
+  if (!briefings || briefings.length === 0) return;
+
+  const briefing =
+    briefings[0];
+
+  const statusAtual =
+    briefing.status || "Recebido";
+
+  const etapas = [
+
+    "Recebido",
+    "Planejamento",
+    "Design",
+    "Em desenvolvimento",
+    "Revisão",
+    "Finalizado"
+
+  ];
+
+  projectTimeline.innerHTML = "";
+
+  const etapaAtualIndex =
+    etapas.indexOf(statusAtual);
+
+  etapas.forEach((etapa, index) => {
+
+    const div =
+      document.createElement("div");
+
+    div.classList.add("timeline-item");
+
+    if (index < etapaAtualIndex) {
+
+      div.classList.add("completed");
+
+    } else if (index === etapaAtualIndex) {
+
+      div.classList.add("current");
+
+    } else {
+
+      div.classList.add("pending");
+
+    }
+
+    div.innerHTML = `
+      <strong>
+        ${etapa}
+      </strong>
+
+      <span>
+        ${
+          index < etapaAtualIndex
+            ? "Etapa concluída"
+            : index === etapaAtualIndex
+            ? "Etapa atual"
+            : "Aguardando início"
+        }
+      </span>
+    `;
+
+    projectTimeline.appendChild(div);
+
+  });
+
+}
+
+carregarTimelineProjeto();
+
+/* ==========================================
+   PROGRESSO DO PROJETO
+========================================== */
+
+async function carregarProgressoProjeto() {
+
+  const progressoTexto =
+    document.getElementById("clienteProgresso");
+
+  const progressoFill =
+    document.getElementById("clienteProgressFill");
+
+  if (!progressoTexto || !progressoFill) return;
+
+  const {
+    data: { session }
+  } = await supabaseClient.auth.getSession();
+
+  if (!session) return;
+
+  const { data: briefings } =
+    await supabaseClient
+      .from("briefings")
+      .select("status")
+      .eq("email", session.user.email)
+      .limit(1);
+
+  if (!briefings || briefings.length === 0) return;
+
+  const status =
+    briefings[0].status || "Recebido";
+
+  const progressoPorStatus = {
+    "Recebido": 15,
+    "Planejamento": 30,
+    "Design": 45,
+    "Em desenvolvimento": 65,
+    "Revisão": 85,
+    "Finalizado": 100
+  };
+
+  const progresso =
+    progressoPorStatus[status] || 15;
+
+  progressoTexto.textContent =
+    `${progresso}%`;
+
+  progressoFill.style.width =
+    `${progresso}%`;
+
+}
+
+carregarProgressoProjeto();
+
+/* ==========================================
+   SIDEBAR USER INFO
+========================================== */
+
+async function carregarSidebarUser() {
+
+  const userName =
+    document.getElementById("sidebarUserName");
+
+  const userAvatar =
+    document.getElementById("sidebarAvatar");
+
+  if (!userName || !userAvatar) return;
+
+  const {
+    data: { session }
+  } = await supabaseClient.auth.getSession();
+
+  if (!session) return;
+
+  const { data } =
+    await supabaseClient
+      .from("briefings")
+      .select("nome")
+      .eq("email", session.user.email)
+      .limit(1)
+      .single();
+
+  if (!data) return;
+
+  userName.textContent =
+    data.nome;
+
+  userAvatar.textContent =
+    data.nome.charAt(0).toUpperCase();
+
+}
+
+carregarSidebarUser();

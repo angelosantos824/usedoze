@@ -20,20 +20,20 @@
       </div>
 
       <nav class="menu">
-        <a href="#" class="active">Dashboard</a>
-        <a href="#">Clientes</a>
-        <a href="#">Briefings</a>
-        <a href="#">Projetos</a>
-        <a href="#">Vouchers</a>
-        <a href="#">Uploads</a>
-        <div class="panel">
+        <a href="#" class="active" data-section="dashboard">Dashboard</a>
+        <a href="#" data-section="clientes">Clientes</a>
+        <a href="#" data-section="briefings">Briefings</a>
+        <a href="#" data-section="projetos">Projetos</a>
+        <a href="#" data-section="vouchers">Vouchers</a>
+        <a href="#" data-section="uploads">Uploads</a>
+
+      <div class="panel">
         <a href="../index.html">Voltar ao Site</a>
-        <br>
-        
       </div>
-        <button id="logoutBtn" class="logout-btn">
-          Sair
-        </button>
+
+      <button id="logoutBtn" class="logout-btn">
+         Sair
+      </button>
       </nav>
     </aside>
 
@@ -51,36 +51,73 @@
       </div>
 
       <section class="cards">
-        <div class="card">
-          <h3>Clientes</h3>
-          <strong>12</strong>
-          <p><span>+3</span> este mês</p>
-        </div>
 
-        <div class="card">
-          <h3>Briefings Recebidos</h3>
-          <strong>08</strong>
-          <p><span>5</span> aguardando análise</p>
-        </div>
+  <div class="card">
+    <h3>Clientes</h3>
+    <strong id="totalClientes">0</strong>
+    <p><span id="clientesMes">0</span> este mês</p>
+  </div>
 
-        <div class="card">
-          <h3>Projetos Ativos</h3>
-          <strong>04</strong>
-          <p><span>2</span> em desenvolvimento</p>
-        </div>
+  <div class="card">
+    <h3>Briefings Recebidos</h3>
+    <strong id="totalBriefingsAdmin">0</strong>
+    <p><span id="briefingsPendentes">0</span> aguardando análise</p>
+  </div>
 
-        <div class="card">
-          <h3>Vouchers</h3>
-          <strong>03</strong>
-          <p><span>1</span> ativo</p>
-        </div>
-      </section>
+  <div class="card">
+    <h3>Projetos Ativos</h3>
+    <strong id="totalProjetos">0</strong>
+    <p><span id="projetosAndamento">0</span> em desenvolvimento</p>
+  </div>
+
+  <div class="card">
+    <h3>Vouchers</h3>
+    <strong id="totalVouchersAdmin">0</strong>
+    <p><span id="vouchersAtivos">0</span> ativo</p>
+  </div>
+
+</section>
 
       <section class="panel">
         <div class="panel-header">
           <h2>Últimos Briefings</h2>
-          <button class="btn">Novo Projeto</button>
+          <button class="btn" id="novoProjetoBtn">
+              Novo Projeto
+          </button>
         </div>
+        <div class="admin-filters">
+
+  <input
+    type="text"
+    id="adminSearch"
+    placeholder="Pesquisar cliente ou empresa..."
+  >
+
+  <select id="adminStatusFilter">
+
+    <option value="">
+      Todos os status
+    </option>
+
+    <option value="Recebido">
+      Recebido
+    </option>
+
+    <option value="Em análise">
+      Em análise
+    </option>
+
+    <option value="Em andamento">
+      Em andamento
+    </option>
+
+    <option value="Finalizado">
+      Finalizado
+    </option>
+
+  </select>
+
+</div>
 
         <table>
           <thead>
@@ -94,38 +131,7 @@
           </thead>
 
           <tbody>
-            <tr>
-              <td>Michelly Santos</td>
-              <td>Clínica Psicanálise</td>
-              <td>Site Institucional</td>
-              <td><span class="status andamento">Em andamento</span></td>
-              <td class="acoes">
-                <button>Ver</button>
-                <button>Editar</button>
-              </td>
-            </tr>
-
-            <tr>
-              <td>Casa Vera Cruz</td>
-              <td>Social / Migrantes</td>
-              <td>Landing Page</td>
-              <td><span class="status recebido">Recebido</span></td>
-              <td class="acoes">
-                <button>Ver</button>
-                <button>Editar</button>
-              </td>
-            </tr>
-
-            <tr>
-              <td>Voucher CLAIM</td>
-              <td>CLAIM Aveiro</td>
-              <td>Site 3 Abas</td>
-              <td><span class="status finalizado">Finalizado</span></td>
-              <td class="acoes">
-                <button>Ver</button>
-                <button>Editar</button>
-              </td>
-            </tr>
+            
           </tbody>
         </table>
       </section>
@@ -147,6 +153,99 @@
 
     </main>
   </div>
+
+  <!-- MODAL ADMIN BRIEFING -->
+<div class="admin-modal" id="adminBriefingModal">
+
+  <div class="admin-modal-content">
+
+    <button class="admin-modal-close" id="closeAdminBriefingModal">
+      ×
+    </button>
+
+    <h2 id="adminModalNome">
+      Detalhes do Briefing
+    </h2>
+
+    <div class="admin-modal-grid">
+
+      <p><strong>Empresa:</strong> <span id="adminModalEmpresa"></span></p>
+      <p><strong>Email:</strong> <span id="adminModalEmail"></span></p>
+      <p><strong>Telefone:</strong> <span id="adminModalTelefone"></span></p>
+      <p><strong>Projeto:</strong> <span id="adminModalProjeto"></span></p>
+      <p><strong>Páginas:</strong> <span id="adminModalPaginas"></span></p>
+      <p><strong>Prazo:</strong> <span id="adminModalPrazo"></span></p>
+      <p><strong>Status:</strong> <span id="adminModalStatus"></span></p>
+
+    </div>
+
+    <div class="admin-modal-desc">
+      <strong>Descrição:</strong>
+      <p id="adminModalDescricao"></p>
+    </div>
+
+    <div class="admin-modal-desc">
+
+  <strong>Comentários:</strong>
+
+  <div id="adminProjectComments" class="comments-list">
+  </div>
+
+  <form id="adminCommentForm" class="comment-form">
+
+    <textarea
+      id="adminCommentInput"
+      placeholder="Responder ao cliente..."
+      required
+    ></textarea>
+
+    <button class="btn" type="submit">
+      Enviar Resposta
+    </button>
+
+  </form>
+
+</div>
+
+  </div>
+
+</div>
+<!-- MODAL EDITAR STATUS -->
+<div class="admin-modal" id="adminEditModal">
+
+  <div class="admin-modal-content">
+
+    <button class="admin-modal-close" id="closeAdminEditModal">
+      ×
+    </button>
+
+    <h2>
+      Editar Status
+    </h2>
+
+    <input type="hidden" id="editBriefingId">
+
+    <label class="admin-edit-label">
+      Status do projeto
+
+      <select id="editStatusSelect">
+        <option value="Recebido">Recebido</option>
+        <option value="Em análise">Em análise</option>
+        <option value="Em andamento">Em andamento</option>
+        <option value="Aguardando cliente">Aguardando cliente</option>
+        <option value="Finalizado">Finalizado</option>
+      </select>
+    </label>
+
+    <button class="btn" id="salvarEditStatusBtn">
+      Salvar alteração
+    </button>
+
+  </div>
+
+</div>
+
+<div id="toastContainer" class="toast-container"></div>
 
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 <script src="/studio/config.js"></script>

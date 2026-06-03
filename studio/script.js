@@ -2389,7 +2389,21 @@ async function carregarComentariosProjeto() {
     data: { session }
   } = await supabaseClient.auth.getSession();
 
-  if (!session) return;
+  if (!briefings || briefings.length === 0) {
+
+  mostrarToast(
+    "Nenhum briefing encontrado para este usuário.",
+    "error"
+  );
+
+  console.warn(
+    "Nenhum briefing encontrado para o email:",
+    session.user.email
+  );
+
+  return;
+
+}
 
   const { data: briefings } =
     await supabaseClient
@@ -2482,28 +2496,48 @@ if (commentForm) {
         .eq("email", session.user.email)
         .limit(1);
 
-    if (!briefings || briefings.length === 0) return;
+    if (!briefings || briefings.length === 0) {
 
-    const briefing =
-      briefings[0];
+  mostrarToast(
+    "Nenhum briefing encontrado para este usuário.",
+    "error"
+  );
 
-    const { error } =
-      await supabaseClient
-        .from("project_comments")
-        .insert([{
+  console.warn(
+    "Nenhum briefing encontrado para o email:",
+    session.user.email
+  );
 
-          briefing_id:
-            briefing.id,
+  return;
 
-          user_id:
-            session.user.id,
+}
 
-          user_nome:
-            briefing.nome,
+const briefing =
+  briefings[0];
 
-          mensagem
+    const { data: comentarioSalvo, error } =
+  await supabaseClient
+    .from("project_comments")
+    .insert([{
 
-        }]);
+      briefing_id:
+        briefing.id,
+
+      user_id:
+        session.user.id,
+
+      user_nome:
+        briefing.nome || session.user.email,
+
+      mensagem
+
+    }])
+    .select();
+
+console.log(
+  "Comentário cliente salvo:",
+  comentarioSalvo
+);
 
       if (error) {
       console.error(error);

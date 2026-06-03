@@ -44,6 +44,13 @@
                 <button type="submit" class="btn">
                     Entrar no Studio
                 </button>
+                <div class="login-divider">ou</div>
+
+                <button
+                    id="openRegisterModal"
+                    class="register-btn"
+                >Criar Conta
+                </button>
 
                 <p class="login-help">
                     Ainda não tem acesso?
@@ -55,6 +62,76 @@
         </section>
 
     </main>
+
+    <!-- MODAL REGISTRO -->
+<div class="auth-modal" id="registerModal">
+
+  <div class="auth-modal-content">
+
+    <button
+      class="auth-close"
+      id="closeRegisterModal"
+    >
+      ×
+    </button>
+
+    <h2>
+      Criar Conta
+    </h2>
+
+    <form id="registerForm">
+
+      <div class="input-group">
+
+        <label>
+          Nome
+        </label>
+
+        <input
+          type="text"
+          id="registerName"
+          required
+        >
+
+      </div>
+
+      <div class="input-group">
+
+        <label>
+          Email
+        </label>
+
+        <input
+          type="email"
+          id="registerEmail"
+          required
+        >
+
+      </div>
+
+      <div class="input-group">
+
+        <label>
+          Senha
+        </label>
+
+        <input
+          type="password"
+          id="registerPassword"
+          required
+        >
+
+      </div>
+
+      <button class="btn" type="submit">
+        Criar Conta
+      </button>
+
+    </form>
+
+  </div>
+
+</div>
 
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
     <script src="/studio/config.js"></script>

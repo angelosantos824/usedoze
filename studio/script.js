@@ -3429,3 +3429,106 @@ async function carregarAdminProjetos() {
   ativarAcoesAdmin();
 
 }
+
+/* ==========================================
+   REGISTRO DE UTILIZADOR
+========================================== */
+
+const registerModal =
+  document.getElementById("registerModal");
+
+const openRegisterModal =
+  document.getElementById("openRegisterModal");
+
+const closeRegisterModal =
+  document.getElementById("closeRegisterModal");
+
+const registerForm =
+  document.getElementById("registerForm");
+
+if (
+  registerModal &&
+  openRegisterModal &&
+  closeRegisterModal
+) {
+
+  openRegisterModal.addEventListener("click", () => {
+    registerModal.classList.add("active");
+  });
+
+  closeRegisterModal.addEventListener("click", () => {
+    registerModal.classList.remove("active");
+  });
+
+}
+
+if (registerForm) {
+
+  registerForm.addEventListener("submit", async (event) => {
+
+    event.preventDefault();
+
+    const nome =
+      document.getElementById("registerName").value.trim();
+
+    const email =
+      document.getElementById("registerEmail").value.trim();
+
+    const password =
+      document.getElementById("registerPassword").value.trim();
+
+    if (!nome || !email || !password) return;
+
+    const { data, error } =
+      await supabaseClient.auth.signUp({
+
+        email,
+        password,
+
+        options: {
+          data: {
+            nome
+          }
+        }
+
+      });
+
+    if (error) {
+
+      console.error(error);
+
+      mostrarToast(
+        error.message,
+        "error"
+      );
+
+      return;
+
+    }
+
+    if (data?.user) {
+
+      await supabaseClient
+        .from("profiles")
+        .insert([{
+
+          id: data.user.id,
+          nome,
+          email
+
+        }]);
+
+      mostrarToast(
+        "Conta criada com sucesso!",
+        "success"
+      );
+
+      registerForm.reset();
+
+      registerModal.classList.remove("active");
+
+    }
+
+  });
+
+}

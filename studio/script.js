@@ -1952,15 +1952,27 @@ if (clienteUploadInput) {
 
         continue;
       }
-      await supabaseClient
-        .from("project_uploads")
-        .insert([{
-        user_id: session.user.id,
-        email: session.user.email,
-        nome_arquivo: arquivo.name,
-        caminho: caminho,
-        tipo: arquivo.type
-  }]);
+      const { error: uploadDbError } =
+  await supabaseClient
+    .from("project_uploads")
+    .insert([{
+      user_id: session.user.id,
+      email: session.user.email,
+      nome_arquivo: arquivo.name,
+      caminho: caminho,
+      tipo: arquivo.type
+    }]);
+
+if (uploadDbError) {
+  console.error("Erro ao registrar upload:", uploadDbError);
+
+  mostrarToast(
+    "Arquivo enviado, mas não apareceu no admin.",
+    "error"
+  );
+
+  continue;
+}
 
       mostrarToast(
         `${arquivo.name} enviado com sucesso!`,
@@ -2401,47 +2413,56 @@ const commentForm =
 const commentInput =
   document.getElementById("commentInput");
 
-async function carregarComentariosProjeto() {
-
-  if (!projectComments) return;
+async function buscarBriefingAtualCliente() {
 
   const {
     data: { session }
   } = await supabaseClient.auth.getSession();
 
-  if (!briefings || briefings.length === 0) {
+  if (!session) return null;
 
-  mostrarToast(
-    "Nenhum briefing encontrado para este usuário.",
-    "error"
-  );
+  const { data, error } =
+    await supabaseClient
+      .from("briefings")
+      .select("id,nome,email")
+      .eq("email", session.user.email)
+      .order("created_at", {
+        ascending: false
+      })
+      .limit(1);
 
-  console.warn(
-    "Nenhum briefing encontrado para o email:",
-    session.user.email
-  );
+  if (error) {
+    console.error(error);
+    return null;
+  }
 
-  return;
+  if (!data || data.length === 0) {
+    return null;
+  }
+
+  return data[0];
 
 }
 
-  const { data: briefings } =
-    await supabaseClient
-      .from("briefings")
-      .select("id")
-      .eq("email", session.user.email)
-      .limit(1);
+async function carregarComentariosProjeto() {
 
-  if (!briefings || briefings.length === 0) return;
+  if (!projectComments) return;
 
-  const briefingId =
-    briefings[0].id;
+  const briefing =
+    await buscarBriefingAtualCliente();
+
+  if (!briefing) {
+    projectComments.innerHTML = `
+      <p>Nenhum briefing encontrado.</p>
+    `;
+    return;
+  }
 
   const { data, error } =
     await supabaseClient
       .from("project_comments")
       .select("*")
-      .eq("briefing_id", briefingId)
+      .eq("briefing_id", briefing.id)
       .order("criado_em", {
         ascending: true
       });
@@ -2454,13 +2475,10 @@ async function carregarComentariosProjeto() {
   projectComments.innerHTML = "";
 
   if (!data || data.length === 0) {
-
     projectComments.innerHTML = `
       <p>Nenhum comentário ainda.</p>
     `;
-
     return;
-
   }
 
   data.forEach((comentario) => {
@@ -2472,7 +2490,7 @@ async function carregarComentariosProjeto() {
 
     div.innerHTML = `
       <strong>
-        ${comentario.user_nome}
+        ${comentario.user_nome || "Cliente"}
       </strong>
 
       <p>
@@ -2509,57 +2527,28 @@ if (commentForm) {
 
     if (!session) return;
 
-    const { data: briefings } =
+    const briefing =
+      await buscarBriefingAtualCliente();
+
+    if (!briefing) {
+      mostrarToast(
+        "Nenhum briefing encontrado para este usuário.",
+        "error"
+      );
+      return;
+    }
+
+    const { error } =
       await supabaseClient
-        .from("briefings")
-        .select("id,nome")
-        .eq("email", session.user.email)
-        .limit(1);
+        .from("project_comments")
+        .insert([{
+          briefing_id: briefing.id,
+          user_id: session.user.id,
+          user_nome: briefing.nome || session.user.email,
+          mensagem
+        }]);
 
-    if (!briefings || briefings.length === 0) {
-
-  mostrarToast(
-    "Nenhum briefing encontrado para este usuário.",
-    "error"
-  );
-
-  console.warn(
-    "Nenhum briefing encontrado para o email:",
-    session.user.email
-  );
-
-  return;
-
-}
-
-const briefing =
-  briefings[0];
-
-    const { data: comentarioSalvo, error } =
-  await supabaseClient
-    .from("project_comments")
-    .insert([{
-
-      briefing_id:
-        briefing.id,
-
-      user_id:
-        session.user.id,
-
-      user_nome:
-        briefing.nome || session.user.email,
-
-      mensagem
-
-    }])
-    .select();
-
-console.log(
-  "Comentário cliente salvo:",
-  comentarioSalvo
-);
-
-      if (error) {
+    if (error) {
       console.error(error);
 
       mostrarToast(
@@ -2633,11 +2622,21 @@ function abrirPreviewArquivo(nome, tipo, url) {
 
 }
 
+/* ==========================================
+   ADMIN - COMENTÁRIOS DO BRIEFING
+========================================== */
+
+let adminBriefingComentarioId = null;
+
 async function carregarComentariosAdmin(briefingId) {
 
-  console.log("Briefing aberto:", briefingId);
+  console.log(
+    "Briefing aberto:",
+    briefingId
+  );
 
-  adminBriefingComentarioId = briefingId;
+  adminBriefingComentarioId =
+    briefingId;
 
   const adminProjectComments =
     document.getElementById("adminProjectComments");
@@ -2653,21 +2652,38 @@ async function carregarComentariosAdmin(briefingId) {
         ascending: true
       });
 
-  console.log("Comentários:", data);
-  console.log("Erro comentários:", error);
+  console.log(
+    "Comentários:",
+    data
+  );
+
+  console.log(
+    "Erro comentários:",
+    error
+  );
 
   if (error) {
+
     console.error(error);
+
+    adminProjectComments.innerHTML = `
+      <p>Erro ao carregar comentários.</p>
+    `;
+
     return;
+
   }
 
   adminProjectComments.innerHTML = "";
 
   if (!data || data.length === 0) {
+
     adminProjectComments.innerHTML = `
       <p>Nenhum comentário ainda.</p>
     `;
+
     return;
+
   }
 
   data.forEach((comentario) => {
@@ -2683,7 +2699,7 @@ async function carregarComentariosAdmin(briefingId) {
       </strong>
 
       <p>
-        ${comentario.mensagem}
+        ${comentario.mensagem || ""}
       </p>
 
       <span>
@@ -2705,7 +2721,7 @@ const adminCommentForm =
 const adminCommentInput =
   document.getElementById("adminCommentInput");
 
-if (adminCommentForm) {
+if (adminCommentForm && adminCommentInput) {
 
   adminCommentForm.addEventListener("submit", async (event) => {
 
@@ -2715,6 +2731,11 @@ if (adminCommentForm) {
       adminCommentInput.value.trim();
 
     if (!mensagem || !adminBriefingComentarioId) return;
+
+    console.log(
+      "Admin respondendo no briefing:",
+      adminBriefingComentarioId
+    );
 
     const {
       data: { session }
@@ -2733,6 +2754,7 @@ if (adminCommentForm) {
         }]);
 
     if (error) {
+
       console.error(error);
 
       mostrarToast(
@@ -2741,6 +2763,7 @@ if (adminCommentForm) {
       );
 
       return;
+
     }
 
     const { data: briefingCliente } =
@@ -2787,7 +2810,6 @@ if (adminCommentForm) {
   });
 
 }
-
 /* ==========================================
    REALTIME CLIENTE - NOTIFICAÇÕES
 ========================================== */
@@ -3047,3 +3069,41 @@ if (closeBriefingModal && briefingModal) {
   });
 
 }
+
+/* ==========================================
+   REALTIME CLIENTE - COMENTÁRIOS
+========================================== */
+
+async function iniciarRealtimeComentariosCliente() {
+
+  if (!window.location.pathname.includes("dashboard.html")) return;
+
+  const briefing =
+    await buscarBriefingAtualCliente();
+
+  if (!briefing) return;
+
+  supabaseClient
+    .channel("cliente-comentarios")
+    .on(
+      "postgres_changes",
+      {
+        event: "INSERT",
+        schema: "public",
+        table: "project_comments",
+        filter: `briefing_id=eq.${briefing.id}`
+      },
+      () => {
+        carregarComentariosProjeto();
+
+        mostrarToast(
+          "Nova mensagem recebida!",
+          "info"
+        );
+      }
+    )
+    .subscribe();
+
+}
+
+iniciarRealtimeComentariosCliente();

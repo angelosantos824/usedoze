@@ -833,6 +833,13 @@ if (briefingForm) {
 
     try {
 
+      const {
+        data: { session }
+      } = await supabaseClient.auth.getSession();
+
+      const emailLogado =
+        session?.user?.email || "";
+
       const funcionalidadesSelecionadas = [];
 
       document
@@ -840,37 +847,34 @@ if (briefingForm) {
         .forEach((item) => {
           funcionalidadesSelecionadas.push(item.value);
         });
-      
-        let voucherValidado = null;
 
-const tipoProjetoSelecionado =
-  document.querySelector(
-    'input[name="tipoProjeto"]:checked'
-  )?.value;
+      let voucherValidado = null;
 
-if (
-  tipoProjetoSelecionado ===
-  "voucher"
-) {
+      const tipoProjetoSelecionado =
+        document.querySelector(
+          'input[name="tipoProjeto"]:checked'
+        )?.value;
 
-  voucherValidado =
-    await validarVoucher(
-      voucherCode?.value.trim()
-    );
+      if (tipoProjetoSelecionado === "voucher") {
 
-  if (!voucherValidado) {
-    return;
-  }
+        voucherValidado =
+          await validarVoucher(
+            voucherCode?.value.trim()
+          );
 
-}
+        if (!voucherValidado) {
+          return;
+        }
+
+      }
 
       const dadosBriefing = {
 
         nome:
-          document.getElementById("nome")?.value || "",
+          document.getElementById("nome")?.value || emailLogado,
 
         email:
-          document.getElementById("email")?.value || "",
+          document.getElementById("email")?.value || emailLogado,
 
         telefone:
           document.getElementById("telefone")?.value || "",
@@ -882,7 +886,7 @@ if (
           document.getElementById("instagram")?.value || "",
 
         tipo_projeto:
-          document.querySelector('input[name="tipoProjeto"]:checked')?.value || "normal",
+          tipoProjetoSelecionado || "normal",
 
         voucher_codigo:
           document.getElementById("voucherCode")?.value || "",
@@ -907,32 +911,37 @@ if (
 
       if (error) {
         console.error(error);
-        alert("Erro ao enviar briefing.");
+
+        mostrarToast(
+          "Erro ao enviar briefing.",
+          "error"
+        );
+
         return;
       }
 
       if (voucherValidado) {
 
-  const novosUsos =
-    voucherValidado.usos + 1;
+        const novosUsos =
+          voucherValidado.usos + 1;
 
-  const limiteAtingido =
-    novosUsos >= voucherValidado.limite_uso;
+        const limiteAtingido =
+          novosUsos >= voucherValidado.limite_uso;
 
-  await supabaseClient
-    .from("vouchers")
-    .update({
+        await supabaseClient
+          .from("vouchers")
+          .update({
+            usos: novosUsos,
+            ativo: !limiteAtingido
+          })
+          .eq("id", voucherValidado.id);
 
-      usos: novosUsos,
+      }
 
-      ativo: !limiteAtingido
-
-    })
-    .eq("id", voucherValidado.id);
-
-}
-
-      mostrarToast("Briefing enviado com sucesso!", "success");
+      mostrarToast(
+        "Briefing enviado com sucesso!",
+        "success"
+      );
 
       briefingForm.reset();
 
@@ -945,7 +954,10 @@ if (
 
       console.error(err);
 
-      alert("Erro inesperado ao enviar briefing.");
+      mostrarToast(
+        "Erro inesperado ao enviar briefing.",
+        "error"
+      );
 
     }
 

@@ -39,240 +39,272 @@
                 </a>
 
         <!-- FORM -->
-        <form class="briefing-form" id="briefingForm">
+<form class="briefing-form" id="briefingForm">
 
-            <!-- TIPO -->
-            <section class="briefing-section">
+    <!-- TIPO -->
+    <section class="briefing-section">
 
-                <h2>Tipo de Projeto</h2>
+        <h2>Tipo de Projeto</h2>
 
-                <div class="checks-grid">
+        <div class="checks-grid">
 
-                    <label class="check-card">
-                        <input type="radio" name="tipoProjeto" value="normal" checked>
-                        <span>Projeto Normal</span>
-                    </label>
+            <label class="check-card">
+                <input type="radio" name="tipoProjeto" value="normal" checked>
+                <span>Projeto Normal</span>
+            </label>
 
-                    <label class="check-card">
-                        <input type="radio" name="tipoProjeto" value="voucher">
-                        <span>Voucher Promocional</span>
-                    </label>
+            <label class="check-card">
+                <input type="radio" name="tipoProjeto" value="voucher">
+                <span>Voucher Promocional</span>
+            </label>
 
-                </div>
+        </div>
 
-                <div class="voucher-alert" id="voucherAlert">
-                    Voucher promocional selecionado.
-                </div>
+        <div class="voucher-alert" id="voucherAlert">
+            Voucher promocional selecionado.
+        </div>
 
-                <div class="input-group voucher-code" id="voucherCodeGroup">
+        <div class="input-group voucher-code" id="voucherCodeGroup">
 
-                    <label>Número do Voucher</label>
+            <label>Número do Voucher</label>
 
-                    <input
-                        type="text"
-                        id="voucherCode"
-                        placeholder="Ex: XXXX-DOZE-XXXX">
+            <input
+                type="text"
+                id="voucherCode"
+                placeholder="Ex: XXXX-DOZE-XXXX">
 
-                </div>
+        </div>
 
-            </section>
+    </section>
 
-            <!-- EMPRESA -->
-            <section class="briefing-section">
+    <!-- EMPRESA -->
+    <section class="briefing-section">
 
-                <h2>Informações da Empresa</h2>
+        <h2>Informações da Empresa</h2>
 
-                <div class="briefing-grid">
+        <div class="briefing-grid">
 
-                    <div class="input-group">
-                        <label>Nome da Empresa</label>
-                        <input type="text" required>
-                    </div>
-
-                    <div class="input-group">
-                        <label>Responsável</label>
-                        <input type="text" required>
-                    </div>
-
-                    <div class="input-group">
-                        <label>WhatsApp</label>
-                        <input type="text" required>
-                    </div>
-
-                    <div class="input-group">
-                        <label>Email</label>
-                        <input type="email">
-                    </div>
-
-                    <div class="input-group">
-                        <label>Instagram</label>
-                        <input type="text">
-                    </div>
-
-                    <div class="input-group">
-                        <label>Website Atual</label>
-                        <input type="text">
-                    </div>
-
-                </div>
-
-            </section>
-
-            <!-- PROJETO -->
-            <section class="briefing-section">
-
-                <h2>Sobre o Projeto</h2>
-
-                <div class="briefing-grid">
-
-                    <div class="input-group full-width">
-
-                        <label>Descreva seu negócio</label>
-
-                        <textarea
-                            placeholder="Fale sobre sua empresa e objetivos..."
-                            required></textarea>
-
-                    </div>
-
-                    <div class="input-group">
-
-                        <label>Objetivo do Site</label>
-
-                        <select id="objetivoSite">
-                            <option>Selecionar</option>
-                            <option>Institucional</option>
-                            <option>Landing Page</option>
-                            <option>Portfólio</option>
-                            <option>Agendamento</option>
-                            <option>Loja Online</option>
-                        </select>
-
-                    </div>
-
-                    <div class="input-group">
-
-                        <label>Quantidade de Páginas</label>
-
-                        <select id="quantidadePaginas">
-                            <option>Selecionar</option>
-                            <option>1 Página</option>
-                            <option>3 Páginas</option>
-                            <option>5 Páginas</option>
-                            <option>Mais de 5</option>
-                        </select>
-
-                    </div>
-
-                    <div class="input-group">
-                        <label>Cores Desejadas</label>
-                        <input type="text">
-                    </div>
-
-                    <div class="input-group">
-                        <label>Prazo Desejado</label>
-                        <input type="text" id="prazoDesejado">
-                    </div>
-
-                </div>
-
-            </section>
-
-            <!-- FUNCIONALIDADES -->
-            <section class="briefing-section">
-
-                <h2>Funcionalidades</h2>
-
-                <div class="checks-grid">
-
-                    <label class="check-card">
-                        <input type="checkbox"
-                               class="funcionalidade voucher-func">
-                        <span>WhatsApp</span>
-                    </label>
-
-                    <label class="check-card">
-                        <input type="checkbox"
-                               class="funcionalidade voucher-func">
-                        <span>Formulário</span>
-                    </label>
-
-                    <label class="check-card">
-                        <input type="checkbox"
-                               class="funcionalidade">
-                        <span>Agendamento</span>
-                    </label>
-
-                    <label class="check-card">
-                        <input type="checkbox"
-                               class="funcionalidade">
-                        <span>Área Login</span>
-                    </label>
-
-                    <label class="check-card">
-                        <input type="checkbox"
-                               class="funcionalidade">
-                        <span>Painel Admin</span>
-                    </label>
-
-                    <label class="check-card">
-                        <input type="checkbox"
-                               class="funcionalidade voucher-func">
-                        <span>Google Maps</span>
-                    </label>
-
-                    <label class="check-card">
-                        <input type="checkbox"
-                               class="funcionalidade">
-                        <span>Loja Online</span>
-                    </label>
-
-                    <label class="check-card">
-                        <input type="checkbox"
-                               class="funcionalidade">
-                        <span>Blog</span>
-                    </label>
-
-                </div>
-
-            </section>
-
-            <!-- UPLOAD -->
-            <section class="briefing-section">
-
-                <h2>Upload de Arquivos</h2>
-
-                <div class="upload-box">
-
-                    <p>
-                        Envie logo, fotos, PDFs, referências e materiais.
-                    </p>
-
-                    <input type="file" multiple>
-
-                </div>
-
-            </section>
-            
-
-            <!-- ENVIAR -->
-            <div class="submit-area">
-
-                <div class="submit-info">
-                    O envio correto das informações ajuda a DOZEDEV Studio
-                    a desenvolver seu projeto com mais rapidez e qualidade.
-                </div>
-
-                <button type="submit" class="btn-primary">
-                    Enviar Briefing
-                </button>
-                
-                
+            <div class="input-group">
+                <label>Nome da Empresa</label>
+                <input
+                    type="text"
+                    id="empresa"
+                    required>
             </div>
 
-        </form>
+            <div class="input-group">
+                <label>Responsável</label>
+                <input
+                    type="text"
+                    id="nome"
+                    required>
+            </div>
+
+            <div class="input-group">
+                <label>WhatsApp</label>
+                <input
+                    type="text"
+                    id="telefone"
+                    required>
+            </div>
+
+            <div class="input-group">
+                <label>Email</label>
+                <input
+                    type="email"
+                    id="email">
+            </div>
+
+            <div class="input-group">
+                <label>Instagram</label>
+                <input
+                    type="text"
+                    id="instagram">
+            </div>
+
+            <div class="input-group">
+                <label>Website Atual</label>
+                <input
+                    type="text"
+                    id="websiteAtual">
+            </div>
+
+        </div>
+
+    </section>
+
+    <!-- PROJETO -->
+    <section class="briefing-section">
+
+        <h2>Sobre o Projeto</h2>
+
+        <div class="briefing-grid">
+
+            <div class="input-group full-width">
+
+                <label>Descreva seu negócio</label>
+
+                <textarea
+                    id="descricaoProjeto"
+                    placeholder="Fale sobre sua empresa e objetivos..."
+                    required></textarea>
+
+            </div>
+
+            <div class="input-group">
+
+                <label>Objetivo do Site</label>
+
+                <select id="objetivoSite">
+                    <option>Selecionar</option>
+                    <option>Institucional</option>
+                    <option>Landing Page</option>
+                    <option>Portfólio</option>
+                    <option>Agendamento</option>
+                    <option>Loja Online</option>
+                </select>
+
+            </div>
+
+            <div class="input-group">
+
+                <label>Quantidade de Páginas</label>
+
+                <select id="quantidadePaginas">
+                    <option>Selecionar</option>
+                    <option>1 Página</option>
+                    <option>3 Páginas</option>
+                    <option>5 Páginas</option>
+                    <option>Mais de 5</option>
+                </select>
+
+            </div>
+
+            <div class="input-group">
+                <label>Cores Desejadas</label>
+                <input
+                    type="text"
+                    id="coresDesejadas">
+            </div>
+
+            <div class="input-group">
+                <label>Prazo Desejado</label>
+                <input
+                    type="text"
+                    id="prazoDesejado">
+            </div>
+
+        </div>
+
+    </section>
+
+    <!-- FUNCIONALIDADES -->
+    <section class="briefing-section">
+
+        <h2>Funcionalidades</h2>
+
+        <div class="checks-grid">
+
+            <label class="check-card">
+                <input
+                    type="checkbox"
+                    class="funcionalidade voucher-func"
+                    value="WhatsApp">
+                <span>WhatsApp</span>
+            </label>
+
+            <label class="check-card">
+                <input
+                    type="checkbox"
+                    class="funcionalidade voucher-func"
+                    value="Formulário">
+                <span>Formulário</span>
+            </label>
+
+            <label class="check-card">
+                <input
+                    type="checkbox"
+                    class="funcionalidade"
+                    value="Agendamento">
+                <span>Agendamento</span>
+            </label>
+
+            <label class="check-card">
+                <input
+                    type="checkbox"
+                    class="funcionalidade"
+                    value="Área Login">
+                <span>Área Login</span>
+            </label>
+
+            <label class="check-card">
+                <input
+                    type="checkbox"
+                    class="funcionalidade"
+                    value="Painel Admin">
+                <span>Painel Admin</span>
+            </label>
+
+            <label class="check-card">
+                <input
+                    type="checkbox"
+                    class="funcionalidade voucher-func"
+                    value="Google Maps">
+                <span>Google Maps</span>
+            </label>
+
+            <label class="check-card">
+                <input
+                    type="checkbox"
+                    class="funcionalidade"
+                    value="Loja Online">
+                <span>Loja Online</span>
+            </label>
+
+            <label class="check-card">
+                <input
+                    type="checkbox"
+                    class="funcionalidade"
+                    value="Blog">
+                <span>Blog</span>
+            </label>
+
+        </div>
+
+    </section>
+
+    <!-- UPLOAD -->
+    <section class="briefing-section">
+
+        <h2>Upload de Arquivos</h2>
+
+        <div class="upload-box">
+
+            <p>
+                Envie logo, fotos, PDFs, referências e materiais.
+            </p>
+
+            <input type="file" multiple>
+
+        </div>
+
+    </section>
+
+    <!-- ENVIAR -->
+    <div class="submit-area">
+
+        <div class="submit-info">
+            O envio correto das informações ajuda a DOZEDEV Studio
+            a desenvolver seu projeto com mais rapidez e qualidade.
+        </div>
+
+        <button type="submit" class="btn-primary">
+            Enviar Briefing
+        </button>
 
     </div>
+
+</form>
 
     <!-- MODAL -->
     <div class="voucher-modal" id="voucherModal">

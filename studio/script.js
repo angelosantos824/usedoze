@@ -853,7 +853,7 @@ if (briefingForm) {
       const tipoProjetoSelecionado =
         document.querySelector(
           'input[name="tipoProjeto"]:checked'
-        )?.value;
+        )?.value || "normal";
 
       if (tipoProjetoSelecionado === "voucher") {
 
@@ -871,39 +871,47 @@ if (briefingForm) {
       const dadosBriefing = {
 
         nome:
-          document.getElementById("nome")?.value || emailLogado,
+          document.getElementById("nome")?.value.trim() || emailLogado,
 
         email:
-          document.getElementById("email")?.value || emailLogado,
+          document.getElementById("email")?.value.trim() || emailLogado,
 
         telefone:
-          document.getElementById("telefone")?.value || "",
+          document.getElementById("telefone")?.value.trim() || "",
 
         empresa:
-          document.getElementById("empresa")?.value || "",
+          document.getElementById("empresa")?.value.trim() || "",
 
         instagram:
-          document.getElementById("instagram")?.value || "",
+          document.getElementById("instagram")?.value.trim() || "",
 
         tipo_projeto:
-          tipoProjetoSelecionado || "normal",
+          tipoProjetoSelecionado,
 
         voucher_codigo:
-          document.getElementById("voucherCode")?.value || "",
+          document.getElementById("voucherCode")?.value.trim() || "",
 
         paginas:
           document.getElementById("quantidadePaginas")?.value || "",
 
         prazo:
-          document.getElementById("prazoDesejado")?.value || "",
+          document.getElementById("prazoDesejado")?.value.trim() || "",
 
         descricao:
-          document.getElementById("descricaoProjeto")?.value || "",
+          document.getElementById("descricaoProjeto")?.value.trim() || "",
 
         funcionalidades:
-          funcionalidadesSelecionadas
+          funcionalidadesSelecionadas,
+
+        status:
+          "Recebido"
 
       };
+
+      console.log(
+        "Dados briefing:",
+        dadosBriefing
+      );
 
       const { error } = await supabaseClient
         .from("briefings")

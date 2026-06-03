@@ -2579,13 +2579,9 @@ function abrirPreviewArquivo(nome, tipo, url) {
 
 }
 
-/* ==========================================
-   ADMIN - COMENTÁRIOS DO BRIEFING
-========================================== */
-
-let adminBriefingComentarioId = null;
-
 async function carregarComentariosAdmin(briefingId) {
+
+  console.log("Briefing aberto:", briefingId);
 
   adminBriefingComentarioId = briefingId;
 
@@ -2602,6 +2598,9 @@ async function carregarComentariosAdmin(briefingId) {
       .order("criado_em", {
         ascending: true
       });
+
+  console.log("Comentários:", data);
+  console.log("Erro comentários:", error);
 
   if (error) {
     console.error(error);

@@ -1931,8 +1931,12 @@ if (clienteUploadInput) {
 
   clienteUploadInput.addEventListener("change", async () => {
 
+    console.log("Upload acionado");
+
     const arquivos =
       Array.from(clienteUploadInput.files);
+
+    console.log("Arquivos selecionados:", arquivos);
 
     if (arquivos.length === 0) return;
 
@@ -1950,13 +1954,21 @@ if (clienteUploadInput) {
       const caminho =
         `${session.user.id}/${Date.now()}-${arquivo.name}`;
 
-      const { error } =
+      console.log("Enviando para:", caminho);
+
+      const { error: storageError } =
         await supabaseClient.storage
           .from("project-files")
-          .upload(caminho, arquivo);
+          .upload(
+            caminho,
+            arquivo,
+            {
+              upsert: false
+            }
+          );
 
-      if (error) {
-        console.error(error);
+      if (storageError) {
+        console.error("Erro Storage:", storageError);
 
         mostrarToast(
           `Erro ao enviar ${arquivo.name}`,
@@ -1965,27 +1977,31 @@ if (clienteUploadInput) {
 
         continue;
       }
+
       const { error: uploadDbError } =
-  await supabaseClient
-    .from("project_uploads")
-    .insert([{
-      user_id: session.user.id,
-      email: session.user.email,
-      nome_arquivo: arquivo.name,
-      caminho: caminho,
-      tipo: arquivo.type
-    }]);
+        await supabaseClient
+          .from("project_uploads")
+          .insert([{
+            user_id: session.user.id,
+            email: session.user.email,
+            nome_arquivo: arquivo.name,
+            caminho: caminho,
+            tipo: arquivo.type
+          }]);
 
-if (uploadDbError) {
-  console.error("Erro ao registrar upload:", uploadDbError);
+      if (uploadDbError) {
+        console.error(
+          "Erro ao registrar upload:",
+          uploadDbError
+        );
 
-  mostrarToast(
-    "Arquivo enviado, mas não apareceu no admin.",
-    "error"
-  );
+        mostrarToast(
+          "Arquivo enviado, mas não apareceu no admin.",
+          "error"
+        );
 
-  continue;
-}
+        continue;
+      }
 
       mostrarToast(
         `${arquivo.name} enviado com sucesso!`,
@@ -2013,14 +2029,12 @@ async function carregarUploadsCliente() {
   if (!session) return;
 
   const { data, error } =
-    await supabaseClient.storage
-      .from("project-files")
-      .list(session.user.id, {
-        limit: 50,
-        sortBy: {
-          column: "created_at",
-          order: "desc"
-        }
+    await supabaseClient
+      .from("project_uploads")
+      .select("*")
+      .eq("user_id", session.user.id)
+      .order("criado_em", {
+        ascending: false
       });
 
   if (error) {
@@ -2046,22 +2060,19 @@ async function carregarUploadsCliente() {
     const tr =
       document.createElement("tr");
 
-    const filePath =
-      `${session.user.id}/${arquivo.name}`;
-
     tr.innerHTML = `
 
       <td>
-        ${arquivo.name}
+        ${arquivo.nome_arquivo}
       </td>
 
       <td>
-        ${arquivo.metadata?.mimetype || "Arquivo"}
+        ${arquivo.tipo || "Arquivo"}
       </td>
 
       <td>
         ${new Date(
-          arquivo.created_at
+          arquivo.criado_em
         ).toLocaleDateString("pt-PT")}
       </td>
 
@@ -2069,15 +2080,17 @@ async function carregarUploadsCliente() {
 
         <button
           class="upload-action-btn visualizarArquivoBtn"
-          data-path="${filePath}"
+          data-path="${arquivo.caminho}"
+          data-name="${arquivo.nome_arquivo}"
+          data-type="${arquivo.tipo}"
         >
           Ver
         </button>
 
         <button
           class="upload-action-btn baixarArquivoBtn"
-          data-path="${filePath}"
-          data-name="${arquivo.name}"
+          data-path="${arquivo.caminho}"
+          data-name="${arquivo.nome_arquivo}"
         >
           Download
         </button>
@@ -2116,9 +2129,10 @@ async function carregarUploadsCliente() {
         }
 
         abrirPreviewArquivo(
-          arquivo.name,
-          arquivo.metadata?.mimetype,
-          data.signedUrl);
+          visualizarBtn.dataset.name,
+          visualizarBtn.dataset.type,
+          data.signedUrl
+        );
 
       });
 

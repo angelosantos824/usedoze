@@ -2195,7 +2195,7 @@ async function carregarUploadsCliente() {
 carregarUploadsCliente();
 
 /* ==========================================
-   CLIENTE - PREVIEW DE ARQUIVO EM MODAL
+   PREVIEW DE ARQUIVO EM MODAL
 ========================================== */
 
 function abrirPreviewArquivo(nome, tipo, url) {
@@ -2211,17 +2211,21 @@ function abrirPreviewArquivo(nome, tipo, url) {
 
   if (!modal || !title || !area) return;
 
-  title.textContent = nome;
+  title.textContent =
+    nome || "Visualizar arquivo";
 
   area.innerHTML = "";
 
-  if (tipo && tipo.startsWith("image/")) {
+  const tipoArquivo =
+    tipo || "";
+
+  if (tipoArquivo.includes("image")) {
 
     area.innerHTML = `
       <img src="${url}" alt="${nome}">
     `;
 
-  } else if (tipo === "application/pdf") {
+  } else if (tipoArquivo.includes("pdf")) {
 
     area.innerHTML = `
       <iframe src="${url}"></iframe>
@@ -2601,53 +2605,7 @@ if (commentForm) {
 
 carregarComentariosProjeto();
 
-/* ==========================================
-   CLIENTE - PREVIEW DE ARQUIVO EM MODAL
-========================================== */
 
-function abrirPreviewArquivo(nome, tipo, url) {
-
-  const modal =
-    document.getElementById("filePreviewModal");
-
-  const title =
-    document.getElementById("filePreviewTitle");
-
-  const area =
-    document.getElementById("filePreviewArea");
-
-  if (!modal || !title || !area) return;
-
-  title.textContent = nome;
-
-  area.innerHTML = "";
-
-  if (tipo && tipo.startsWith("image/")) {
-
-    area.innerHTML = `
-      <img src="${url}" alt="${nome}">
-    `;
-
-  } else if (tipo === "application/pdf") {
-
-    area.innerHTML = `
-      <iframe src="${url}"></iframe>
-    `;
-
-  } else {
-
-    area.innerHTML = `
-      <p>
-        Pré-visualização indisponível para este tipo de arquivo.
-        Use o botão Download.
-      </p>
-    `;
-
-  }
-
-  modal.classList.add("active");
-
-}
 
 /* ==========================================
    ADMIN - COMENTÁRIOS DO BRIEFING

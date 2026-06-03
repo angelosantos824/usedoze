@@ -3110,3 +3110,78 @@ async function iniciarRealtimeComentariosCliente() {
 }
 
 iniciarRealtimeComentariosCliente();
+
+/* ==========================================
+   UPLOAD DRAG AND DROP
+========================================== */
+
+const uploadDropzone =
+  document.getElementById("uploadDropzone");
+
+const briefingFiles =
+  document.getElementById("briefingFiles");
+
+const uploadPreview =
+  document.getElementById("uploadPreview");
+
+if (uploadDropzone && briefingFiles) {
+
+  uploadDropzone.addEventListener("click", () => {
+    briefingFiles.click();
+  });
+
+  uploadDropzone.addEventListener("dragover", (event) => {
+
+    event.preventDefault();
+
+    uploadDropzone.classList.add("dragover");
+
+  });
+
+  uploadDropzone.addEventListener("dragleave", () => {
+
+    uploadDropzone.classList.remove("dragover");
+
+  });
+
+  uploadDropzone.addEventListener("drop", (event) => {
+
+    event.preventDefault();
+
+    uploadDropzone.classList.remove("dragover");
+
+    briefingFiles.files =
+      event.dataTransfer.files;
+
+    mostrarArquivos();
+
+  });
+
+  briefingFiles.addEventListener("change", () => {
+
+    mostrarArquivos();
+
+  });
+
+}
+
+function mostrarArquivos() {
+
+  if (!uploadPreview || !briefingFiles.files.length) return;
+
+  uploadPreview.innerHTML = "";
+
+  [...briefingFiles.files].forEach((arquivo) => {
+
+    const div =
+      document.createElement("div");
+
+    div.innerHTML = `
+      📎 ${arquivo.name}
+    `;
+
+    uploadPreview.appendChild(div);
+
+  });
+
+}

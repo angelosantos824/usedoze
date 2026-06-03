@@ -2385,24 +2385,67 @@ function ativarBotoesAdminUploads() {
 
       btn.addEventListener("click", async () => {
 
-        const path = btn.dataset.path;
+        const path =
+          btn.dataset.path;
+
+        const nome =
+          btn.dataset.name;
+
+        const tipo =
+          btn.dataset.type || "";
+
+        console.log(
+          "Admin tentando visualizar:",
+          path,
+          tipo
+        );
 
         const { data, error } =
           await supabaseClient.storage
             .from("project-files")
-            .createSignedUrl(path, 120);
+            .createSignedUrl(path, 300);
 
         if (error) {
           console.error(error);
-          mostrarToast("Erro ao abrir arquivo.", "error");
+
+          mostrarToast(
+            "Erro ao abrir arquivo.",
+            "error"
+          );
+
           return;
         }
 
-        abrirPreviewArquivo(
-          btn.dataset.name,
-          btn.dataset.type,
-          data.signedUrl
-        );
+        if (!data?.signedUrl) {
+
+          mostrarToast(
+            "URL do arquivo inválida.",
+            "error"
+          );
+
+          return;
+
+        }
+
+        const modalExiste =
+          document.getElementById("filePreviewModal");
+
+        if (modalExiste) {
+
+          abrirPreviewArquivo(
+            nome,
+            tipo,
+            data.signedUrl
+          );
+
+        } else {
+
+          window.open(
+            data.signedUrl,
+            "_blank"
+          );
+
+        }
 
       });
 
@@ -2414,8 +2457,11 @@ function ativarBotoesAdminUploads() {
 
       btn.addEventListener("click", async () => {
 
-        const path = btn.dataset.path;
-        const nome = btn.dataset.name;
+        const path =
+          btn.dataset.path;
+
+        const nome =
+          btn.dataset.name;
 
         const { data, error } =
           await supabaseClient.storage
@@ -2424,13 +2470,21 @@ function ativarBotoesAdminUploads() {
 
         if (error) {
           console.error(error);
-          mostrarToast("Erro ao baixar arquivo.", "error");
+
+          mostrarToast(
+            "Erro ao baixar arquivo.",
+            "error"
+          );
+
           return;
         }
 
-        const url = URL.createObjectURL(data);
+        const url =
+          URL.createObjectURL(data);
 
-        const link = document.createElement("a");
+        const link =
+          document.createElement("a");
+
         link.href = url;
         link.download = nome;
 
@@ -2438,6 +2492,7 @@ function ativarBotoesAdminUploads() {
         link.click();
 
         link.remove();
+
         URL.revokeObjectURL(url);
 
       });

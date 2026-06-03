@@ -274,21 +274,48 @@
     </section>
 
     <!-- UPLOAD -->
-    <section class="briefing-section">
+<section class="briefing-section">
 
-        <h2>Upload de Arquivos</h2>
+  <h2>
+    Upload de Arquivos
+  </h2>
 
-        <div class="upload-box">
+  <div
+    class="upload-box"
+    id="uploadDropzone"
+  >
 
-            <p>
-                Envie logo, fotos, PDFs, referências e materiais.
-            </p>
+    <div class="upload-icon">
+      ⬆
+    </div>
 
-            <input type="file" multiple>
+    <p>
+      Arraste arquivos aqui
+    </p>
 
-        </div>
+    <span>
+      ou clique para selecionar
+    </span>
 
-    </section>
+    <small>
+      PNG, JPG, PDF, DOCX, ZIP...
+    </small>
+
+    <input
+      type="file"
+      id="briefingFiles"
+      multiple
+      hidden
+    >
+
+  </div>
+
+  <div
+    id="uploadPreview"
+    class="upload-preview"
+  ></div>
+
+</section>
 
     <!-- ENVIAR -->
     <div class="submit-area">

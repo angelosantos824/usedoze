@@ -1663,3 +1663,28 @@
 .admin-modal-content::-webkit-scrollbar-track{
   background:rgba(255,255,255,.06);
 }
+
+.notification-badge{
+  background:#8b5cf6;
+  color:#fff;
+  padding:8px 14px;
+  border-radius:30px;
+  font-size:.85rem;
+  font-weight:600;
+  box-shadow:0 0 20px rgba(139,92,246,.35);
+  animation:pulseBadge 2s infinite;
+}
+
+@keyframes pulseBadge{
+  0%{
+    transform:scale(1);
+  }
+
+  50%{
+    transform:scale(1.05);
+  }
+
+  100%{
+    transform:scale(1);
+  }
+}

@@ -899,6 +899,8 @@ if (briefingForm) {
 
         descricao:
           document.getElementById("descricaoProjeto")?.value.trim() || "",
+        cores:
+          document.getElementById("coresDesejadas")?.value.trim() || "",
 
         funcionalidades:
           funcionalidadesSelecionadas,

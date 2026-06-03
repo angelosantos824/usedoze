@@ -2101,42 +2101,57 @@ async function carregarUploadsCliente() {
 
     clienteUploadsTable.appendChild(tr);
 
-    /* VISUALIZAR */
-    const visualizarBtn =
-      tr.querySelector(".visualizarArquivoBtn");
+    /* VISUALIZAR ARQUIVO */
+const visualizarBtn =
+  tr.querySelector(".visualizarArquivoBtn");
 
-    if (visualizarBtn) {
+if (visualizarBtn) {
 
-      visualizarBtn.addEventListener("click", async () => {
+  visualizarBtn.addEventListener("click", async () => {
 
-        const path =
-          visualizarBtn.dataset.path;
+    const caminho =
+      visualizarBtn.dataset.path;
 
-        const { data, error } =
-          await supabaseClient.storage
-            .from("project-files")
-            .createSignedUrl(path, 120);
+    console.log("Abrindo arquivo:", caminho);
 
-        if (error) {
-          console.error(error);
+    const { data, error } =
+      await supabaseClient.storage
+        .from("project-files")
+        .createSignedUrl(caminho, 300);
 
-          mostrarToast(
-            "Erro ao abrir arquivo.",
-            "error"
-          );
+    if (error) {
 
-          return;
-        }
+      console.error(error);
 
-        abrirPreviewArquivo(
-          visualizarBtn.dataset.name,
-          visualizarBtn.dataset.type,
-          data.signedUrl
-        );
+      mostrarToast(
+        "Erro ao abrir arquivo.",
+        "error"
+      );
 
-      });
+      return;
 
     }
+
+    if (!data?.signedUrl) {
+
+      mostrarToast(
+        "URL do arquivo inválida.",
+        "error"
+      );
+
+      return;
+
+    }
+
+    abrirPreviewArquivo(
+      visualizarBtn.dataset.nome,
+      visualizarBtn.dataset.tipo,
+      data.signedUrl
+    );
+
+  });
+
+}
 
     /* DOWNLOAD */
     const baixarBtn =

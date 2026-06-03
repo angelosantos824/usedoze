@@ -2987,13 +2987,14 @@ async function carregarProgressoProjeto() {
     briefings[0].status || "Recebido";
 
   const progressoPorStatus = {
-    "Recebido": 15,
-    "Planejamento": 30,
-    "Design": 45,
-    "Em desenvolvimento": 65,
-    "Revisão": 85,
-    "Finalizado": 100
-  };
+      "Recebido": 15,
+      "Planejamento": 30,
+      "Design": 45,
+      "Em desenvolvimento": 65,
+      "Revisão": 80,
+      "Aguardando cliente": 90,
+      "Finalizado": 100
+};  
 
   const progresso =
     progressoPorStatus[status] || 15;

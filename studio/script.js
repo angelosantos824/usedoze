@@ -1389,10 +1389,21 @@ adminMenuLinks.forEach((link) => {
 
     link.classList.add("active");
 
-    const secao = link.dataset.section;
+    const secao =
+      link.dataset.section;
 
     if (secao === "dashboard" || secao === "briefings") {
       carregarAdminReal();
+      return;
+    }
+
+    if (secao === "clientes") {
+      carregarAdminClientes();
+      return;
+    }
+
+    if (secao === "projetos") {
+      carregarAdminProjetos();
       return;
     }
 
@@ -3183,5 +3194,196 @@ function mostrarArquivos() {
     uploadPreview.appendChild(div);
 
   });
+
+}
+
+/* ==========================================
+   ADMIN - CLIENTES
+========================================== */
+
+async function carregarAdminClientes() {
+
+  const tableBody =
+    document.querySelector("tbody");
+
+  if (!tableBody) return;
+
+  const { data, error } =
+    await supabaseClient
+      .from("briefings")
+      .select("*")
+      .order("created_at", {
+        ascending: false
+      });
+
+  if (error) {
+    console.error(error);
+    return;
+  }
+
+  const clientesMap =
+    new Map();
+
+  data.forEach((cliente) => {
+
+    if (!cliente.email) return;
+
+    clientesMap.set(
+      cliente.email,
+      cliente
+    );
+
+  });
+
+  const clientes =
+    Array.from(
+      clientesMap.values()
+    );
+
+  tableBody.innerHTML = "";
+
+  if (clientes.length === 0) {
+
+    tableBody.innerHTML = `
+      <tr>
+        <td colspan="5">
+          Nenhum cliente encontrado.
+        </td>
+      </tr>
+    `;
+
+    return;
+
+  }
+
+  clientes.forEach((cliente) => {
+
+    const tr =
+      document.createElement("tr");
+
+    tr.innerHTML = `
+      <td>
+        ${cliente.nome || "Sem nome"}
+      </td>
+
+      <td>
+        ${cliente.empresa || "Não informado"}
+      </td>
+
+      <td>
+        ${cliente.email || "Não informado"}
+      </td>
+
+      <td>
+        <span class="status recebido">
+          Cliente ativo
+        </span>
+      </td>
+
+      <td class="acoes">
+
+        <button
+          class="verBtn"
+          data-id="${cliente.id}">
+          Ver
+        </button>
+
+      </td>
+    `;
+
+    tableBody.appendChild(tr);
+
+  });
+
+  ativarAcoesAdmin();
+
+}
+
+/* ==========================================
+   ADMIN - PROJETOS
+========================================== */
+
+async function carregarAdminProjetos() {
+
+  const tableBody =
+    document.querySelector("tbody");
+
+  if (!tableBody) return;
+
+  const { data, error } =
+    await supabaseClient
+      .from("briefings")
+      .select("*")
+      .order("created_at", {
+        ascending: false
+      });
+
+  if (error) {
+    console.error(error);
+    return;
+  }
+
+  tableBody.innerHTML = "";
+
+  if (!data || data.length === 0) {
+
+    tableBody.innerHTML = `
+      <tr>
+        <td colspan="5">
+          Nenhum projeto encontrado.
+        </td>
+      </tr>
+    `;
+
+    return;
+
+  }
+
+  data.forEach((projeto) => {
+
+    const tr =
+      document.createElement("tr");
+
+    tr.innerHTML = `
+      <td>
+        ${projeto.nome || "Sem nome"}
+      </td>
+
+      <td>
+        ${projeto.empresa || "Não informado"}
+      </td>
+
+      <td>
+        ${projeto.tipo_projeto || "Projeto"}
+      </td>
+
+      <td>
+        <span class="status recebido">
+          ${projeto.status || "Recebido"}
+        </span>
+      </td>
+
+      <td class="acoes">
+
+        <button
+          class="verBtn"
+          data-id="${projeto.id}">
+          Ver
+        </button>
+
+        <button
+          class="editarBtn"
+          data-id="${projeto.id}">
+          Editar
+        </button>
+
+      </td>
+    `;
+
+    tableBody.appendChild(tr);
+
+  });
+
+  ativarAcoesAdmin();
 
 }

@@ -1634,3 +1634,32 @@
   font-size:.82rem;
   opacity:.7;
 }
+
+/* ==========================================
+   ADMIN MODAL - SCROLL CORRIGIDO
+========================================== */
+
+.admin-modal{
+  overflow-y:auto;
+  align-items:flex-start;
+  padding:32px 18px;
+}
+
+.admin-modal-content{
+  max-height:calc(100vh - 64px);
+  overflow-y:auto;
+  margin:auto;
+}
+
+.admin-modal-content::-webkit-scrollbar{
+  width:8px;
+}
+
+.admin-modal-content::-webkit-scrollbar-thumb{
+  background:rgba(168,85,247,.45);
+  border-radius:999px;
+}
+
+.admin-modal-content::-webkit-scrollbar-track{
+  background:rgba(255,255,255,.06);
+}

@@ -3023,3 +3023,27 @@ async function carregarSidebarUser() {
 }
 
 carregarSidebarUser();
+
+/* ==========================================
+   CLIENTE - FECHAR MODAL BRIEFING
+========================================== */
+
+const closeBriefingModal =
+  document.getElementById("closeBriefingModal");
+
+const briefingModal =
+  document.getElementById("briefingModal");
+
+if (closeBriefingModal && briefingModal) {
+
+  closeBriefingModal.addEventListener("click", () => {
+    briefingModal.classList.remove("active");
+  });
+
+  briefingModal.addEventListener("click", (event) => {
+    if (event.target === briefingModal) {
+      briefingModal.classList.remove("active");
+    }
+  });
+
+}

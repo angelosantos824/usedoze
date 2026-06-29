@@ -1,8 +1,8 @@
-name: Ping Supabase
+name: Supabase Pulse
 
 on:
   schedule:
-    - cron: "0 8 * * 1,3,5"
+    - cron: "0 8,20 * * *"
   workflow_dispatch:
 
 jobs:
@@ -10,8 +10,15 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Ping DOZEDEV
+      - name: Keep Supabase Alive
         run: |
-          curl -X GET "${{ secrets.SUPABASE_URL }}/rest/v1/briefings?select=id&limit=1" \
-          -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" \
-          -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}"
+          curl --silent --show-error --fail -X POST \
+            "${{ secrets.SUPABASE_URL }}/rest/v1/keep_alive" \
+            -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}" \
+            -H "Content-Type: application/json" \
+            -H "Prefer: resolution=merge-duplicates,return=minimal" \
+            -d "{\"id\":1,\"last_ping\":\"$(date -u +"%Y-%m-%dT%H:%M:%SZ")\"}"
+
+      - name: Success
+        run: echo "Supabase ping successful!"

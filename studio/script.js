@@ -163,45 +163,47 @@ async function carregarDashboard() {
 
   data.forEach((briefing) => {
 
-    const card =
-      document.createElement("article");
+  const card = document.createElement("article");
+  card.classList.add("briefing-item");
 
-    card.classList.add("briefing-item");
+  const titulo = document.createElement("h3");
+  titulo.textContent = briefing.nome || "Sem nome";
 
-    card.innerHTML = `
+  const empresa = document.createElement("p");
+  const empresaStrong = document.createElement("strong");
+  empresaStrong.textContent = "Empresa: ";
+  empresa.appendChild(empresaStrong);
+  empresa.append(document.createTextNode(briefing.empresa || "Não informado"));
 
-      <h3>
-        ${briefing.nome || "Sem nome"}
-      </h3>
+  const projeto = document.createElement("p");
+  const projetoStrong = document.createElement("strong");
+  projetoStrong.textContent = "Projeto: ";
+  projeto.appendChild(projetoStrong);
+  projeto.append(document.createTextNode(briefing.tipo_projeto || "Projeto web"));
 
-      <p>
-        <strong>Empresa:</strong>
-        ${briefing.empresa || "Não informado"}
-      </p>
+  const status = document.createElement("p");
+  const statusStrong = document.createElement("strong");
+  statusStrong.textContent = "Status: ";
+  status.appendChild(statusStrong);
+  status.append(document.createTextNode(briefing.status || "Recebido"));
 
-      <p>
-        <strong>Projeto:</strong>
-        ${briefing.tipo_projeto || "Projeto web"}
-      </p>
+  const badge = document.createElement("span");
+  badge.classList.add("briefing-badge");
+  badge.textContent = briefing.paginas || "Sem páginas";
 
-      <p>
-        <strong>Status:</strong>
-        ${briefing.status || "Recebido"}
-      </p>
+  card.appendChild(titulo);
+  card.appendChild(empresa);
+  card.appendChild(projeto);
+  card.appendChild(status);
+  card.appendChild(badge);
 
-      <span class="briefing-badge">
-        ${briefing.paginas || "Sem páginas"}
-      </span>
-
-    `;
-
-    card.addEventListener("click", () => {
-      abrirModalBriefing(briefing);
-    });
-
-    briefingsContainer.appendChild(card);
-
+  card.addEventListener("click", () => {
+    abrirModalBriefing(briefing);
   });
+
+  briefingsContainer.appendChild(card);
+
+});
 
 }
 

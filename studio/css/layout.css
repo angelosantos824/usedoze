@@ -1,0 +1,191 @@
+/* ==========================================
+   LOGIN DOZEDEV STUDIO
+========================================== */
+
+.login-page{
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:30px;
+    position: relative;
+    overflow: hidden;
+    background:
+        linear-gradient(rgba(9,9,15,.76), rgba(9,9,15,.88)),
+        url("../assets/code-bg.svg") center / cover no-repeat,
+        radial-gradient(circle at top left, rgba(139,92,246,.22), transparent 35%),
+        radial-gradient(circle at bottom right, rgba(91,33,182,.18), transparent 35%),
+        #09090f;
+}
+
+.login-page::before{
+    content:"";
+    position:absolute;
+    width:700px;
+    height:700px;
+    background:radial-gradient(
+        circle,
+        rgba(139,92,246,.18),
+        transparent 70%
+    );
+
+    top:-250px;
+    left:50%;
+    transform:translateX(-50%);
+    z-index:0;
+    pointer-events:none;
+}
+
+.login-page::after{
+    content:"";
+    position:absolute;
+    width:500px;
+    height:500px;
+    background:radial-gradient(
+        circle,
+        rgba(91,33,182,.12),
+        transparent 70%
+    );
+
+    bottom:-200px;
+    right:-150px;
+    z-index:0;
+    pointer-events:none;
+}
+.login-card{
+    width:100%;
+    position:relative;
+    z-index:2;
+    max-width:430px;
+    background:rgba(17,17,27,.92);
+    border:1px solid rgba(255,255,255,.08);
+    border-radius:28px;
+    padding:38px;
+    box-shadow:0 30px 90px rgba(0,0,0,.55);
+    backdrop-filter:blur(14px);
+}
+
+.login-logo{
+    text-align:center;
+    margin-bottom:40px;
+}
+
+.login-logo img{
+    width: 180px;
+    height: auto;
+    object-fit: contain;
+    margin-bottom: 28px;
+
+    filter:
+        drop-shadow(0 0 15px rgba(139,92,246,.75))
+        drop-shadow(0 0 40px rgba(139,92,246,.55))
+        drop-shadow(0 0 70px rgba(139,92,246,.35));
+
+    transition: .4s ease;
+}
+
+.login-logo img:hover{
+    transform: scale(1.05);
+}
+
+.login-logo h1{
+  margin-top: -5px;
+    font-size:2rem;
+    letter-spacing:1px;
+}
+
+.login-logo h1 span{
+    color:#8b5cf6;
+}
+
+.login-logo p{
+    color:#aaa;
+    margin-top:8px;
+}
+
+.login-form{
+    display:flex;
+    flex-direction:column;
+    gap:22px;
+}
+
+.login-help{
+    text-align:center;
+    color:#aaa;
+    font-size:.95rem;
+}
+
+.login-help a{
+    color:#8b5cf6;
+    text-decoration:none;
+    font-weight:700;
+}
+
+.login-help a:hover{
+    color:#fff;
+}
+
+.logout-btn{
+  padding: 12px 22px;
+  border: none;
+  border-radius: 14px;
+  background: linear-gradient(
+    135deg,
+    #8b5cf6,
+    #6d28d9
+  );
+  color: #fff;
+  font-weight: 700;
+  cursor: pointer;
+  transition: .25s ease;
+}
+
+.logout-btn:hover{
+  transform: translateY(-2px);
+  box-shadow: 0 12px 30px rgba(139,92,246,.35);
+}
+
+/* ==========================================
+   INPUTS LOGIN FIX
+========================================== */
+
+.login-form .input-group{
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+}
+
+.login-form .input-group label{
+    color:#f1f1f1;
+    font-size:1rem;
+    font-weight:600;
+}
+
+.login-form .input-group input{
+    width:100%;
+    height:58px;
+    background:#0b0b14;
+    border:1px solid rgba(139,92,246,.18);
+    border-radius:18px;
+    padding:0 20px;
+
+    color:#fff;
+    font-size:1rem;
+
+    outline:none;
+
+    transition:.3s ease;
+}
+
+.login-form .input-group input::placeholder{
+    color:#7e7a92;
+}
+
+.login-form .input-group input:focus{
+    border-color:#8b5cf6;
+
+    box-shadow:
+        0 0 0 4px rgba(139,92,246,.12),
+        0 0 30px rgba(139,92,246,.22);
+}
+

@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1100" viewBox="0 0 1600 1100" role="img" aria-label="Código abstrato">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0b1020"/>
+      <stop offset="0.55" stop-color="#120b24"/>
+      <stop offset="1" stop-color="#07070f"/>
+    </linearGradient>
+    <linearGradient id="line" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#a78bfa" stop-opacity="0.08"/>
+      <stop offset="0.45" stop-color="#c084fc" stop-opacity="0.45"/>
+      <stop offset="1" stop-color="#38bdf8" stop-opacity="0.12"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="3" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <rect width="1600" height="1100" fill="url(#bg)"/>
+  <g opacity="0.18">
+    <path d="M0 80H1600M0 180H1600M0 280H1600M0 380H1600M0 480H1600M0 580H1600M0 680H1600M0 780H1600M0 880H1600M0 980H1600" stroke="#ffffff" stroke-width="1"/>
+    <path d="M120 0V1100M320 0V1100M520 0V1100M720 0V1100M920 0V1100M1120 0V1100M1320 0V1100M1520 0V1100" stroke="#ffffff" stroke-width="1"/>
+  </g>
+
+  <g font-family="Consolas, Monaco, 'Courier New', monospace" font-size="34" font-weight="600" fill="#d8b4fe" opacity="0.46" filter="url(#glow)">
+    <text x="122" y="145">&lt;section class="studio"&gt;</text>
+    <text x="186" y="210">const build = await createWebsite();</text>
+    <text x="142" y="275">function launch(project) {</text>
+    <text x="210" y="340">return deploy(project, "DOZEDEV");</text>
+    <text x="142" y="405">}</text>
+    <text x="1000" y="185">.card {</text>
+    <text x="1048" y="250">backdrop-filter: blur(18px);</text>
+    <text x="1048" y="315">border-radius: 28px;</text>
+    <text x="1000" y="380">}</text>
+    <text x="840" y="560">&lt;script type="module"&gt;</text>
+    <text x="914" y="625">import studio from "./js/main.js";</text>
+    <text x="914" y="690">studio.init();</text>
+    <text x="840" y="755">&lt;/script&gt;</text>
+    <text x="140" y="735">grid-template-columns: repeat(12, 1fr);</text>
+    <text x="190" y="805">color: var(--primary);</text>
+    <text x="122" y="875">&lt;/section&gt;</text>
+  </g>
+
+  <g opacity="0.55">
+    <rect x="116" y="118" width="470" height="8" rx="4" fill="url(#line)"/>
+    <rect x="184" y="248" width="560" height="8" rx="4" fill="url(#line)"/>
+    <rect x="996" y="158" width="310" height="8" rx="4" fill="url(#line)"/>
+    <rect x="838" y="532" width="420" height="8" rx="4" fill="url(#line)"/>
+    <rect x="138" y="706" width="640" height="8" rx="4" fill="url(#line)"/>
+  </g>
+
+  <circle cx="1340" cy="840" r="190" fill="#8b5cf6" opacity="0.12"/>
+  <circle cx="260" cy="210" r="220" fill="#38bdf8" opacity="0.08"/>
+</svg>

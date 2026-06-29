@@ -94,3 +94,202 @@ if (cookieBanner && acceptCookies) {
     cookieBanner.classList.remove("show");
   });
 }
+
+/* ===============================
+   LEGAL MODALS
+================================ */
+
+const legalModalContent = {
+  "cookies.html": {
+    title: "Política de Cookies",
+    eyebrow: "Privacidade digital",
+    description:
+      "Utilizamos cookies para melhorar a experiência no site, analisar desempenho e garantir o funcionamento correto das páginas.",
+    sections: [
+      {
+        title: "O que são cookies?",
+        text:
+          "Cookies são pequenos ficheiros guardados no dispositivo quando visita um website."
+      },
+      {
+        title: "Tipos utilizados",
+        text:
+          "Podemos utilizar cookies essenciais, analíticos e de melhoria de experiência."
+      },
+      {
+        title: "Gestão de cookies",
+        text:
+          "Pode configurar ou bloquear cookies diretamente no navegador."
+      }
+    ],
+    href: "cookies.html"
+  },
+  "termos-de-uso.html": {
+    title: "Termos de Uso",
+    eyebrow: "Condições de utilização",
+    description:
+      "Ao aceder ao website da DOZEDEV Studio, o utilizador concorda com os presentes Termos de Uso.",
+    sections: [
+      {
+        title: "Utilização do website",
+        text:
+          "O website deve ser utilizado de forma legal, responsável e respeitosa."
+      },
+      {
+        title: "Serviços",
+        text:
+          "A DOZEDEV Studio presta serviços de criação de websites, páginas institucionais, sistemas simples e soluções digitais personalizadas."
+      },
+      {
+        title: "Responsabilidade",
+        text:
+          "A DOZEDEV Studio não se responsabiliza por falhas causadas por terceiros, serviços externos, alojamentos, domínios ou plataformas integradas."
+      }
+    ],
+    href: "termos-de-uso.html"
+  }
+};
+
+function criarLegalModal() {
+  const modal = document.createElement("div");
+  modal.classList.add("legal-modal");
+  modal.setAttribute("aria-hidden", "true");
+
+  const panel = document.createElement("div");
+  panel.classList.add("legal-modal-panel");
+  panel.setAttribute("role", "dialog");
+  panel.setAttribute("aria-modal", "true");
+  panel.setAttribute("aria-labelledby", "legalModalTitle");
+
+  const closeButton = document.createElement("button");
+  closeButton.classList.add("legal-modal-close");
+  closeButton.type = "button";
+  closeButton.setAttribute("aria-label", "Fechar modal");
+  closeButton.textContent = "×";
+
+  const eyebrow = document.createElement("span");
+  eyebrow.classList.add("legal-modal-eyebrow");
+
+  const title = document.createElement("h2");
+  title.id = "legalModalTitle";
+
+  const description = document.createElement("p");
+  description.classList.add("legal-modal-description");
+
+  const list = document.createElement("div");
+  list.classList.add("legal-modal-list");
+
+  const actions = document.createElement("div");
+  actions.classList.add("legal-modal-actions");
+
+  const fullLink = document.createElement("a");
+  fullLink.classList.add("legal-modal-link");
+  fullLink.textContent = "Abrir página completa";
+
+  const okButton = document.createElement("button");
+  okButton.classList.add("legal-modal-ok");
+  okButton.type = "button";
+  okButton.textContent = "Entendi";
+
+  actions.append(fullLink, okButton);
+  panel.append(
+    closeButton,
+    eyebrow,
+    title,
+    description,
+    list,
+    actions
+  );
+  modal.appendChild(panel);
+  document.body.appendChild(modal);
+
+  return {
+    modal,
+    panel,
+    closeButton,
+    eyebrow,
+    title,
+    description,
+    list,
+    fullLink,
+    okButton
+  };
+}
+
+const legalModal =
+  document.querySelector(".legal-modal")
+    ? null
+    : criarLegalModal();
+
+function fecharLegalModal() {
+  if (!legalModal) return;
+
+  legalModal.modal.classList.remove("active");
+  legalModal.modal.setAttribute("aria-hidden", "true");
+  document.body.classList.remove("legal-modal-open");
+}
+
+function abrirLegalModal(tipo) {
+  if (!legalModal || !legalModalContent[tipo]) return;
+
+  const content = legalModalContent[tipo];
+
+  legalModal.eyebrow.textContent = content.eyebrow;
+  legalModal.title.textContent = content.title;
+  legalModal.description.textContent = content.description;
+  legalModal.fullLink.href = content.href;
+
+  legalModal.list.textContent = "";
+
+  content.sections.forEach((section) => {
+    const item = document.createElement("article");
+    item.classList.add("legal-modal-item");
+
+    const itemTitle = document.createElement("h3");
+    itemTitle.textContent = section.title;
+
+    const itemText = document.createElement("p");
+    itemText.textContent = section.text;
+
+    item.append(itemTitle, itemText);
+    legalModal.list.appendChild(item);
+  });
+
+  legalModal.modal.classList.add("active");
+  legalModal.modal.setAttribute("aria-hidden", "false");
+  document.body.classList.add("legal-modal-open");
+  legalModal.closeButton.focus();
+}
+
+if (legalModal) {
+  document
+    .querySelectorAll('a[href="cookies.html"], a[href="termos-de-uso.html"]')
+    .forEach((link) => {
+      link.addEventListener("click", (event) => {
+        const tipo = link.getAttribute("href");
+
+        if (!legalModalContent[tipo]) return;
+
+        event.preventDefault();
+        abrirLegalModal(tipo);
+      });
+    });
+
+  legalModal.closeButton.addEventListener("click", fecharLegalModal);
+  legalModal.okButton.addEventListener("click", fecharLegalModal);
+
+  legalModal.modal.addEventListener("click", (event) => {
+    if (event.target === legalModal.modal) {
+      fecharLegalModal();
+    }
+  });
+
+  document.addEventListener("keydown", (event) => {
+    if (
+      event.key === "Escape" &&
+      legalModal.modal.classList.contains("active")
+    ) {
+      fecharLegalModal();
+    }
+  });
+}

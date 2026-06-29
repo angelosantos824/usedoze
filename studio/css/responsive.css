@@ -1,0 +1,268 @@
+/* ==========================================
+   ADMIN MODAL - SCROLL CORRIGIDO
+========================================== */
+
+.admin-modal{
+  overflow-y:auto;
+  align-items:flex-start;
+  padding:32px 18px;
+}
+
+.admin-modal-content{
+  max-height:calc(100vh - 64px);
+  overflow-y:auto;
+  margin:auto;
+}
+
+.admin-modal-content::-webkit-scrollbar{
+  width:8px;
+}
+
+.admin-modal-content::-webkit-scrollbar-thumb{
+  background:rgba(168,85,247,.45);
+  border-radius:999px;
+}
+
+.admin-modal-content::-webkit-scrollbar-track{
+  background:rgba(255,255,255,.06);
+}
+
+.notification-badge{
+  background:#8b5cf6;
+  color:#fff;
+  padding:8px 14px;
+  border-radius:30px;
+  font-size:.85rem;
+  font-weight:600;
+  box-shadow:0 0 20px rgba(139,92,246,.35);
+  animation:pulseBadge 2s infinite;
+}
+
+@keyframes pulseBadge{
+  0%{
+    transform:scale(1);
+  }
+
+  50%{
+    transform:scale(1.05);
+  }
+
+  100%{
+    transform:scale(1);
+  }
+}
+
+/* ==========================================
+   UPLOAD PREMIUM
+========================================== */
+
+.upload-box{
+
+  border:2px dashed rgba(139,92,246,.35);
+
+  border-radius:24px;
+
+  padding:50px 30px;
+
+  text-align:center;
+
+  background:rgba(255,255,255,.02);
+
+  cursor:pointer;
+
+  transition:.3s ease;
+
+}
+
+.upload-box:hover{
+
+  border-color:#8b5cf6;
+
+  background:rgba(139,92,246,.05);
+
+  transform:translateY(-3px);
+
+}
+
+.upload-box.dragover{
+
+  border-color:#a855f7;
+
+  background:rgba(168,85,247,.12);
+
+  box-shadow:0 0 30px rgba(168,85,247,.25);
+
+}
+
+.upload-icon{
+
+  font-size:2.5rem;
+
+  margin-bottom:15px;
+
+  color:#a855f7;
+
+}
+
+.upload-box p{
+
+  font-size:1.1rem;
+
+  font-weight:600;
+
+  color:#fff;
+
+}
+
+.upload-box span{
+
+  display:block;
+
+  margin-top:8px;
+
+  color:#b9b9c9;
+
+}
+
+.upload-box small{
+
+  display:block;
+
+  margin-top:18px;
+
+  color:#7c7c96;
+
+}
+
+.upload-preview{
+
+  margin-top:20px;
+
+  display:grid;
+
+  gap:12px;
+
+}
+
+.upload-preview div{
+
+  padding:14px 18px;
+
+  border-radius:14px;
+
+  background:rgba(255,255,255,.03);
+
+  color:#fff;
+
+  font-size:.95rem;
+
+}
+
+/* ==========================================
+   MODAL REGISTRO
+========================================== */
+
+.auth-modal{
+
+  position:fixed;
+  inset:0;
+
+  background:rgba(0,0,0,.75);
+
+  display:flex;
+  align-items:center;
+  justify-content:center;
+
+  opacity:0;
+  visibility:hidden;
+
+  transition:.3s ease;
+
+  z-index:9999;
+
+}
+
+.auth-modal.active{
+
+  opacity:1;
+  visibility:visible;
+
+}
+
+.auth-modal-content{
+
+  width:min(450px,90%);
+
+  background:#111827;
+
+  border:1px solid rgba(255,255,255,.08);
+
+  border-radius:24px;
+
+  padding:32px;
+
+  position:relative;
+
+}
+
+.auth-close{
+
+  position:absolute;
+  top:14px;
+  right:18px;
+
+  background:none;
+  border:none;
+
+  color:#fff;
+
+  font-size:1.5rem;
+
+  cursor:pointer;
+
+}
+
+.login-divider{
+
+  text-align:center;
+
+  margin:3px 0 8px;
+
+  color:#777;
+
+  font-size:.9rem;
+
+}
+
+.register-btn{
+
+  width:100%;
+
+  height:48px;
+
+  border:none;
+
+  border-radius:12px;
+
+  background:#8b5cf6;
+
+  color:#fff;
+
+  font-size:.95rem;
+  font-weight:600;
+
+  cursor:pointer;
+
+  margin-top:0px;
+
+  transition:.3s ease;
+
+}
+
+.register-btn:hover{
+
+  transform:translateY(-2px);
+
+  background:#9f67ff;
+
+}

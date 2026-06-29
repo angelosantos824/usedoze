@@ -1175,59 +1175,54 @@ async function carregarAdminReal() {
 
   data.forEach((briefing) => {
 
-    const tr =
-      document.createElement("tr");
+  const tr = document.createElement("tr");
 
-    tr.innerHTML = `
+  const tdNome = document.createElement("td");
+  tdNome.textContent = briefing.nome || "Sem nome";
 
-      <td>
-        ${briefing.nome || "Sem nome"}
-      </td>
+  const tdEmpresa = document.createElement("td");
+  tdEmpresa.textContent = briefing.empresa || "Não informado";
 
-      <td>
-        ${briefing.empresa || "Não informado"}
-      </td>
+  const tdProjeto = document.createElement("td");
+  tdProjeto.textContent = briefing.tipo_projeto || "Projeto";
 
-      <td>
-        ${briefing.tipo_projeto || "Projeto"}
-      </td>
+  const tdStatus = document.createElement("td");
+  const statusSpan = document.createElement("span");
+  statusSpan.classList.add("status", "recebido");
+  statusSpan.textContent = briefing.status || "Recebido";
+  tdStatus.appendChild(statusSpan);
 
-      <td>
-        <span class="status recebido">
-          ${briefing.status || "Recebido"}
-        </span>
-      </td>
+  const tdAcoes = document.createElement("td");
+  tdAcoes.classList.add("acoes");
 
-      <td class="acoes">
+  const verBtn = document.createElement("button");
+  verBtn.classList.add("verBtn");
+  verBtn.dataset.id = briefing.id;
+  verBtn.textContent = "Ver";
 
-  <button
-    class="verBtn"
-    data-id="${briefing.id}"
-  >
-    Ver
-  </button>
+  const editarBtn = document.createElement("button");
+  editarBtn.classList.add("editarBtn");
+  editarBtn.dataset.id = briefing.id;
+  editarBtn.textContent = "Editar";
 
-  <button
-    class="editarBtn"
-    data-id="${briefing.id}"
-  >
-    Editar
-  </button>
+  const excluirBtn = document.createElement("button");
+  excluirBtn.classList.add("excluirBtn");
+  excluirBtn.dataset.id = briefing.id;
+  excluirBtn.textContent = "Excluir";
 
-  <button
-    class="excluirBtn"
-    data-id="${briefing.id}"
-  >
-    Excluir
-  </button>
+  tdAcoes.appendChild(verBtn);
+  tdAcoes.appendChild(editarBtn);
+  tdAcoes.appendChild(excluirBtn);
 
-</td>
+  tr.appendChild(tdNome);
+  tr.appendChild(tdEmpresa);
+  tr.appendChild(tdProjeto);
+  tr.appendChild(tdStatus);
+  tr.appendChild(tdAcoes);
 
-    `;
+  tableBody.appendChild(tr);
 
-    tableBody.appendChild(tr);
-
-  });
+});
 
   ativarAcoesAdmin();
 

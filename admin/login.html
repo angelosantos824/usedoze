@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="pt-PT">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Area de Gestao | DOZEDEV</title>
+  <link rel="icon" href="../imagem/favicon-96x96.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../assets/css/admin.css">
+  <link rel="stylesheet" href="../assets/css/admin-responsive.css">
+</head>
+<body class="admin-body" data-admin-page="login">
+  <main class="admin-login">
+    <section class="login-panel">
+      <a href="../index.html" aria-label="Voltar ao site DOZEDEV">
+        <img src="../imagem/Logo.png" alt="DOZEDEV">
+      </a>
+      <h1>Area de Gestao</h1>
+      <p>Entrada administrativa para gestao de clientes, sistemas, planos e implantacoes.</p>
+      <form id="adminLoginForm" class="admin-form">
+        <label class="field">
+          <span>Email</span>
+          <input type="email" name="email" autocomplete="email" required>
+        </label>
+        <label class="field">
+          <span>Senha</span>
+          <input type="password" name="password" autocomplete="current-password" required>
+        </label>
+        <button class="btn-admin" type="submit">Entrar</button>
+      </form>
+      <p class="admin-muted"><a href="../index.html">Voltar ao site publico</a></p>
+    </section>
+  </main>
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <script src="../studio/config.js"></script>
+  <script type="module" src="../assets/js/admin/main.js"></script>
+</body>
+</html>

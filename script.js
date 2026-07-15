@@ -60,6 +60,70 @@ window.addEventListener('resize', revealElements);
 
 revealElements();
 
+document.querySelectorAll('.faq-item button').forEach((button) => {
+  button.addEventListener('click', () => {
+    const item = button.closest('.faq-item');
+    const isOpen = item.classList.toggle('open');
+
+    button.setAttribute('aria-expanded', String(isOpen));
+  });
+});
+
+document.querySelectorAll('.btn').forEach((button) => {
+  button.addEventListener('click', (event) => {
+    const rect = button.getBoundingClientRect();
+
+    button.style.setProperty('--ripple-x', `${event.clientX - rect.left}px`);
+    button.style.setProperty('--ripple-y', `${event.clientY - rect.top}px`);
+    button.classList.remove('ripple');
+    void button.offsetWidth;
+    button.classList.add('ripple');
+  });
+});
+
+const countElements = document.querySelectorAll('.count-up');
+
+if (countElements.length) {
+  const countObserver = new IntersectionObserver((entries, observer) => {
+    entries.forEach((entry) => {
+      if (!entry.isIntersecting) return;
+
+      const element = entry.target;
+      const target = Number(element.dataset.target || 0);
+      const duration = 900;
+      const start = performance.now();
+
+      const animateCount = (time) => {
+        const progress = Math.min((time - start) / duration, 1);
+        const eased = 1 - Math.pow(1 - progress, 3);
+
+        element.textContent = Math.round(target * eased);
+
+        if (progress < 1) {
+          requestAnimationFrame(animateCount);
+        }
+      };
+
+      requestAnimationFrame(animateCount);
+      observer.unobserve(element);
+    });
+  }, { threshold: 0.45 });
+
+  countElements.forEach((element) => countObserver.observe(element));
+}
+
+const testimonialCards = document.querySelectorAll('.testimonial-card');
+
+if (testimonialCards.length > 1) {
+  let activeTestimonial = 0;
+
+  setInterval(() => {
+    testimonialCards[activeTestimonial].classList.remove('active');
+    activeTestimonial = (activeTestimonial + 1) % testimonialCards.length;
+    testimonialCards[activeTestimonial].classList.add('active');
+  }, 4800);
+}
+
 function resgatarVoucher(event) {
   event.preventDefault();
 

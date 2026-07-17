@@ -47,6 +47,9 @@ export function initLogin() {
       const supabase = getSupabase();
       const email = form.email.value.trim();
       const password = form.password.value.trim();
+
+      await supabase.auth.signOut({ scope: "local" });
+
       const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password
@@ -58,15 +61,32 @@ export function initLogin() {
       location.href = "dashboard.html";
     } catch (error) {
       console.error(error);
-      const message = error?.code === "ADMIN_PROFILE_NOT_FOUND"
-        ? "Login valido, mas falta um perfil ativo na Area de Gestao."
-        : "Nao foi possivel iniciar sessao administrativa.";
-      showToast(message, "error");
+      showToast(getLoginErrorMessage(error), "error");
     } finally {
       submit.disabled = false;
       submit.textContent = "Entrar";
     }
   });
+}
+
+function getLoginErrorMessage(error) {
+  if (error?.code === "invalid_credentials") {
+    return "Email ou senha invalidos.";
+  }
+
+  if (error?.code === "ADMIN_PROFILE_NOT_FOUND") {
+    return "Login valido, mas falta um perfil ativo na Area de Gestao.";
+  }
+
+  if (error?.code === "ADMIN_PROFILE_FORBIDDEN") {
+    return "Este utilizador nao possui acesso de Super Administrador.";
+  }
+
+  if (error?.code === "ADMIN_PROFILE_LOAD_FAILED") {
+    return "Nao foi possivel carregar o perfil administrativo. Tente novamente.";
+  }
+
+  return "Nao foi possivel iniciar sessao administrativa.";
 }
 
 function renderAdminShell(profile) {

@@ -49,11 +49,12 @@ export async function fetchAdminProfile(userId) {
   const { data, error } = await supabase
     .from("admin_profiles")
     .select("*")
-    .eq("id", userId)
+    .eq("auth_user_id", userId)
     .eq("status", "active")
     .maybeSingle();
 
   if (error) {
+    error.code = error.code || "ADMIN_PROFILE_LOAD_FAILED";
     throw error;
   }
 
@@ -61,6 +62,12 @@ export async function fetchAdminProfile(userId) {
     const profileError = new Error("Perfil administrativo ativo nao encontrado.");
     profileError.code = "ADMIN_PROFILE_NOT_FOUND";
     throw profileError;
+  }
+
+  if (data.role !== "super_admin") {
+    const permissionError = new Error("O utilizador nao possui permissao de Super Administrador.");
+    permissionError.code = "ADMIN_PROFILE_FORBIDDEN";
+    throw permissionError;
   }
 
   return data;

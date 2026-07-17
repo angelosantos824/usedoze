@@ -74,9 +74,9 @@ Perfis criados:
 
 ## Criar o primeiro super_admin
 
-A migration `20260717135000_bootstrap_admin_profile.sql` promove automaticamente o utilizador `admin@dozedev.pt` para `super_admin`, caso esse utilizador ja exista no Supabase Auth.
-
-Se usar outro email, crie o utilizador no Supabase Auth, copie o UUID e execute:
+1. Crie o utilizador no Supabase Auth.
+2. Copie o UUID do utilizador.
+3. Execute:
 
 ```sql
 insert into admin_profiles (id, name, email, role, status)
@@ -90,14 +90,6 @@ values (
 ```
 
 Depois aceda a `admin/login.html` com o email e senha desse utilizador.
-
-Para diagnosticar o erro "Perfil administrativo ativo nao encontrado", confirme se existe perfil ativo para o utilizador autenticado:
-
-```sql
-select ap.id, ap.email, ap.role, ap.status
-from admin_profiles ap
-where lower(ap.email) = 'admin@dozedev.pt';
-```
 
 ## Funcionalidades implementadas
 

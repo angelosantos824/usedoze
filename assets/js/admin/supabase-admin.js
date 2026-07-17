@@ -58,7 +58,9 @@ export async function fetchAdminProfile(userId) {
   }
 
   if (!data) {
-    throw new Error("Perfil administrativo ativo não encontrado.");
+    const profileError = new Error("Perfil administrativo ativo nao encontrado.");
+    profileError.code = "ADMIN_PROFILE_NOT_FOUND";
+    throw profileError;
   }
 
   return data;

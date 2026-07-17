@@ -58,7 +58,10 @@ export function initLogin() {
       location.href = "dashboard.html";
     } catch (error) {
       console.error(error);
-      showToast("Nao foi possivel iniciar sessao administrativa.", "error");
+      const message = error?.code === "ADMIN_PROFILE_NOT_FOUND"
+        ? "Login valido, mas falta um perfil ativo na Area de Gestao."
+        : "Nao foi possivel iniciar sessao administrativa.";
+      showToast(message, "error");
     } finally {
       submit.disabled = false;
       submit.textContent = "Entrar";

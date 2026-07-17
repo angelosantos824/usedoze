@@ -43,19 +43,20 @@ export async function getCurrentSession() {
 }
 
 export async function fetchAdminProfile(userId) {
-
     const supabase = getSupabase();
 
-    const { data, error } =
-        await supabase
-            .from("admin_profiles")
-            .select("*")
-            .eq("id", userId)
-            .eq("status", "active")
-            .single();
+    const { data, error } = await supabase
+        .from("admin_profiles")
+        .select("*")
+        .eq("auth_user_id", userId)
+        .eq("status", "active")
+        .maybeSingle();
 
     if (error) throw error;
 
-    return data;
+    if (!data) {
+        throw new Error("Perfil administrativo ativo não encontrado.");
+    }
 
+    return data;
 }

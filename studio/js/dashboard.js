@@ -23,6 +23,63 @@ async function carregarIdentidadeStudio(session) {
   };
 }
 
+async function carregarBriefingsCliente(session, columns = "*", limit = null) {
+  const identity =
+    await carregarIdentidadeStudio(session);
+  let query =
+    supabaseClient
+      .from("briefings")
+      .select(columns);
+
+  if (identity?.profile?.client_id) {
+    query =
+      query.eq("client_id", identity.profile.client_id);
+  } else {
+    query =
+      query.eq("email", session.user.email);
+  }
+
+  query =
+    query.order("created_at", {
+      ascending: false
+    });
+
+  if (limit) {
+    query =
+      query.limit(limit);
+  }
+
+  const result =
+    await query;
+
+  if (!result.error || !identity?.profile?.client_id) {
+    return result;
+  }
+
+  const message =
+    `${result.error.message || ""} ${result.error.details || ""}`;
+
+  if (!/client_id|schema cache|column/i.test(message)) {
+    return result;
+  }
+
+  let fallback =
+    supabaseClient
+      .from("briefings")
+      .select(columns)
+      .eq("email", session.user.email)
+      .order("created_at", {
+        ascending: false
+      });
+
+  if (limit) {
+    fallback =
+      fallback.limit(limit);
+  }
+
+  return fallback;
+}
+
 export async function carregarDashboard() {
   const briefingsContainer =
     document.getElementById("briefingsContainer");
@@ -39,11 +96,8 @@ export async function carregarDashboard() {
     return;
   }
 
-  const { data, error } = await supabaseClient
-    .from("briefings")
-    .select("*")
-    .eq("email", session.user.email)
-    .order("created_at", { ascending: false });
+  const { data, error } =
+    await carregarBriefingsCliente(session);
 
   if (error) {
     console.error(error);
@@ -174,11 +228,7 @@ export async function carregarTimelineProjeto() {
   if (!session) return;
 
   const { data: briefings } =
-    await supabaseClient
-      .from("briefings")
-      .select("*")
-      .eq("email", session.user.email)
-      .limit(1);
+    await carregarBriefingsCliente(session, "*", 1);
 
   if (!briefings || briefings.length === 0) return;
 
@@ -248,11 +298,7 @@ export async function carregarProgressoProjeto() {
   if (!session) return;
 
   const { data: briefings } =
-    await supabaseClient
-      .from("briefings")
-      .select("status")
-      .eq("email", session.user.email)
-      .limit(1);
+    await carregarBriefingsCliente(session, "status", 1);
 
   if (!briefings || briefings.length === 0) return;
 

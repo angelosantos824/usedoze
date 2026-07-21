@@ -32,6 +32,13 @@ function formatDate(value) {
   return date.toLocaleDateString("pt-PT");
 }
 
+function isSchemaColumnError(error) {
+  const message =
+    `${error?.message || ""} ${error?.details || ""}`;
+
+  return /column|schema cache|Could not find|relation/i.test(message);
+}
+
 function renderDetailList(elementId, items, emptyText, renderItem) {
   const container =
     document.getElementById(elementId);
@@ -104,6 +111,152 @@ async function fetchClientRelatedRows({
   }
 
   return byEmail.data || [];
+}
+
+async function registrarAuditoriaAdmin({
+  clientId,
+  entityType,
+  entityId,
+  action,
+  newData
+}) {
+  const {
+    data: { session }
+  } = await supabaseClient.auth.getSession();
+
+  const { error } =
+    await supabaseClient
+      .from("audit_logs")
+      .insert([{
+        client_id: clientId,
+        entity_type: entityType,
+        entity_id: entityId,
+        action,
+        new_data: newData,
+        metadata: {
+          actor_user_id: session?.user?.id || null,
+          source: "studio_admin"
+        }
+      }]);
+
+  if (error) {
+    console.warn("Nao foi possivel registrar auditoria.", error);
+  }
+}
+
+async function carregarClientesSelectProjeto() {
+  const select =
+    document.getElementById("newProjectClient");
+
+  if (!select) return;
+
+  const { data, error } =
+    await supabaseClient
+      .from("clients")
+      .select("id,name,contact_name,email")
+      .order("created_at", {
+        ascending: false
+      });
+
+  if (error) {
+    console.error(error);
+    mostrarToast("Erro ao carregar clientes.", "error");
+    return;
+  }
+
+  select.innerHTML = `
+    <option value="">Selecionar cliente</option>
+  `;
+
+  (data || []).forEach((cliente) => {
+    const option =
+      document.createElement("option");
+    option.value =
+      cliente.id;
+    option.textContent =
+      `${cliente.contact_name || cliente.name || "Cliente"} - ${
+        cliente.email || "sem email"
+      }`;
+    option.dataset.email =
+      cliente.email || "";
+    option.dataset.name =
+      cliente.name || "";
+    option.dataset.contact =
+      cliente.contact_name || "";
+    select.appendChild(option);
+  });
+}
+
+async function criarProjetoAdmin(payload) {
+  const projectPayload = {
+    client_id: payload.clientId,
+    name: payload.name,
+    service_type: payload.serviceType,
+    status: payload.status,
+    due_date: payload.dueDate || null,
+    progress: payload.progress
+  };
+
+  const projectResult =
+    await supabaseClient
+      .from("projects")
+      .insert([projectPayload])
+      .select("id")
+      .single();
+
+  if (!projectResult.error) {
+    await registrarAuditoriaAdmin({
+      clientId: payload.clientId,
+      entityType: "project",
+      entityId: projectResult.data?.id || null,
+      action: "project.created",
+      newData: projectPayload
+    });
+
+    return {
+      source: "projects",
+      id: projectResult.data?.id
+    };
+  }
+
+  if (!isSchemaColumnError(projectResult.error)) {
+    throw projectResult.error;
+  }
+
+  const briefingPayload = {
+    client_id: payload.clientId,
+    nome: payload.contactName || payload.name,
+    email: payload.email,
+    empresa: payload.companyName,
+    tipo_projeto: payload.serviceType,
+    prazo: payload.dueDate || "",
+    status: payload.status,
+    descricao: payload.name
+  };
+
+  const briefingResult =
+    await supabaseClient
+      .from("briefings")
+      .insert([briefingPayload])
+      .select("id")
+      .single();
+
+  if (briefingResult.error) {
+    throw briefingResult.error;
+  }
+
+  await registrarAuditoriaAdmin({
+    clientId: payload.clientId,
+    entityType: "briefing",
+    entityId: briefingResult.data?.id || null,
+    action: "project.created_from_briefing",
+    newData: briefingPayload
+  });
+
+  return {
+    source: "briefings",
+    id: briefingResult.data?.id
+  };
 }
 
 export async function carregarAdminReal() {
@@ -864,6 +1017,23 @@ function initAdminModals() {
     });
   }
 
+  const adminNewProjectModal =
+    document.getElementById("adminNewProjectModal");
+  const closeAdminNewProjectModal =
+    document.getElementById("closeAdminNewProjectModal");
+
+  if (adminNewProjectModal && closeAdminNewProjectModal) {
+    closeAdminNewProjectModal.addEventListener("click", () => {
+      adminNewProjectModal.classList.remove("active");
+    });
+
+    adminNewProjectModal.addEventListener("click", (event) => {
+      if (event.target === adminNewProjectModal) {
+        adminNewProjectModal.classList.remove("active");
+      }
+    });
+  }
+
   const adminEditModal =
     document.getElementById("adminEditModal");
   const closeAdminEditModal =
@@ -932,6 +1102,89 @@ function initAdminFiltros() {
   }
 }
 
+function initNovoProjetoAdmin() {
+  const novoProjetoBtn =
+    document.getElementById("novoProjetoBtn");
+  const adminNewProjectModal =
+    document.getElementById("adminNewProjectModal");
+  const adminNewProjectForm =
+    document.getElementById("adminNewProjectForm");
+
+  if (novoProjetoBtn && adminNewProjectModal) {
+    novoProjetoBtn.addEventListener("click", async () => {
+      await carregarClientesSelectProjeto();
+      adminNewProjectModal.classList.add("active");
+    });
+  }
+
+  if (!adminNewProjectForm) return;
+
+  adminNewProjectForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+
+    const submitButton =
+      adminNewProjectForm.querySelector('button[type="submit"]');
+    const clientSelect =
+      document.getElementById("newProjectClient");
+    const selectedOption =
+      clientSelect?.selectedOptions?.[0];
+    const clientId =
+      clientSelect?.value || "";
+    const name =
+      document.getElementById("newProjectName")?.value.trim() || "";
+    const serviceType =
+      document.getElementById("newProjectServiceType")?.value.trim() || "";
+    const status =
+      document.getElementById("newProjectStatus")?.value || "Recebido";
+    const dueDate =
+      document.getElementById("newProjectDueDate")?.value || "";
+    const progressValue =
+      Number(document.getElementById("newProjectProgress")?.value || 0);
+    const progress =
+      Math.min(Math.max(progressValue, 0), 100);
+
+    if (!clientId || !name || !serviceType) {
+      mostrarToast("Preencha cliente, nome e tipo de servico.", "error");
+      return;
+    }
+
+    if (submitButton?.disabled) return;
+
+    if (submitButton) {
+      submitButton.disabled = true;
+      submitButton.textContent = "Criando...";
+    }
+
+    try {
+      await criarProjetoAdmin({
+        clientId,
+        name,
+        serviceType,
+        status,
+        dueDate,
+        progress,
+        email: selectedOption?.dataset.email || "",
+        companyName: selectedOption?.dataset.name || "",
+        contactName: selectedOption?.dataset.contact || ""
+      });
+
+      adminNewProjectModal?.classList.remove("active");
+      adminNewProjectForm.reset();
+      mostrarToast("Projeto criado com sucesso.", "success");
+      carregarCardsAdmin();
+      carregarAdminProjetos();
+    } catch (error) {
+      console.error(error);
+      mostrarToast("Erro ao criar projeto.", "error");
+    } finally {
+      if (submitButton) {
+        submitButton.disabled = false;
+        submitButton.textContent = "Criar Projeto";
+      }
+    }
+  });
+}
+
 export function initAdmin() {
   if (window.location.pathname.includes("admin.html")) {
     carregarAdminReal();
@@ -941,4 +1194,5 @@ export function initAdmin() {
   carregarCardsAdmin();
   initAdminModals();
   initAdminFiltros();
+  initNovoProjetoAdmin();
 }

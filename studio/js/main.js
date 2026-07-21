@@ -1,14 +1,14 @@
-import { initAdmin } from "./admin.js?v=20260721-3";
+import { initAdmin } from "./admin.js?v=20260721-4";
 import {
   initAuth,
   protegerAdmin,
   protegerPaginasPrivadas
 } from "./auth.js?v=20260721-2";
-import { initBriefing } from "./briefing.js";
-import { initComments } from "./comments.js";
-import { initDashboard } from "./dashboard.js?v=20260721-2";
+import { initBriefing } from "./briefing.js?v=20260721-4";
+import { initComments } from "./comments.js?v=20260721-4";
+import { initDashboard } from "./dashboard.js?v=20260721-4";
 import { initRealtime } from "./realtime.js";
-import { initUploads } from "./uploads.js";
+import { initUploads } from "./uploads.js?v=20260721-4";
 import { exposePublicFunctions } from "./utils.js";
 import {
   initVouchers,
@@ -26,26 +26,26 @@ import {
   ativarAcoesAdmin,
   aplicarFiltrosAdmin,
   mostrarSecaoEmBreve
-} from "./admin.js?v=20260721-3";
+} from "./admin.js?v=20260721-4";
 import {
   buscarBriefingAtualCliente,
   carregarComentariosAdmin,
   carregarComentariosProjeto
-} from "./comments.js";
+} from "./comments.js?v=20260721-4";
 import {
   abrirPreviewArquivo,
   ativarBotoesAdminUploads,
   carregarAdminUploads,
   carregarUploadsCliente,
   mostrarArquivos
-} from "./uploads.js";
+} from "./uploads.js?v=20260721-4";
 import {
   abrirModalBriefing,
   carregarDashboard,
   carregarProgressoProjeto,
   carregarSidebarUser,
   carregarTimelineProjeto
-} from "./dashboard.js?v=20260721-2";
+} from "./dashboard.js?v=20260721-4";
 import {
   iniciarRealtimeAdmin,
   iniciarRealtimeCliente,

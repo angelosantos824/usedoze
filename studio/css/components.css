@@ -309,6 +309,16 @@
     rgba(168,85,247,0.28);
 }
 
+.upload-btn.disabled{
+  opacity:.55;
+  pointer-events:none;
+}
+
+.upload-status{
+  color:#c4b5fd;
+  font-size:.9rem;
+}
+
 .file-preview-content{
   max-width:900px;
 }

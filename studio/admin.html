@@ -11,7 +11,7 @@
  <link rel="stylesheet" href="/studio/css/layout.css">
  <link rel="stylesheet" href="/studio/css/dashboard.css">
  <link rel="stylesheet" href="/studio/css/modals.css">
- <link rel="stylesheet" href="/studio/css/components.css?v=20260721-3">
+ <link rel="stylesheet" href="/studio/css/components.css?v=20260721-4">
  <link rel="stylesheet" href="/studio/css/responsive.css">
 </head>
 
@@ -269,6 +269,77 @@
   </div>
 
 </div>
+
+<!-- MODAL NOVO PROJETO -->
+<div class="admin-modal" id="adminNewProjectModal">
+
+  <div class="admin-modal-content">
+
+    <button class="admin-modal-close" id="closeAdminNewProjectModal">
+      &times;
+    </button>
+
+    <h2>
+      Novo Projeto
+    </h2>
+
+    <form id="adminNewProjectForm" class="comment-form">
+
+      <label class="admin-edit-label">
+        Cliente
+        <select id="newProjectClient" required>
+          <option value="">Selecionar cliente</option>
+        </select>
+      </label>
+
+      <label class="admin-edit-label">
+        Nome do projeto
+        <input id="newProjectName" type="text" required>
+      </label>
+
+      <label class="admin-edit-label">
+        Tipo de servico
+        <input id="newProjectServiceType" type="text" required>
+      </label>
+
+      <label class="admin-edit-label">
+        Status
+        <select id="newProjectStatus" required>
+          <option value="Recebido">Recebido</option>
+          <option value="Planejamento">Planejamento</option>
+          <option value="Design">Design</option>
+          <option value="Em desenvolvimento">Em desenvolvimento</option>
+          <option value="Revisao">Revisao</option>
+          <option value="Aguardando cliente">Aguardando cliente</option>
+          <option value="Finalizado">Finalizado</option>
+        </select>
+      </label>
+
+      <label class="admin-edit-label">
+        Prazo
+        <input id="newProjectDueDate" type="date">
+      </label>
+
+      <label class="admin-edit-label">
+        Progresso inicial
+        <input
+          id="newProjectProgress"
+          type="number"
+          min="0"
+          max="100"
+          value="0"
+          required>
+      </label>
+
+      <button class="btn" type="submit">
+        Criar Projeto
+      </button>
+
+    </form>
+
+  </div>
+
+</div>
 <!-- MODAL EDITAR STATUS -->
 <div class="admin-modal" id="adminEditModal">
 
@@ -330,7 +401,7 @@
 
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 <script src="/studio/config.js?v=20260721-2"></script>
-<script src="/studio/script.js?v=20260721-3"></script>
+<script src="/studio/script.js?v=20260721-4"></script>
 
 </body>
 </html>

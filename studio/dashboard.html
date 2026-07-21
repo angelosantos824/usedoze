@@ -14,7 +14,7 @@
   <link rel="stylesheet" href="css/layout.css">
   <link rel="stylesheet" href="css/dashboard.css">
   <link rel="stylesheet" href="css/modals.css">
-  <link rel="stylesheet" href="css/components.css">
+  <link rel="stylesheet" href="css/components.css?v=20260721-4">
   <link rel="stylesheet" href="css/responsive.css">
 </head>
 
@@ -260,6 +260,8 @@
                 hidden>
         </label>
 
+        <span id="clienteUploadStatus" class="upload-status"></span>
+
         </div>
 
         <table>
@@ -425,9 +427,11 @@
 
 </div>
 
+  <div id="toastContainer" class="toast-container"></div>
+
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
   <script src="/studio/config.js?v=20260721-2"></script>
-  <script src="/studio/script.js?v=20260721-2"></script>
+  <script src="/studio/script.js?v=20260721-4"></script>
 
 </body>
 

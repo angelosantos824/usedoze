@@ -1,6 +1,84 @@
 import { mostrarToast } from "./notifications.js";
 import { validarVoucher } from "./vouchers.js";
 
+const BRIEFING_SUCCESS_MESSAGE =
+  "Briefing enviado com sucesso. A equipa DOZEDEV irá analisar as informações.";
+
+async function carregarIdentidadeBriefing(session) {
+  const { data, error } =
+    await supabaseClient
+      .from("profiles")
+      .select("id,nome,email,client_id")
+      .eq("id", session.user.id)
+      .single();
+
+  if (error || !data) {
+    console.error(error);
+    return null;
+  }
+
+  return data;
+}
+
+function isSchemaColumnError(error) {
+  const message =
+    `${error?.message || ""} ${error?.details || ""}`;
+
+  return /column|schema cache|Could not find/i.test(message);
+}
+
+async function inserirBriefing(dadosBriefing) {
+  const { data, error } =
+    await supabaseClient
+      .from("briefings")
+      .insert([dadosBriefing])
+      .select("id")
+      .single();
+
+  if (!error) {
+    return data;
+  }
+
+  if (!isSchemaColumnError(error)) {
+    throw error;
+  }
+
+  const {
+    client_id,
+    profile_id,
+    user_id,
+    ...dadosLegados
+  } = dadosBriefing;
+
+  const fallback =
+    await supabaseClient
+      .from("briefings")
+      .insert([dadosLegados])
+      .select("id")
+      .single();
+
+  if (fallback.error) {
+    throw fallback.error;
+  }
+
+  return fallback.data;
+}
+
+function validarCampoObrigatorio(id, mensagem) {
+  const element =
+    document.getElementById(id);
+  const value =
+    element?.value.trim() || "";
+
+  if (!value) {
+    element?.focus();
+    mostrarToast(mensagem, "error");
+    return false;
+  }
+
+  return true;
+}
+
 function initVoucherModal() {
   const tipoProjetoInputs = document.querySelectorAll(
     'input[name="tipoProjeto"]'
@@ -167,19 +245,48 @@ function initBriefingForm() {
     document.getElementById("briefingForm");
   const voucherCode =
     document.getElementById("voucherCode");
+  const submitButton =
+    briefingForm?.querySelector('button[type="submit"]');
 
   if (!briefingForm) return;
 
   briefingForm.addEventListener("submit", async (event) => {
     event.preventDefault();
 
+    if (submitButton?.disabled) return;
+
     try {
+      if (!validarCampoObrigatorio("empresa", "Informe o nome da empresa.")) return;
+      if (!validarCampoObrigatorio("nome", "Informe o responsavel.")) return;
+      if (!validarCampoObrigatorio("telefone", "Informe o WhatsApp.")) return;
+      if (!validarCampoObrigatorio("descricaoProjeto", "Descreva o projeto.")) return;
+
       const {
-        data: { session }
+        data: { session },
+        error: sessionError
       } = await supabaseClient.auth.getSession();
 
+      if (sessionError || !session) {
+        window.location.href = "login.html";
+        return;
+      }
+
+      submitButton.disabled = true;
+      submitButton.textContent = "Enviando...";
+
+      const profile =
+        await carregarIdentidadeBriefing(session);
+
+      if (!profile?.client_id) {
+        mostrarToast(
+          "Perfil sem cliente associado. Entre em contato com o suporte DOZEDEV.",
+          "error"
+        );
+        return;
+      }
+
       const emailLogado =
-        session?.user?.email || "";
+        session.user.email || "";
 
       const funcionalidadesSelecionadas = [];
 
@@ -206,6 +313,12 @@ function initBriefingForm() {
       }
 
       const dadosBriefing = {
+        user_id:
+          session.user.id,
+        profile_id:
+          profile.id,
+        client_id:
+          profile.client_id,
         nome:
           document.getElementById("nome")?.value.trim() || emailLogado,
         email:
@@ -234,17 +347,8 @@ function initBriefingForm() {
           "Recebido"
       };
 
-      console.log("Dados briefing:", dadosBriefing);
-
-      const { error } = await supabaseClient
-        .from("briefings")
-        .insert([dadosBriefing]);
-
-      if (error) {
-        console.error(error);
-        mostrarToast("Erro ao enviar briefing.", "error");
-        return;
-      }
+      const briefingCriado =
+        await inserirBriefing(dadosBriefing);
 
       if (voucherValidado) {
         const novosUsos =
@@ -261,18 +365,25 @@ function initBriefingForm() {
           .eq("id", voucherValidado.id);
       }
 
-      mostrarToast("Briefing enviado com sucesso!", "success");
+      mostrarToast(BRIEFING_SUCCESS_MESSAGE, "success");
       briefingForm.reset();
-      window.scrollTo({
-        top: 0,
-        behavior: "smooth"
-      });
+      setTimeout(() => {
+        window.location.href =
+          `dashboard.html?briefing=${encodeURIComponent(
+            briefingCriado?.id || ""
+          )}`;
+      }, 1200);
     } catch (err) {
       console.error(err);
       mostrarToast(
         "Erro inesperado ao enviar briefing.",
         "error"
       );
+    } finally {
+      if (submitButton) {
+        submitButton.disabled = false;
+        submitButton.textContent = "Enviar Briefing";
+      }
     }
   });
 }

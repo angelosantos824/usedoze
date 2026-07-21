@@ -9,19 +9,58 @@ export async function buscarBriefingAtualCliente() {
 
   if (!session) return null;
 
-  const { data, error } =
+  const { data: profile } =
     await supabaseClient
+      .from("profiles")
+      .select("client_id")
+      .eq("id", session.user.id)
+      .single();
+
+  let query =
+    supabaseClient
       .from("briefings")
-      .select("id,nome,email")
-      .eq("email", session.user.email)
+      .select("id,nome,email,client_id");
+
+  if (profile?.client_id) {
+    query =
+      query.eq("client_id", profile.client_id);
+  } else {
+    query =
+      query.eq("email", session.user.email);
+  }
+
+  const { data, error } =
+    await query
       .order("created_at", {
         ascending: false
       })
       .limit(1);
 
   if (error) {
-    console.error(error);
-    return null;
+    const message =
+      `${error.message || ""} ${error.details || ""}`;
+
+    if (!profile?.client_id || !/client_id|schema cache|column/i.test(message)) {
+      console.error(error);
+      return null;
+    }
+
+    const fallback =
+      await supabaseClient
+        .from("briefings")
+        .select("id,nome,email")
+        .eq("email", session.user.email)
+        .order("created_at", {
+          ascending: false
+        })
+        .limit(1);
+
+    if (fallback.error) {
+      console.error(fallback.error);
+      return null;
+    }
+
+    return fallback.data?.[0] || null;
   }
 
   if (!data || data.length === 0) {
@@ -104,8 +143,6 @@ export async function carregarComentariosProjeto() {
 }
 
 export async function carregarComentariosAdmin(briefingId) {
-  console.log("Briefing aberto:", briefingId);
-
   adminBriefingComentarioId =
     briefingId;
 
@@ -122,9 +159,6 @@ export async function carregarComentariosAdmin(briefingId) {
       .order("criado_em", {
         ascending: true
       });
-
-  console.log("Comentários:", data);
-  console.log("Erro comentários:", error);
 
   if (error) {
     console.error(error);
@@ -246,11 +280,6 @@ function initAdminCommentForm() {
       adminCommentInput.value.trim();
 
     if (!mensagem || !adminBriefingComentarioId) return;
-
-    console.log(
-      "Admin respondendo no briefing:",
-      adminBriefingComentarioId
-    );
 
     const {
       data: { session }

@@ -1,5 +1,119 @@
 import { mostrarToast } from "./notifications.js";
 
+const PROJECT_FILES_BUCKET = "project-files";
+const MAX_UPLOAD_SIZE_BYTES = 20 * 1024 * 1024;
+const ALLOWED_UPLOAD_TYPES = [
+  "image/png",
+  "image/jpeg",
+  "image/webp",
+  "application/pdf",
+  "application/zip",
+  "application/x-zip-compressed",
+  "application/msword",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+];
+
+function sanitizeFileName(fileName) {
+  return fileName
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-zA-Z0-9._-]/g, "-")
+    .replace(/-+/g, "-")
+    .slice(0, 120);
+}
+
+function validarArquivoUpload(arquivo) {
+  if (!ALLOWED_UPLOAD_TYPES.includes(arquivo.type)) {
+    return "Tipo de arquivo nao permitido.";
+  }
+
+  if (arquivo.size > MAX_UPLOAD_SIZE_BYTES) {
+    return "Arquivo acima do limite de 20 MB.";
+  }
+
+  return "";
+}
+
+function isSchemaColumnError(error) {
+  const message =
+    `${error?.message || ""} ${error?.details || ""}`;
+
+  return /column|schema cache|Could not find/i.test(message);
+}
+
+async function carregarIdentidadeUpload(session) {
+  const { data, error } =
+    await supabaseClient
+      .from("profiles")
+      .select("id,nome,email,client_id")
+      .eq("id", session.user.id)
+      .single();
+
+  if (error || !data) {
+    console.error(error);
+    return null;
+  }
+
+  return data;
+}
+
+async function inserirMetadataUpload(metadata) {
+  const { error } =
+    await supabaseClient
+      .from("project_uploads")
+      .insert([metadata]);
+
+  if (!error) return;
+
+  if (!isSchemaColumnError(error)) {
+    throw error;
+  }
+
+  const {
+    client_id,
+    profile_id,
+    storage_bucket,
+    storage_path,
+    tamanho,
+    ...legacyMetadata
+  } = metadata;
+
+  const fallback =
+    await supabaseClient
+      .from("project_uploads")
+      .insert([legacyMetadata]);
+
+  if (fallback.error) {
+    throw fallback.error;
+  }
+}
+
+async function criarSignedUrl(caminho) {
+  const { data, error } =
+    await supabaseClient.storage
+      .from(PROJECT_FILES_BUCKET)
+      .createSignedUrl(caminho, 300);
+
+  if (error) {
+    throw error;
+  }
+
+  return data?.signedUrl || "";
+}
+
+async function baixarArquivoPrivado(caminho) {
+  const { data, error } =
+    await supabaseClient.storage
+      .from(PROJECT_FILES_BUCKET)
+      .download(caminho);
+
+  if (error) {
+    throw error;
+  }
+
+  return data;
+}
+
 export async function carregarUploadsCliente() {
   const clienteUploadsTable =
     document.getElementById("clienteUploadsTable");
@@ -23,6 +137,13 @@ export async function carregarUploadsCliente() {
 
   if (error) {
     console.error(error);
+    clienteUploadsTable.innerHTML = `
+      <tr>
+        <td colspan="4">
+          Erro ao carregar arquivos.
+        </td>
+      </tr>
+    `;
     return;
   }
 
@@ -46,7 +167,7 @@ export async function carregarUploadsCliente() {
     const tdNome =
       document.createElement("td");
     tdNome.textContent =
-      arquivo.nome_arquivo;
+      arquivo.nome_arquivo || "Arquivo";
 
     const tdTipo =
       document.createElement("td");
@@ -56,44 +177,44 @@ export async function carregarUploadsCliente() {
     const tdData =
       document.createElement("td");
     tdData.textContent =
-      new Date(
-        arquivo.criado_em
-      ).toLocaleDateString("pt-PT");
+      arquivo.criado_em
+        ? new Date(arquivo.criado_em).toLocaleDateString("pt-PT")
+        : "-";
 
     const tdAcoes =
       document.createElement("td");
 
-    const visualizarBtnCriado =
+    const visualizarBtn =
       document.createElement("button");
-    visualizarBtnCriado.classList.add(
+    visualizarBtn.classList.add(
       "upload-action-btn",
       "visualizarArquivoBtn"
     );
-    visualizarBtnCriado.dataset.path =
-      arquivo.caminho;
-    visualizarBtnCriado.dataset.name =
-      arquivo.nome_arquivo;
-    visualizarBtnCriado.dataset.type =
-      arquivo.tipo;
-    visualizarBtnCriado.textContent =
+    visualizarBtn.dataset.path =
+      arquivo.caminho || arquivo.storage_path || "";
+    visualizarBtn.dataset.name =
+      arquivo.nome_arquivo || "Arquivo";
+    visualizarBtn.dataset.type =
+      arquivo.tipo || "";
+    visualizarBtn.textContent =
       "Ver";
 
-    const baixarBtnCriado =
+    const baixarBtn =
       document.createElement("button");
-    baixarBtnCriado.classList.add(
+    baixarBtn.classList.add(
       "upload-action-btn",
       "baixarArquivoBtn"
     );
-    baixarBtnCriado.dataset.path =
-      arquivo.caminho;
-    baixarBtnCriado.dataset.name =
-      arquivo.nome_arquivo;
-    baixarBtnCriado.textContent =
+    baixarBtn.dataset.path =
+      arquivo.caminho || arquivo.storage_path || "";
+    baixarBtn.dataset.name =
+      arquivo.nome_arquivo || "arquivo";
+    baixarBtn.textContent =
       "Download";
 
     tdAcoes.append(
-      visualizarBtnCriado,
-      baixarBtnCriado
+      visualizarBtn,
+      baixarBtn
     );
 
     tr.append(
@@ -105,74 +226,47 @@ export async function carregarUploadsCliente() {
 
     clienteUploadsTable.appendChild(tr);
 
-    const visualizarBtn =
-      tr.querySelector(".visualizarArquivoBtn");
+    visualizarBtn.addEventListener("click", async () => {
+      try {
+        const signedUrl =
+          await criarSignedUrl(visualizarBtn.dataset.path);
 
-    if (visualizarBtn) {
-      visualizarBtn.addEventListener("click", async () => {
-        const caminho =
-          visualizarBtn.dataset.path;
-
-        console.log("Abrindo arquivo:", caminho);
-
-        const { data, error } =
-          await supabaseClient.storage
-            .from("project-files")
-            .createSignedUrl(caminho, 300);
-
-        if (error) {
-          console.error(error);
-          mostrarToast("Erro ao abrir arquivo.", "error");
-          return;
-        }
-
-        if (!data?.signedUrl) {
-          mostrarToast("URL do arquivo inválida.", "error");
+        if (!signedUrl) {
+          mostrarToast("URL do arquivo invalida.", "error");
           return;
         }
 
         abrirPreviewArquivo(
-          visualizarBtn.dataset.nome,
-          visualizarBtn.dataset.tipo,
-          data.signedUrl
+          visualizarBtn.dataset.name,
+          visualizarBtn.dataset.type,
+          signedUrl
         );
-      });
-    }
+      } catch (error) {
+        console.error(error);
+        mostrarToast("Erro ao abrir arquivo.", "error");
+      }
+    });
 
-    const baixarBtn =
-      tr.querySelector(".baixarArquivoBtn");
-
-    if (baixarBtn) {
-      baixarBtn.addEventListener("click", async () => {
-        const path =
-          baixarBtn.dataset.path;
-        const nome =
-          baixarBtn.dataset.name;
-
-        const { data, error } =
-          await supabaseClient.storage
-            .from("project-files")
-            .download(path);
-
-        if (error) {
-          console.error(error);
-          mostrarToast("Erro ao baixar arquivo.", "error");
-          return;
-        }
-
+    baixarBtn.addEventListener("click", async () => {
+      try {
+        const blob =
+          await baixarArquivoPrivado(baixarBtn.dataset.path);
         const url =
-          URL.createObjectURL(data);
+          URL.createObjectURL(blob);
         const link =
           document.createElement("a");
 
         link.href = url;
-        link.download = nome;
+        link.download = baixarBtn.dataset.name;
         document.body.appendChild(link);
         link.click();
         link.remove();
         URL.revokeObjectURL(url);
-      });
-    }
+      } catch (error) {
+        console.error(error);
+        mostrarToast("Erro ao baixar arquivo.", "error");
+      }
+    });
   });
 }
 
@@ -208,8 +302,8 @@ export function abrirPreviewArquivo(nome, tipo, url) {
   } else {
     area.innerHTML = `
       <p>
-        Pré-visualização indisponível para este tipo de arquivo.
-        Use o botão Download.
+        Pre-visualizacao indisponivel para este tipo de arquivo.
+        Use o botao Download.
       </p>
     `;
   }
@@ -269,7 +363,7 @@ export async function carregarAdminUploads() {
     const tdNome =
       document.createElement("td");
     tdNome.textContent =
-      upload.nome_arquivo;
+      upload.nome_arquivo || "Arquivo";
 
     const tdEmail =
       document.createElement("td");
@@ -298,11 +392,11 @@ export async function carregarAdminUploads() {
       document.createElement("button");
     verBtn.classList.add("adminVerUploadBtn");
     verBtn.dataset.path =
-      upload.caminho;
+      upload.caminho || upload.storage_path || "";
     verBtn.dataset.name =
-      upload.nome_arquivo;
+      upload.nome_arquivo || "Arquivo";
     verBtn.dataset.type =
-      upload.tipo;
+      upload.tipo || "";
     verBtn.textContent =
       "Ver";
 
@@ -310,9 +404,9 @@ export async function carregarAdminUploads() {
       document.createElement("button");
     baixarBtn.classList.add("adminBaixarUploadBtn");
     baixarBtn.dataset.path =
-      upload.caminho;
+      upload.caminho || upload.storage_path || "";
     baixarBtn.dataset.name =
-      upload.nome_arquivo;
+      upload.nome_arquivo || "arquivo";
     baixarBtn.textContent =
       "Download";
 
@@ -337,38 +431,30 @@ export function ativarBotoesAdminUploads() {
     .querySelectorAll(".adminVerUploadBtn")
     .forEach((btn) => {
       btn.addEventListener("click", async () => {
-        const path =
-          btn.dataset.path;
-        const nome =
-          btn.dataset.name;
-        const tipo =
-          btn.dataset.type || "";
+        try {
+          const signedUrl =
+            await criarSignedUrl(btn.dataset.path);
 
-        console.log("Admin tentando visualizar:", path, tipo);
+          if (!signedUrl) {
+            mostrarToast("URL do arquivo invalida.", "error");
+            return;
+          }
 
-        const { data, error } =
-          await supabaseClient.storage
-            .from("project-files")
-            .createSignedUrl(path, 300);
+          const modalExiste =
+            document.getElementById("filePreviewModal");
 
-        if (error) {
+          if (modalExiste) {
+            abrirPreviewArquivo(
+              btn.dataset.name,
+              btn.dataset.type || "",
+              signedUrl
+            );
+          } else {
+            window.open(signedUrl, "_blank");
+          }
+        } catch (error) {
           console.error(error);
           mostrarToast("Erro ao abrir arquivo.", "error");
-          return;
-        }
-
-        if (!data?.signedUrl) {
-          mostrarToast("URL do arquivo inválida.", "error");
-          return;
-        }
-
-        const modalExiste =
-          document.getElementById("filePreviewModal");
-
-        if (modalExiste) {
-          abrirPreviewArquivo(nome, tipo, data.signedUrl);
-        } else {
-          window.open(data.signedUrl, "_blank");
         }
       });
     });
@@ -377,33 +463,24 @@ export function ativarBotoesAdminUploads() {
     .querySelectorAll(".adminBaixarUploadBtn")
     .forEach((btn) => {
       btn.addEventListener("click", async () => {
-        const path =
-          btn.dataset.path;
-        const nome =
-          btn.dataset.name;
+        try {
+          const blob =
+            await baixarArquivoPrivado(btn.dataset.path);
+          const url =
+            URL.createObjectURL(blob);
+          const link =
+            document.createElement("a");
 
-        const { data, error } =
-          await supabaseClient.storage
-            .from("project-files")
-            .download(path);
-
-        if (error) {
+          link.href = url;
+          link.download = btn.dataset.name;
+          document.body.appendChild(link);
+          link.click();
+          link.remove();
+          URL.revokeObjectURL(url);
+        } catch (error) {
           console.error(error);
           mostrarToast("Erro ao baixar arquivo.", "error");
-          return;
         }
-
-        const url =
-          URL.createObjectURL(data);
-        const link =
-          document.createElement("a");
-
-        link.href = url;
-        link.download = nome;
-        document.body.appendChild(link);
-        link.click();
-        link.remove();
-        URL.revokeObjectURL(url);
       });
     });
 }
@@ -411,72 +488,120 @@ export function ativarBotoesAdminUploads() {
 function initClienteUploadInput() {
   const clienteUploadInput =
     document.getElementById("clienteUploadInput");
+  const clienteUploadStatus =
+    document.getElementById("clienteUploadStatus");
+  const uploadButton =
+    clienteUploadInput?.closest(".upload-btn");
 
   if (!clienteUploadInput) return;
 
   clienteUploadInput.addEventListener("change", async () => {
-    console.log("Upload acionado");
-
     const arquivos =
       Array.from(clienteUploadInput.files);
 
-    console.log("Arquivos selecionados:", arquivos);
-
     if (arquivos.length === 0) return;
+    if (clienteUploadInput.disabled) return;
 
     const {
-      data: { session }
+      data: { session },
+      error: sessionError
     } = await supabaseClient.auth.getSession();
 
-    if (!session) {
+    if (sessionError || !session) {
       window.location.href = "login.html";
       return;
     }
 
-    for (const arquivo of arquivos) {
-      const caminho =
-        `${session.user.id}/${Date.now()}-${arquivo.name}`;
+    const profile =
+      await carregarIdentidadeUpload(session);
 
-      console.log("Enviando para:", caminho);
+    if (!profile?.client_id) {
+      mostrarToast(
+        "Perfil sem cliente associado. Entre em contato com o suporte DOZEDEV.",
+        "error"
+      );
+      clienteUploadInput.value = "";
+      return;
+    }
 
-      const { error: storageError } =
-        await supabaseClient.storage
-          .from("project-files")
-          .upload(caminho, arquivo, {
-            upsert: false
-          });
+    clienteUploadInput.disabled = true;
+    uploadButton?.classList.add("disabled");
 
-      if (storageError) {
-        console.error("Erro Storage:", storageError);
-        mostrarToast(`Erro ao enviar ${arquivo.name}`, "error");
-        continue;
-      }
+    try {
+      let enviados = 0;
 
-      const { error: uploadDbError } =
-        await supabaseClient
-          .from("project_uploads")
-          .insert([{
+      for (const arquivo of arquivos) {
+        const validationError =
+          validarArquivoUpload(arquivo);
+
+        if (validationError) {
+          mostrarToast(`${arquivo.name}: ${validationError}`, "error");
+          continue;
+        }
+
+        if (clienteUploadStatus) {
+          clienteUploadStatus.textContent =
+            `Enviando ${arquivo.name}...`;
+        }
+
+        const safeName =
+          sanitizeFileName(arquivo.name);
+        const caminho =
+          `clients/${profile.client_id}/${Date.now()}-${safeName}`;
+
+        const { error: storageError } =
+          await supabaseClient.storage
+            .from(PROJECT_FILES_BUCKET)
+            .upload(caminho, arquivo, {
+              contentType: arquivo.type,
+              upsert: false
+            });
+
+        if (storageError) {
+          console.error(storageError);
+          mostrarToast(`Erro ao enviar ${arquivo.name}`, "error");
+          continue;
+        }
+
+        try {
+          await inserirMetadataUpload({
             user_id: session.user.id,
+            profile_id: profile.id,
+            client_id: profile.client_id,
             email: session.user.email,
             nome_arquivo: arquivo.name,
             caminho,
-            tipo: arquivo.type
-          }]);
+            tipo: arquivo.type,
+            tamanho: arquivo.size,
+            storage_bucket: PROJECT_FILES_BUCKET,
+            storage_path: caminho
+          });
+        } catch (uploadDbError) {
+          console.error(uploadDbError);
+          mostrarToast(
+            "Arquivo enviado, mas nao apareceu no admin.",
+            "error"
+          );
+          continue;
+        }
 
-      if (uploadDbError) {
-        console.error("Erro ao registrar upload:", uploadDbError);
-        mostrarToast(
-          "Arquivo enviado, mas não apareceu no admin.",
-          "error"
-        );
-        continue;
+        enviados += 1;
+        mostrarToast(`${arquivo.name} enviado com sucesso!`, "success");
       }
 
-      mostrarToast(`${arquivo.name} enviado com sucesso!`, "success");
-    }
+      if (clienteUploadStatus) {
+        clienteUploadStatus.textContent =
+          enviados > 0
+            ? `${enviados} arquivo(s) enviado(s).`
+            : "";
+      }
 
-    clienteUploadInput.value = "";
-    carregarUploadsCliente();
+      carregarUploadsCliente();
+    } finally {
+      clienteUploadInput.value = "";
+      clienteUploadInput.disabled = false;
+      uploadButton?.classList.remove("disabled");
+    }
   });
 }
 
@@ -514,7 +639,7 @@ export function mostrarArquivos() {
       document.createElement("div");
 
     div.textContent =
-      `📎 ${arquivo.name}`;
+      `Arquivo: ${arquivo.name}`;
 
     uploadPreview.appendChild(div);
   });

@@ -20,6 +20,32 @@ function getProjectStatusLabel(status) {
   return PROJECT_STATUS_LABELS[status] || status || "Rascunho";
 }
 
+function getSuggestedProgressForStatus(status) {
+  const suggestions = {
+    draft: 0,
+    in_progress: 40,
+    internal_review: 75,
+    awaiting_client_approval: 90,
+    changes_requested: 80,
+    approved: 100,
+    completed: 100,
+    cancelled: 0
+  };
+
+  return suggestions[status] ?? 0;
+}
+
+function normalizeProjectProgress(status, value) {
+  const numericValue =
+    Math.min(Math.max(Number(value || 0), 0), 100);
+
+  if (numericValue > 0 || status === "draft" || status === "cancelled") {
+    return numericValue;
+  }
+
+  return getSuggestedProgressForStatus(status);
+}
+
 function getDisplayValue(value, fallback = "Nao informado") {
   return value === null || value === undefined || value === ""
     ? fallback
@@ -666,19 +692,23 @@ export function ativarAcoesAdmin() {
 
         if (!confirmar) return;
 
-        const { error } = await supabaseClient
-          .from("briefings")
-          .delete()
-          .eq("id", id);
+        if (btn.disabled) return;
 
-        if (error) {
+        btn.disabled = true;
+        btn.textContent = "Excluindo...";
+
+        try {
+          await excluirBriefingAdmin(id);
+          mostrarToast("Briefing excluido com sucesso.", "success");
+          carregarAdminReal();
+          carregarCardsAdmin();
+        } catch (error) {
           console.error(error);
-          alert("Erro ao excluir briefing.");
-          return;
+          mostrarToast("Erro ao excluir briefing.", "error");
+        } finally {
+          btn.disabled = false;
+          btn.textContent = "Excluir";
         }
-
-        carregarAdminReal();
-        carregarCardsAdmin();
       });
     });
 
@@ -706,6 +736,61 @@ export function ativarAcoesAdmin() {
           .classList.add("active");
       });
     });
+}
+
+async function excluirBriefingAdmin(briefingId) {
+  if (!briefingId) {
+    throw new Error("Briefing sem id.");
+  }
+
+  const { data: briefing, error: loadError } =
+    await supabaseClient
+      .from("briefings")
+      .select("*")
+      .eq("id", briefingId)
+      .single();
+
+  if (loadError || !briefing) {
+    throw loadError || new Error("Briefing nao encontrado.");
+  }
+
+  const clientId =
+    await localizarClientIdBriefing(briefing);
+
+  await registrarAuditoriaAdmin({
+    clientId: clientId || null,
+    entityType: "briefing",
+    entityId: briefingId,
+    action: "briefing.deleted_by_admin",
+    newData: {
+      id: briefing.id,
+      nome: briefing.nome,
+      empresa: briefing.empresa,
+      email: briefing.email,
+      status: briefing.status,
+      tipo_projeto: briefing.tipo_projeto
+    }
+  });
+
+  const commentsDelete =
+    await supabaseClient
+      .from("project_comments")
+      .delete()
+      .eq("briefing_id", briefingId);
+
+  if (commentsDelete.error && !isSchemaColumnError(commentsDelete.error)) {
+    throw commentsDelete.error;
+  }
+
+  const { error } =
+    await supabaseClient
+      .from("briefings")
+      .delete()
+      .eq("id", briefingId);
+
+  if (error) {
+    throw error;
+  }
 }
 
 export function mostrarSecaoEmBreve(secao) {
@@ -1657,6 +1742,10 @@ function initNovoProjetoAdmin() {
     document.getElementById("adminNewProjectModal");
   const adminNewProjectForm =
     document.getElementById("adminNewProjectForm");
+  const newProjectStatus =
+    document.getElementById("newProjectStatus");
+  const newProjectProgress =
+    document.getElementById("newProjectProgress");
 
   if (novoProjetoBtn && adminNewProjectModal) {
     novoProjetoBtn.addEventListener("click", async () => {
@@ -1674,6 +1763,18 @@ function initNovoProjetoAdmin() {
   }
 
   if (!adminNewProjectForm) return;
+
+  if (newProjectStatus && newProjectProgress) {
+    newProjectStatus.addEventListener("change", () => {
+      const currentProgress =
+        Number(newProjectProgress.value || 0);
+
+      if (currentProgress === 0) {
+        newProjectProgress.value =
+          String(getSuggestedProgressForStatus(newProjectStatus.value));
+      }
+    });
+  }
 
   adminNewProjectForm.addEventListener("submit", async (event) => {
     event.preventDefault();
@@ -1699,7 +1800,7 @@ function initNovoProjetoAdmin() {
     const progressValue =
       Number(document.getElementById("newProjectProgress")?.value || 0);
     const progress =
-      Math.min(Math.max(progressValue, 0), 100);
+      normalizeProjectProgress(status, progressValue);
     const previewUrl =
       document.getElementById("newProjectPreviewUrl")?.value.trim() || "";
     const repositoryUrl =
@@ -1766,8 +1867,24 @@ function initNovoProjetoAdmin() {
 function initEditarProjetoAdmin() {
   const adminProjectForm =
     document.getElementById("adminProjectForm");
+  const editProjectStatus =
+    document.getElementById("editProjectStatus");
+  const editProjectProgress =
+    document.getElementById("editProjectProgress");
 
   if (!adminProjectForm) return;
+
+  if (editProjectStatus && editProjectProgress) {
+    editProjectStatus.addEventListener("change", () => {
+      const currentProgress =
+        Number(editProjectProgress.value || 0);
+
+      if (currentProgress === 0) {
+        editProjectProgress.value =
+          String(getSuggestedProgressForStatus(editProjectStatus.value));
+      }
+    });
+  }
 
   adminProjectForm.addEventListener("submit", async (event) => {
     event.preventDefault();
@@ -1805,9 +1922,9 @@ function initEditarProjetoAdmin() {
       deadline:
         document.getElementById("editProjectDeadline")?.value || null,
       progress:
-        Math.min(
-          Math.max(Number(document.getElementById("editProjectProgress")?.value || 0), 0),
-          100
+        normalizeProjectProgress(
+          status,
+          document.getElementById("editProjectProgress")?.value || 0
         ),
       preview_url:
         document.getElementById("editProjectPreviewUrl")?.value.trim() || null,

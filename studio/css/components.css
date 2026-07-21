@@ -174,6 +174,83 @@
   line-height:1.5;
 }
 
+.project-form{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:16px;
+}
+
+.project-form .admin-modal-desc,
+.project-form .modal-actions,
+.project-form button[type="submit"]{
+  grid-column:1 / -1;
+}
+
+.project-form .admin-edit-label{
+  display:grid;
+  gap:8px;
+  color:#d8c9ff;
+  font-size:.9rem;
+  font-weight:700;
+}
+
+.project-form input,
+.project-form select,
+.project-form textarea{
+  width:100%;
+  min-width:0;
+  border:1px solid rgba(168,85,247,0.18);
+  border-radius:12px;
+  background:rgba(255,255,255,0.06);
+  color:#fff;
+  padding:12px 14px;
+  font:inherit;
+  outline:none;
+}
+
+.project-form input:focus,
+.project-form select:focus,
+.project-form textarea:focus{
+  border-color:rgba(168,85,247,0.52);
+  box-shadow:0 0 0 3px rgba(168,85,247,0.12);
+}
+
+.project-form textarea{
+  min-height:96px;
+  resize:vertical;
+  line-height:1.5;
+}
+
+.project-form .admin-modal-desc{
+  display:grid;
+  gap:14px;
+}
+
+.project-form .admin-modal-desc > strong{
+  display:block;
+}
+
+#adminProjectModal .admin-modal-content{
+  max-width:860px;
+  max-height:88vh;
+  overflow-y:auto;
+}
+
+#adminProjectModal .admin-modal-content::-webkit-scrollbar{
+  width:10px;
+}
+
+#adminProjectModal .admin-modal-content::-webkit-scrollbar-thumb{
+  border-radius:999px;
+  background:rgba(168,85,247,0.42);
+}
+
+@media(max-width:760px){
+  .project-form{
+    grid-template-columns:1fr;
+  }
+}
+
 @media(max-width:700px){
 
   .admin-modal-grid{

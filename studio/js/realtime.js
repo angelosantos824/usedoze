@@ -11,6 +11,10 @@ import {
   carregarNotificacoes,
   mostrarToast
 } from "./notifications.js";
+import {
+  carregarDashboard,
+  carregarProgressoProjeto
+} from "./dashboard.js";
 import { carregarVouchers } from "./vouchers.js";
 
 export async function iniciarRealtimeCliente() {
@@ -26,6 +30,13 @@ export async function iniciarRealtimeCliente() {
 
   if (!session) return;
 
+  const { data: profile } =
+    await supabaseClient
+      .from("profiles")
+      .select("client_id")
+      .eq("id", session.user.id)
+      .maybeSingle();
+
   supabaseClient
     .channel("cliente-notificacoes")
     .on(
@@ -39,6 +50,38 @@ export async function iniciarRealtimeCliente() {
       () => {
         carregarNotificacoes();
         mostrarToast("Nova notificação recebida!", "info");
+      }
+    )
+    .subscribe();
+
+  if (!profile?.client_id) return;
+
+  supabaseClient
+    .channel("cliente-projetos")
+    .on(
+      "postgres_changes",
+      {
+        event: "*",
+        schema: "public",
+        table: "projects",
+        filter: `client_id=eq.${profile.client_id}`
+      },
+      () => {
+        carregarDashboard();
+        carregarProgressoProjeto();
+      }
+    )
+    .on(
+      "postgres_changes",
+      {
+        event: "*",
+        schema: "public",
+        table: "project_updates",
+        filter: `client_id=eq.${profile.client_id}`
+      },
+      () => {
+        carregarDashboard();
+        mostrarToast("Projeto atualizado.", "info");
       }
     )
     .subscribe();

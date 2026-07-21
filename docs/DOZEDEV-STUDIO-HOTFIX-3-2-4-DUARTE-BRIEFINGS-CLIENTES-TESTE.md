@@ -83,11 +83,58 @@ Segurancas:
 - nao remove `auth.users`;
 - delete e permitido apenas para Studio Admin via RLS.
 
+### Exclusao de briefings
+
+O botao `Excluir` da lista de briefings agora:
+
+- carrega o briefing antes de excluir;
+- registra auditoria administrativa;
+- remove comentarios vinculados por `briefing_id`, quando a coluna existir;
+- exclui o briefing;
+- desativa o botao durante o envio;
+- mostra toast de sucesso ou erro.
+
+O delete de briefings e permitido apenas para Studio Admin via RLS.
+
+Como a exclusao funcionou em producao antes da migration, a migration
+`20260722093000_studio_admin_delete_briefings.sql` fica opcional para este
+ambiente. Ela deve ser aplicada apenas se outro ambiente bloquear delete por RLS
+ou se for necessario documentar explicitamente a policy admin-only.
+
+### Progresso e realtime do projeto
+
+O admin agora sugere progresso automaticamente ao mudar o status do projeto:
+
+- `draft`: 0%;
+- `in_progress`: 40%;
+- `internal_review`: 75%;
+- `awaiting_client_approval`: 90%;
+- `changes_requested`: 80%;
+- `approved` ou `completed`: 100%.
+
+Se o projeto for salvo com status avancado e progresso 0, o frontend normaliza
+o progresso para a etapa correspondente.
+
+O dashboard do cliente agora escuta alteracoes em `projects` e
+`project_updates` por `client_id`, recarregando progresso, cards e acompanhamento
+quando o admin salva mudancas.
+
+### Modal de projeto
+
+O modal de edicao/criacao de projeto recebeu layout dedicado:
+
+- grid responsivo de campos;
+- inputs e textareas em largura total;
+- foco visual padronizado;
+- altura maxima com scroll interno;
+- secao de atualizacoes mais organizada.
+
 ## Migration
 
 Arquivo:
 
 - `supabase/migrations/20260722090000_studio_admin_delete_test_clients.sql`
+- `supabase/migrations/20260722093000_studio_admin_delete_briefings.sql`
 
 Inclui:
 
@@ -100,8 +147,10 @@ Inclui:
 - `studio/dashboard.html`
 - `studio/briefing.html`
 - `studio/script.js`
+- `studio/css/components.css`
 - `studio/js/main.js`
 - `studio/js/admin.js`
+- `studio/js/realtime.js`
 - `studio/js/dashboard.js`
 - `supabase/migrations/20260722090000_studio_admin_delete_test_clients.sql`
 - `docs/DOZEDEV-STUDIO-HOTFIX-3-2-4-DUARTE-BRIEFINGS-CLIENTES-TESTE.md`
@@ -111,7 +160,7 @@ Inclui:
 Versionamento atualizado para:
 
 ```text
-v=20260722-3
+v=20260722-6
 ```
 
 ## Testes locais
@@ -120,6 +169,7 @@ v=20260722-3
 - `Get-Content studio/js/admin.js | node --input-type=module --check`
 - `Get-Content studio/js/main.js | node --input-type=module --check`
 - `deno fmt --check supabase/migrations/20260722090000_studio_admin_delete_test_clients.sql`
+- `deno fmt --check supabase/migrations/20260722093000_studio_admin_delete_briefings.sql`
 
 ## Pendencia operacional
 

@@ -46,6 +46,32 @@ O card `Projetos Ativos` agora conta apenas `public.projects`.
 
 Nao soma mais briefings com status "Em andamento" como se fossem projetos.
 
+### Conversao de briefing legado
+
+O botao `Converter em Projeto` agora localiza o cliente por:
+
+- `briefings.client_id`;
+- email em `profiles`;
+- email em `clients`;
+- `briefings.empresa = clients.name`;
+- `briefings.nome = clients.contact_name`;
+- `briefings.nome = profiles.nome`.
+
+Isso cobre briefings antigos do Duarte que aparecem no admin como `Uriel Duarte / Duarte Transporte`, mas nao tinham `client_id` gravado.
+
+Ao clicar em `Converter em Projeto`, o admin agora cria imediatamente um registro real em `public.projects` com:
+
+- `client_id` localizado;
+- `briefing_id`, quando a migration ja estiver aplicada;
+- nome baseado na empresa do briefing;
+- tipo baseado no tipo do briefing;
+- `status = in_progress`;
+- `progress = 0`.
+
+Depois da criacao, o modal de edicao do projeto e aberto para completar preview, progresso, status e atualizacoes.
+
+Se a coluna `projects.briefing_id` ainda nao estiver aplicada em producao, o frontend tenta criar o projeto sem essa coluna, mantendo o fluxo funcional. A migration continua recomendada para impedir duplicidade perfeita por briefing.
+
 ### Clientes de teste
 
 Foi adicionado botao `Excluir` na lista de clientes.
@@ -85,7 +111,7 @@ Inclui:
 Versionamento atualizado para:
 
 ```text
-v=20260722-1
+v=20260722-3
 ```
 
 ## Testes locais

@@ -208,33 +208,79 @@ async function localizarClientIdBriefing(briefing) {
   }
 
   const email =
-    briefing?.email || "";
+    briefing?.email?.trim() || "";
+  const matchValues =
+    [
+      briefing?.empresa,
+      briefing?.nome
+    ]
+      .map((value) => value?.trim())
+      .filter(Boolean);
 
-  if (!email) return "";
+  if (email) {
+    const profileResult =
+      await supabaseClient
+        .from("profiles")
+        .select("client_id")
+        .eq("email", email)
+        .not("client_id", "is", null)
+        .limit(1)
+        .maybeSingle();
 
-  const profileResult =
-    await supabaseClient
-      .from("profiles")
-      .select("client_id")
-      .eq("email", email)
-      .not("client_id", "is", null)
-      .limit(1)
-      .maybeSingle();
+    if (!profileResult.error && profileResult.data?.client_id) {
+      return profileResult.data.client_id;
+    }
 
-  if (!profileResult.error && profileResult.data?.client_id) {
-    return profileResult.data.client_id;
+    const clientResult =
+      await supabaseClient
+        .from("clients")
+        .select("id")
+        .eq("email", email)
+        .limit(1)
+        .maybeSingle();
+
+    if (!clientResult.error && clientResult.data?.id) {
+      return clientResult.data.id;
+    }
   }
 
-  const clientResult =
-    await supabaseClient
-      .from("clients")
-      .select("id")
-      .eq("email", email)
-      .limit(1)
-      .maybeSingle();
+  for (const value of matchValues) {
+    const clientByCompanyResult =
+      await supabaseClient
+        .from("clients")
+        .select("id")
+        .eq("name", value)
+        .limit(1)
+        .maybeSingle();
 
-  if (!clientResult.error && clientResult.data?.id) {
-    return clientResult.data.id;
+    if (!clientByCompanyResult.error && clientByCompanyResult.data?.id) {
+      return clientByCompanyResult.data.id;
+    }
+
+    const clientByContactResult =
+      await supabaseClient
+        .from("clients")
+        .select("id")
+        .eq("contact_name", value)
+        .limit(1)
+        .maybeSingle();
+
+    if (!clientByContactResult.error && clientByContactResult.data?.id) {
+      return clientByContactResult.data.id;
+    }
+
+    const profileByNameResult =
+      await supabaseClient
+        .from("profiles")
+        .select("client_id")
+        .eq("nome", value)
+        .not("client_id", "is", null)
+        .limit(1)
+        .maybeSingle();
+
+    if (!profileByNameResult.error && profileByNameResult.data?.client_id) {
+      return profileByNameResult.data.client_id;
+    }
   }
 
   return "";
@@ -251,7 +297,32 @@ async function buscarProjetoPorBriefingId(briefingId) {
       .maybeSingle();
 
   if (error) {
+    if (isSchemaColumnError(error)) {
+      return null;
+    }
+
     throw error;
+  }
+
+  return data || null;
+}
+
+async function buscarProjetoSimilar({ clientId, name, serviceType }) {
+  if (!clientId || !name) return null;
+
+  const { data, error } =
+    await supabaseClient
+      .from("projects")
+      .select("id,name")
+      .eq("client_id", clientId)
+      .eq("name", name)
+      .eq("service_type", serviceType || "Projeto")
+      .limit(1)
+      .maybeSingle();
+
+  if (error) {
+    console.warn("Nao foi possivel verificar projeto similar.", error);
+    return null;
   }
 
   return data || null;
@@ -292,51 +363,64 @@ async function abrirFormularioProjetoPorBriefing(briefingId) {
       return;
     }
 
-    const adminBriefingModal =
-      document.getElementById("adminBriefingModal");
-    const adminNewProjectModal =
-      document.getElementById("adminNewProjectModal");
-    const adminNewProjectForm =
-      document.getElementById("adminNewProjectForm");
-
-    await carregarClientesSelectProjeto();
-
-    adminNewProjectForm?.reset();
-    document.getElementById("newProjectBriefingId").value =
-      briefing.id;
-    document.getElementById("newProjectClient").value =
-      clientId;
-    document.getElementById("newProjectName").value =
+    const name =
       briefing.empresa
         ? `Site ${briefing.empresa}`
         : briefing.tipo_projeto || "Novo projeto";
-    document.getElementById("newProjectServiceType").value =
+    const serviceType =
       briefing.tipo_projeto || "Website institucional";
-    document.getElementById("newProjectDescription").value =
-      briefing.descricao || "";
-    document.getElementById("newProjectStatus").value =
-      "draft";
-    document.getElementById("newProjectProgress").value =
-      "0";
+    const projetoSimilar =
+      await buscarProjetoSimilar({
+        clientId,
+        name,
+        serviceType
+      });
 
-    const title =
-      adminNewProjectModal?.querySelector("h2");
-    if (title) {
-      title.textContent = "Converter Briefing em Projeto";
+    if (projetoSimilar?.id) {
+      mostrarToast("Ja existe um projeto similar para este cliente.", "info");
+      await abrirProjetoAdmin(projetoSimilar.id);
+      return;
     }
 
+    const result =
+      await criarProjetoAdmin({
+        clientId,
+        briefingId: briefing.id,
+        name,
+        serviceType,
+        description: briefing.descricao || "",
+        status: "in_progress",
+        deadline: "",
+        progress: 0,
+        previewUrl: "",
+        repositoryUrl: ""
+      });
+    const adminBriefingModal =
+      document.getElementById("adminBriefingModal");
+
     adminBriefingModal?.classList.remove("active");
-    adminNewProjectModal?.classList.add("active");
+    mostrarToast("Projeto criado a partir do briefing.", "success");
+    carregarCardsAdmin();
+    carregarAdminProjetos();
+
+    if (result?.id) {
+      await abrirProjetoAdmin(result.id);
+    }
   } catch (error) {
     console.error(error);
-    mostrarToast("Erro ao preparar conversao do briefing.", "error");
+    if (error?.projectId) {
+      mostrarToast("Este briefing ja possui um projeto vinculado.", "info");
+      await abrirProjetoAdmin(error.projectId);
+      return;
+    }
+
+    mostrarToast("Erro ao converter briefing em projeto.", "error");
   }
 }
 
 async function criarProjetoAdmin(payload) {
   const projectPayload = {
     client_id: payload.clientId,
-    briefing_id: payload.briefingId || null,
     name: payload.name,
     service_type: payload.serviceType,
     description: payload.description,
@@ -352,6 +436,11 @@ async function criarProjetoAdmin(payload) {
   };
 
   if (payload.briefingId) {
+    projectPayload.briefing_id =
+      payload.briefingId;
+  }
+
+  if (payload.briefingId) {
     const projetoExistente =
       await buscarProjetoPorBriefingId(payload.briefingId);
 
@@ -364,12 +453,31 @@ async function criarProjetoAdmin(payload) {
     }
   }
 
-  const { data, error } =
+  let { data, error } =
     await supabaseClient
       .from("projects")
       .insert([projectPayload])
       .select("id")
       .single();
+
+  if (error && payload.briefingId && isSchemaColumnError(error)) {
+    const {
+      briefing_id,
+      ...fallbackPayload
+    } = projectPayload;
+
+    const fallbackResult =
+      await supabaseClient
+        .from("projects")
+        .insert([fallbackPayload])
+        .select("id")
+        .single();
+
+    data =
+      fallbackResult.data;
+    error =
+      fallbackResult.error;
+  }
 
   if (error) {
     throw error;

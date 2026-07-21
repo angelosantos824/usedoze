@@ -1,14 +1,14 @@
-import { initAdmin } from "./admin.js?v=20260722-1";
+import { initAdmin } from "./admin.js?v=20260722-3";
 import {
   initAuth,
   protegerAdmin,
   protegerPaginasPrivadas
 } from "./auth.js?v=20260721-2";
-import { initBriefing } from "./briefing.js?v=20260722-1";
-import { initComments } from "./comments.js?v=20260722-1";
-import { initDashboard } from "./dashboard.js?v=20260722-1";
-import { initRealtime } from "./realtime.js?v=20260722-1";
-import { initUploads } from "./uploads.js?v=20260722-1";
+import { initBriefing } from "./briefing.js?v=20260722-3";
+import { initComments } from "./comments.js?v=20260722-3";
+import { initDashboard } from "./dashboard.js?v=20260722-3";
+import { initRealtime } from "./realtime.js?v=20260722-3";
+import { initUploads } from "./uploads.js?v=20260722-3";
 import { exposePublicFunctions } from "./utils.js";
 import {
   initVouchers,
@@ -26,31 +26,31 @@ import {
   ativarAcoesAdmin,
   aplicarFiltrosAdmin,
   mostrarSecaoEmBreve
-} from "./admin.js?v=20260722-1";
+} from "./admin.js?v=20260722-3";
 import {
   buscarBriefingAtualCliente,
   carregarComentariosAdmin,
   carregarComentariosProjeto
-} from "./comments.js?v=20260722-1";
+} from "./comments.js?v=20260722-3";
 import {
   abrirPreviewArquivo,
   ativarBotoesAdminUploads,
   carregarAdminUploads,
   carregarUploadsCliente,
   mostrarArquivos
-} from "./uploads.js?v=20260722-1";
+} from "./uploads.js?v=20260722-3";
 import {
   abrirModalBriefing,
   carregarDashboard,
   carregarProgressoProjeto,
   carregarSidebarUser,
   carregarTimelineProjeto
-} from "./dashboard.js?v=20260722-1";
+} from "./dashboard.js?v=20260722-3";
 import {
   iniciarRealtimeAdmin,
   iniciarRealtimeCliente,
   iniciarRealtimeComentariosCliente
-} from "./realtime.js?v=20260722-1";
+} from "./realtime.js?v=20260722-3";
 import {
   carregarNotificacoes,
   mostrarToast

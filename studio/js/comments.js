@@ -2,6 +2,40 @@ import { mostrarToast } from "./notifications.js";
 
 let adminBriefingComentarioId = null;
 
+export async function buscarProjetoAtualCliente() {
+  const {
+    data: { session }
+  } = await supabaseClient.auth.getSession();
+
+  if (!session) return null;
+
+  const { data: profile } =
+    await supabaseClient
+      .from("profiles")
+      .select("client_id")
+      .eq("id", session.user.id)
+      .single();
+
+  if (!profile?.client_id) return null;
+
+  const { data, error } =
+    await supabaseClient
+      .from("projects")
+      .select("*")
+      .eq("client_id", profile.client_id)
+      .order("updated_at", {
+        ascending: false
+      })
+      .limit(1);
+
+  if (error) {
+    console.error(error);
+    return null;
+  }
+
+  return data?.[0] || null;
+}
+
 export async function buscarBriefingAtualCliente() {
   const {
     data: { session }
@@ -70,11 +104,81 @@ export async function buscarBriefingAtualCliente() {
   return data[0];
 }
 
+function renderComentarios(container, comentarios) {
+  container.innerHTML = "";
+
+  if (!comentarios || comentarios.length === 0) {
+    container.innerHTML = `
+      <p>Nenhum comentario ainda.</p>
+    `;
+    return;
+  }
+
+  comentarios.forEach((comentario) => {
+    const div =
+      document.createElement("div");
+
+    div.classList.add("comment-item");
+
+    const autor =
+      document.createElement("strong");
+    autor.textContent =
+      comentario.user_nome ||
+      comentario.author_role ||
+      "Cliente";
+
+    const mensagem =
+      document.createElement("p");
+    mensagem.textContent =
+      comentario.message ||
+      comentario.mensagem ||
+      "";
+
+    const dataComentario =
+      document.createElement("span");
+    dataComentario.textContent =
+      new Date(
+        comentario.created_at ||
+        comentario.criado_em
+      ).toLocaleString("pt-PT");
+
+    div.append(
+      autor,
+      mensagem,
+      dataComentario
+    );
+
+    container.appendChild(div);
+  });
+}
+
 export async function carregarComentariosProjeto() {
   const projectComments =
     document.getElementById("projectComments");
 
   if (!projectComments) return;
+
+  const projeto =
+    await buscarProjetoAtualCliente();
+
+  if (projeto) {
+    const { data, error } =
+      await supabaseClient
+        .from("project_comments")
+        .select("*")
+        .eq("project_id", projeto.id)
+        .order("created_at", {
+          ascending: true
+        });
+
+    if (error) {
+      console.error(error);
+      return;
+    }
+
+    renderComentarios(projectComments, data || []);
+    return;
+  }
 
   const briefing =
     await buscarBriefingAtualCliente();
@@ -231,6 +335,34 @@ function initCommentForm() {
     } = await supabaseClient.auth.getSession();
 
     if (!session) return;
+
+    const projeto =
+      await buscarProjetoAtualCliente();
+
+    if (projeto) {
+      const { error } =
+        await supabaseClient
+          .from("project_comments")
+          .insert([{
+            project_id: projeto.id,
+            client_id: projeto.client_id,
+            author_user_id: session.user.id,
+            author_role: "client",
+            comment_type: "message",
+            message: mensagem
+          }]);
+
+      if (error) {
+        console.error(error);
+        mostrarToast("Erro ao enviar comentario.", "error");
+        return;
+      }
+
+      commentInput.value = "";
+      mostrarToast("Comentario enviado!", "success");
+      carregarComentariosProjeto();
+      return;
+    }
 
     const briefing =
       await buscarBriefingAtualCliente();

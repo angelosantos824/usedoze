@@ -4,7 +4,8 @@ import {
 } from "./admin.js";
 import {
   carregarComentariosProjeto,
-  buscarBriefingAtualCliente
+  buscarBriefingAtualCliente,
+  buscarProjetoAtualCliente
 } from "./comments.js";
 import {
   carregarNotificacoes,
@@ -45,6 +46,29 @@ export async function iniciarRealtimeCliente() {
 
 export async function iniciarRealtimeComentariosCliente() {
   if (!window.location.pathname.includes("dashboard.html")) return;
+
+  const projeto =
+    await buscarProjetoAtualCliente();
+
+  if (projeto) {
+    supabaseClient
+      .channel("cliente-comentarios-projeto")
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "project_comments",
+          filter: `project_id=eq.${projeto.id}`
+        },
+        () => {
+          carregarComentariosProjeto();
+          mostrarToast("Nova mensagem recebida!", "info");
+        }
+      )
+      .subscribe();
+    return;
+  }
 
   const briefing =
     await buscarBriefingAtualCliente();

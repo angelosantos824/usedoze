@@ -5,6 +5,21 @@ import { carregarAdminVouchers } from "./vouchers.js";
 
 const CLIENT_DETAIL_LIMIT = 5;
 
+const PROJECT_STATUS_LABELS = {
+  draft: "Rascunho",
+  in_progress: "Em desenvolvimento",
+  internal_review: "Em revisao interna",
+  awaiting_client_approval: "Aguardando aprovacao do cliente",
+  changes_requested: "Alteracoes solicitadas",
+  approved: "Aprovado pelo cliente",
+  completed: "Concluido",
+  cancelled: "Cancelado"
+};
+
+function getProjectStatusLabel(status) {
+  return PROJECT_STATUS_LABELS[status] || status || "Rascunho";
+}
+
 function getDisplayValue(value, fallback = "Nao informado") {
   return value === null || value === undefined || value === ""
     ? fallback
@@ -192,70 +207,40 @@ async function criarProjetoAdmin(payload) {
     client_id: payload.clientId,
     name: payload.name,
     service_type: payload.serviceType,
+    description: payload.description,
     status: payload.status,
-    due_date: payload.dueDate || null,
-    progress: payload.progress
+    deadline: payload.deadline || null,
+    progress: payload.progress,
+    preview_url: payload.previewUrl || null,
+    repository_url: payload.repositoryUrl || null,
+    approval_requested_at:
+      payload.status === "awaiting_client_approval"
+        ? new Date().toISOString()
+        : null
   };
 
-  const projectResult =
+  const { data, error } =
     await supabaseClient
       .from("projects")
       .insert([projectPayload])
       .select("id")
       .single();
 
-  if (!projectResult.error) {
-    await registrarAuditoriaAdmin({
-      clientId: payload.clientId,
-      entityType: "project",
-      entityId: projectResult.data?.id || null,
-      action: "project.created",
-      newData: projectPayload
-    });
-
-    return {
-      source: "projects",
-      id: projectResult.data?.id
-    };
-  }
-
-  if (!isSchemaColumnError(projectResult.error)) {
-    throw projectResult.error;
-  }
-
-  const briefingPayload = {
-    client_id: payload.clientId,
-    nome: payload.contactName || payload.name,
-    email: payload.email,
-    empresa: payload.companyName,
-    tipo_projeto: payload.serviceType,
-    prazo: payload.dueDate || "",
-    status: payload.status,
-    descricao: payload.name
-  };
-
-  const briefingResult =
-    await supabaseClient
-      .from("briefings")
-      .insert([briefingPayload])
-      .select("id")
-      .single();
-
-  if (briefingResult.error) {
-    throw briefingResult.error;
+  if (error) {
+    throw error;
   }
 
   await registrarAuditoriaAdmin({
     clientId: payload.clientId,
-    entityType: "briefing",
-    entityId: briefingResult.data?.id || null,
-    action: "project.created_from_briefing",
-    newData: briefingPayload
+    entityType: "project",
+    entityId: data?.id || null,
+    action: "project.created",
+    newData: projectPayload
   });
 
   return {
-    source: "briefings",
-    id: briefingResult.data?.id
+    source: "projects",
+    id: data?.id
   };
 }
 
@@ -493,6 +478,11 @@ export async function carregarCardsAdmin() {
       .from("vouchers")
       .select("*");
 
+  const { data: projects } =
+    await supabaseClient
+      .from("projects")
+      .select("status");
+
   const { count: clientsCount } =
     await supabaseClient
       .from("clients")
@@ -548,20 +538,29 @@ export async function carregarCardsAdmin() {
 
   if (totalProjetos) {
     totalProjetos.textContent =
+      projects?.length ||
       briefings?.filter(
         (item) =>
           item.status === "Em andamento" ||
           item.status === "Em desenvolvimento"
-      ).length || 0;
+      ).length ||
+      0;
   }
 
   if (projetosAndamento) {
     projetosAndamento.textContent =
+      projects?.filter(
+        (item) =>
+          item.status === "in_progress" ||
+          item.status === "awaiting_client_approval" ||
+          item.status === "changes_requested"
+      ).length ||
       briefings?.filter(
         (item) =>
           item.status === "Em andamento" ||
           item.status === "Em desenvolvimento"
-      ).length || 0;
+      ).length ||
+      0;
   }
 }
 
@@ -842,25 +841,39 @@ export async function abrirDetalhesClienteAdmin(clientId) {
 export async function carregarAdminProjetos() {
   const tableBody =
     document.querySelector("tbody");
+  const panelTitle =
+    document.querySelector(".panel-header h2");
 
   if (!tableBody) return;
 
+  if (panelTitle) {
+    panelTitle.textContent = "Projetos";
+  }
+
   const { data, error } =
     await supabaseClient
-      .from("briefings")
-      .select("*")
+      .from("projects")
+      .select("*,clients(id,name,contact_name,email)")
       .order("created_at", {
         ascending: false
       });
 
   if (error) {
     console.error(error);
+    tableBody.innerHTML = `
+      <tr>
+        <td colspan="5">
+          Erro ao carregar projetos.
+        </td>
+      </tr>
+    `;
     return;
   }
 
+  const projetos = data || [];
   tableBody.innerHTML = "";
 
-  if (!data || data.length === 0) {
+  if (projetos.length === 0) {
     tableBody.innerHTML = `
       <tr>
         <td colspan="5">
@@ -871,24 +884,26 @@ export async function carregarAdminProjetos() {
     return;
   }
 
-  data.forEach((projeto) => {
+  projetos.forEach((projeto) => {
     const tr =
       document.createElement("tr");
 
     const tdNome =
       document.createElement("td");
     tdNome.textContent =
-      projeto.nome || "Sem nome";
+      projeto.name || "Sem nome";
 
     const tdEmpresa =
       document.createElement("td");
     tdEmpresa.textContent =
-      projeto.empresa || "Não informado";
+      projeto.clients?.name ||
+      projeto.clients?.contact_name ||
+      "Nao informado";
 
     const tdProjeto =
       document.createElement("td");
     tdProjeto.textContent =
-      projeto.tipo_projeto || "Projeto";
+      projeto.service_type || "Projeto";
 
     const tdStatus =
       document.createElement("td");
@@ -896,7 +911,7 @@ export async function carregarAdminProjetos() {
       document.createElement("span");
     status.classList.add("status", "recebido");
     status.textContent =
-      projeto.status || "Recebido";
+      getProjectStatusLabel(projeto.status);
     tdStatus.appendChild(status);
 
     const tdAcoes =
@@ -905,7 +920,7 @@ export async function carregarAdminProjetos() {
 
     const verBtn =
       document.createElement("button");
-    verBtn.classList.add("verBtn");
+    verBtn.classList.add("verProjetoBtn");
     verBtn.dataset.id =
       projeto.id;
     verBtn.textContent =
@@ -913,7 +928,7 @@ export async function carregarAdminProjetos() {
 
     const editarBtn =
       document.createElement("button");
-    editarBtn.classList.add("editarBtn");
+    editarBtn.classList.add("editarProjetoBtn");
     editarBtn.dataset.id =
       projeto.id;
     editarBtn.textContent =
@@ -932,7 +947,110 @@ export async function carregarAdminProjetos() {
     tableBody.appendChild(tr);
   });
 
-  ativarAcoesAdmin();
+  ativarAcoesProjetosAdmin();
+}
+
+function ativarAcoesProjetosAdmin() {
+  document
+    .querySelectorAll(".verProjetoBtn, .editarProjetoBtn")
+    .forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        const id =
+          btn.dataset.id;
+
+        if (!id) return;
+
+        await abrirProjetoAdmin(id);
+      });
+    });
+}
+
+async function carregarHistoricoProjeto(projectId) {
+  const container =
+    document.getElementById("adminProjectHistory");
+
+  if (!container) return;
+
+  const { data, error } =
+    await supabaseClient
+      .from("project_comments")
+      .select("*")
+      .eq("project_id", projectId)
+      .order("created_at", {
+        ascending: true
+      });
+
+  if (error) {
+    console.error(error);
+    container.innerHTML = "<p>Erro ao carregar historico.</p>";
+    return;
+  }
+
+  container.innerHTML = "";
+
+  if (!data || data.length === 0) {
+    container.innerHTML = "<p>Nenhum historico registrado.</p>";
+    return;
+  }
+
+  data.forEach((item) => {
+    const row =
+      document.createElement("div");
+    row.classList.add("client-detail-item");
+    row.textContent =
+      `${item.author_role || "cliente"} - ${item.comment_type || "message"}: ${
+        item.message || item.mensagem || ""
+      }`;
+    container.appendChild(row);
+  });
+}
+
+async function abrirProjetoAdmin(projectId) {
+  const modal =
+    document.getElementById("adminProjectModal");
+
+  if (!modal) return;
+
+  const { data, error } =
+    await supabaseClient
+      .from("projects")
+      .select("*,clients(id,name,contact_name,email)")
+      .eq("id", projectId)
+      .single();
+
+  if (error || !data) {
+    console.error(error);
+    mostrarToast("Erro ao carregar projeto.", "error");
+    return;
+  }
+
+  document.getElementById("editProjectId").value =
+    data.id;
+  document.getElementById("adminProjectModalTitle").textContent =
+    data.name || "Editar Projeto";
+  document.getElementById("editProjectName").value =
+    data.name || "";
+  document.getElementById("editProjectServiceType").value =
+    data.service_type || "";
+  document.getElementById("editProjectDescription").value =
+    data.description || "";
+  document.getElementById("editProjectStatus").value =
+    data.status || "draft";
+  document.getElementById("editProjectDeadline").value =
+    data.deadline || "";
+  document.getElementById("editProjectProgress").value =
+    data.progress ?? 0;
+  document.getElementById("editProjectPreviewUrl").value =
+    data.preview_url || "";
+  document.getElementById("editProjectRepositoryUrl").value =
+    data.repository_url || "";
+  document.getElementById("adminProjectResponse").value =
+    "";
+
+  await carregarHistoricoProjeto(data.id);
+  modal.dataset.clientId =
+    data.client_id;
+  modal.classList.add("active");
 }
 
 function initAdminMenu() {
@@ -1030,6 +1148,23 @@ function initAdminModals() {
     adminNewProjectModal.addEventListener("click", (event) => {
       if (event.target === adminNewProjectModal) {
         adminNewProjectModal.classList.remove("active");
+      }
+    });
+  }
+
+  const adminProjectModal =
+    document.getElementById("adminProjectModal");
+  const closeAdminProjectModal =
+    document.getElementById("closeAdminProjectModal");
+
+  if (adminProjectModal && closeAdminProjectModal) {
+    closeAdminProjectModal.addEventListener("click", () => {
+      adminProjectModal.classList.remove("active");
+    });
+
+    adminProjectModal.addEventListener("click", (event) => {
+      if (event.target === adminProjectModal) {
+        adminProjectModal.classList.remove("active");
       }
     });
   }
@@ -1134,17 +1269,28 @@ function initNovoProjetoAdmin() {
       document.getElementById("newProjectName")?.value.trim() || "";
     const serviceType =
       document.getElementById("newProjectServiceType")?.value.trim() || "";
+    const description =
+      document.getElementById("newProjectDescription")?.value.trim() || "";
     const status =
-      document.getElementById("newProjectStatus")?.value || "Recebido";
-    const dueDate =
-      document.getElementById("newProjectDueDate")?.value || "";
+      document.getElementById("newProjectStatus")?.value || "draft";
+    const deadline =
+      document.getElementById("newProjectDeadline")?.value || "";
     const progressValue =
       Number(document.getElementById("newProjectProgress")?.value || 0);
     const progress =
       Math.min(Math.max(progressValue, 0), 100);
+    const previewUrl =
+      document.getElementById("newProjectPreviewUrl")?.value.trim() || "";
+    const repositoryUrl =
+      document.getElementById("newProjectRepositoryUrl")?.value.trim() || "";
 
     if (!clientId || !name || !serviceType) {
       mostrarToast("Preencha cliente, nome e tipo de servico.", "error");
+      return;
+    }
+
+    if (status === "awaiting_client_approval" && !previewUrl) {
+      mostrarToast("Informe a URL de visualizacao para solicitar aprovacao.", "error");
       return;
     }
 
@@ -1160,9 +1306,12 @@ function initNovoProjetoAdmin() {
         clientId,
         name,
         serviceType,
+        description,
         status,
-        dueDate,
+        deadline,
         progress,
+        previewUrl,
+        repositoryUrl,
         email: selectedOption?.dataset.email || "",
         companyName: selectedOption?.dataset.name || "",
         contactName: selectedOption?.dataset.contact || ""
@@ -1185,6 +1334,125 @@ function initNovoProjetoAdmin() {
   });
 }
 
+function initEditarProjetoAdmin() {
+  const adminProjectForm =
+    document.getElementById("adminProjectForm");
+
+  if (!adminProjectForm) return;
+
+  adminProjectForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+
+    const submitButton =
+      adminProjectForm.querySelector('button[type="submit"]');
+    const projectId =
+      document.getElementById("editProjectId")?.value || "";
+    const modal =
+      document.getElementById("adminProjectModal");
+    const clientId =
+      modal?.dataset.clientId || "";
+    const responseMessage =
+      document.getElementById("adminProjectResponse")?.value.trim() || "";
+    const status =
+      document.getElementById("editProjectStatus")?.value || "draft";
+    const payload = {
+      name:
+        document.getElementById("editProjectName")?.value.trim() || "",
+      service_type:
+        document.getElementById("editProjectServiceType")?.value.trim() || "",
+      description:
+        document.getElementById("editProjectDescription")?.value.trim() || "",
+      status,
+      deadline:
+        document.getElementById("editProjectDeadline")?.value || null,
+      progress:
+        Math.min(
+          Math.max(Number(document.getElementById("editProjectProgress")?.value || 0), 0),
+          100
+        ),
+      preview_url:
+        document.getElementById("editProjectPreviewUrl")?.value.trim() || null,
+      repository_url:
+        document.getElementById("editProjectRepositoryUrl")?.value.trim() || null,
+      approval_requested_at:
+        status === "awaiting_client_approval"
+          ? new Date().toISOString()
+          : null
+    };
+
+    if (!projectId || !clientId || !payload.name || !payload.service_type) {
+      mostrarToast("Preencha os dados obrigatorios do projeto.", "error");
+      return;
+    }
+
+    if (payload.status === "awaiting_client_approval" && !payload.preview_url) {
+      mostrarToast("Informe a URL de visualizacao para solicitar aprovacao.", "error");
+      return;
+    }
+
+    if (submitButton?.disabled) return;
+
+    if (submitButton) {
+      submitButton.disabled = true;
+      submitButton.textContent = "Salvando...";
+    }
+
+    try {
+      const { error } =
+        await supabaseClient
+          .from("projects")
+          .update(payload)
+          .eq("id", projectId);
+
+      if (error) {
+        throw error;
+      }
+
+      await registrarAuditoriaAdmin({
+        clientId,
+        entityType: "project",
+        entityId: projectId,
+        action: "project.updated",
+        newData: payload
+      });
+
+      if (responseMessage) {
+        const {
+          data: { session }
+        } = await supabaseClient.auth.getSession();
+
+        const { error: commentError } =
+          await supabaseClient
+            .from("project_comments")
+            .insert([{
+              project_id: projectId,
+              client_id: clientId,
+              author_user_id: session?.user?.id || null,
+              author_role: "admin",
+              comment_type: "admin_response",
+              message: responseMessage
+            }]);
+
+        if (commentError) {
+          throw commentError;
+        }
+      }
+
+      mostrarToast("Projeto atualizado com sucesso.", "success");
+      await carregarHistoricoProjeto(projectId);
+      carregarAdminProjetos();
+    } catch (error) {
+      console.error(error);
+      mostrarToast("Erro ao atualizar projeto.", "error");
+    } finally {
+      if (submitButton) {
+        submitButton.disabled = false;
+        submitButton.textContent = "Salvar Projeto";
+      }
+    }
+  });
+}
+
 export function initAdmin() {
   if (window.location.pathname.includes("admin.html")) {
     carregarAdminReal();
@@ -1195,4 +1463,5 @@ export function initAdmin() {
   initAdminModals();
   initAdminFiltros();
   initNovoProjetoAdmin();
+  initEditarProjetoAdmin();
 }

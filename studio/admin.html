@@ -11,7 +11,7 @@
  <link rel="stylesheet" href="/studio/css/layout.css">
  <link rel="stylesheet" href="/studio/css/dashboard.css">
  <link rel="stylesheet" href="/studio/css/modals.css">
- <link rel="stylesheet" href="/studio/css/components.css?v=20260721-4">
+ <link rel="stylesheet" href="/studio/css/components.css?v=20260721-5">
  <link rel="stylesheet" href="/studio/css/responsive.css">
 </head>
 
@@ -283,7 +283,7 @@
       Novo Projeto
     </h2>
 
-    <form id="adminNewProjectForm" class="comment-form">
+    <form id="adminNewProjectForm" class="comment-form project-form">
 
       <label class="admin-edit-label">
         Cliente
@@ -303,21 +303,27 @@
       </label>
 
       <label class="admin-edit-label">
+        Descricao
+        <textarea id="newProjectDescription"></textarea>
+      </label>
+
+      <label class="admin-edit-label">
         Status
         <select id="newProjectStatus" required>
-          <option value="Recebido">Recebido</option>
-          <option value="Planejamento">Planejamento</option>
-          <option value="Design">Design</option>
-          <option value="Em desenvolvimento">Em desenvolvimento</option>
-          <option value="Revisao">Revisao</option>
-          <option value="Aguardando cliente">Aguardando cliente</option>
-          <option value="Finalizado">Finalizado</option>
+          <option value="draft">Rascunho</option>
+          <option value="in_progress">Em desenvolvimento</option>
+          <option value="internal_review">Em revisao interna</option>
+          <option value="awaiting_client_approval">Aguardando aprovacao do cliente</option>
+          <option value="changes_requested">Alteracoes solicitadas</option>
+          <option value="approved">Aprovado pelo cliente</option>
+          <option value="completed">Concluido</option>
+          <option value="cancelled">Cancelado</option>
         </select>
       </label>
 
       <label class="admin-edit-label">
         Prazo
-        <input id="newProjectDueDate" type="date">
+        <input id="newProjectDeadline" type="date">
       </label>
 
       <label class="admin-edit-label">
@@ -331,8 +337,104 @@
           required>
       </label>
 
+      <label class="admin-edit-label">
+        URL de visualizacao
+        <input id="newProjectPreviewUrl" type="url" placeholder="https://">
+      </label>
+
+      <label class="admin-edit-label">
+        URL do repositorio
+        <input id="newProjectRepositoryUrl" type="url" placeholder="https://">
+      </label>
+
       <button class="btn" type="submit">
         Criar Projeto
+      </button>
+
+    </form>
+
+  </div>
+
+</div>
+
+<!-- MODAL EDITAR PROJETO -->
+<div class="admin-modal" id="adminProjectModal">
+
+  <div class="admin-modal-content">
+
+    <button class="admin-modal-close" id="closeAdminProjectModal">
+      &times;
+    </button>
+
+    <h2 id="adminProjectModalTitle">
+      Editar Projeto
+    </h2>
+
+    <form id="adminProjectForm" class="comment-form project-form">
+
+      <input id="editProjectId" type="hidden">
+
+      <label class="admin-edit-label">
+        Nome
+        <input id="editProjectName" type="text" required>
+      </label>
+
+      <label class="admin-edit-label">
+        Tipo de servico
+        <input id="editProjectServiceType" type="text" required>
+      </label>
+
+      <label class="admin-edit-label">
+        Descricao
+        <textarea id="editProjectDescription"></textarea>
+      </label>
+
+      <label class="admin-edit-label">
+        Status
+        <select id="editProjectStatus" required>
+          <option value="draft">Rascunho</option>
+          <option value="in_progress">Em desenvolvimento</option>
+          <option value="internal_review">Em revisao interna</option>
+          <option value="awaiting_client_approval">Aguardando aprovacao do cliente</option>
+          <option value="changes_requested">Alteracoes solicitadas</option>
+          <option value="approved">Aprovado pelo cliente</option>
+          <option value="completed">Concluido</option>
+          <option value="cancelled">Cancelado</option>
+        </select>
+      </label>
+
+      <label class="admin-edit-label">
+        Prazo
+        <input id="editProjectDeadline" type="date">
+      </label>
+
+      <label class="admin-edit-label">
+        Progresso
+        <input id="editProjectProgress" type="number" min="0" max="100" required>
+      </label>
+
+      <label class="admin-edit-label">
+        URL de visualizacao
+        <input id="editProjectPreviewUrl" type="url">
+      </label>
+
+      <label class="admin-edit-label">
+        URL do repositorio
+        <input id="editProjectRepositoryUrl" type="url">
+      </label>
+
+      <div class="admin-modal-desc">
+        <strong>Historico do projeto</strong>
+        <div id="adminProjectHistory" class="client-detail-list"></div>
+      </div>
+
+      <label class="admin-edit-label">
+        Responder ao cliente
+        <textarea id="adminProjectResponse" placeholder="Escreva uma resposta opcional..."></textarea>
+      </label>
+
+      <button class="btn" type="submit">
+        Salvar Projeto
       </button>
 
     </form>
@@ -401,7 +503,7 @@
 
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 <script src="/studio/config.js?v=20260721-2"></script>
-<script src="/studio/script.js?v=20260721-4"></script>
+<script src="/studio/script.js?v=20260721-5"></script>
 
 </body>
 </html>

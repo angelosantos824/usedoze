@@ -14,7 +14,7 @@
   <link rel="stylesheet" href="css/layout.css">
   <link rel="stylesheet" href="css/dashboard.css">
   <link rel="stylesheet" href="css/modals.css">
-  <link rel="stylesheet" href="css/components.css?v=20260721-4">
+  <link rel="stylesheet" href="css/components.css?v=20260721-5">
   <link rel="stylesheet" href="css/responsive.css">
 </head>
 
@@ -222,6 +222,46 @@
       </div>
       <br>
 
+      <section class="panel project-approval-panel" id="projectApprovalSection" hidden>
+
+        <div class="panel-header">
+          <h2>Projeto disponivel para aprovacao</h2>
+        </div>
+
+        <p>
+          O seu projeto esta disponivel para analise. Acesse a versao de demonstracao,
+          verifique todas as paginas e informe se esta aprovado ou se precisa de alteracoes.
+        </p>
+
+        <div class="admin-modal-grid">
+          <p><strong>Projeto:</strong> <span id="approvalProjectName"></span></p>
+          <p><strong>Status:</strong> <span id="approvalProjectStatus"></span></p>
+          <p><strong>Progresso:</strong> <span id="approvalProjectProgress"></span></p>
+          <p><strong>Prazo:</strong> <span id="approvalProjectDeadline"></span></p>
+          <p><strong>Solicitado em:</strong> <span id="approvalProjectRequestedAt"></span></p>
+        </div>
+
+        <div class="modal-actions">
+          <a
+            id="approvalPreviewLink"
+            class="btn"
+            href="#"
+            target="_blank"
+            rel="noopener noreferrer">
+            Visualizar Projeto
+          </a>
+
+          <button id="approveProjectBtn" class="btn" type="button">
+            Aprovar Projeto
+          </button>
+
+          <button id="requestChangesBtn" class="btn-secondary" type="button">
+            Solicitar Alteracoes
+          </button>
+        </div>
+
+      </section>
+
       <!-- BRIEFINGS -->
       <section class="panel" id="briefingsSection">
 
@@ -288,6 +328,35 @@
       </section>
 
     </main>
+
+  </div>
+
+  <!-- MODAL SOLICITAR ALTERACOES -->
+  <div class="admin-modal" id="requestChangesModal">
+
+    <div class="admin-modal-content">
+
+      <button class="admin-modal-close" id="closeRequestChangesModal">
+        &times;
+      </button>
+
+      <h2>Solicitar Alteracoes</h2>
+
+      <form id="requestChangesForm" class="comment-form">
+
+        <textarea
+          id="requestChangesInput"
+          placeholder="Liste as alteracoes desejadas..."
+          required
+        ></textarea>
+
+        <button class="btn" type="submit">
+          Enviar Pedido
+        </button>
+
+      </form>
+
+    </div>
 
   </div>
 
@@ -431,7 +500,7 @@
 
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
   <script src="/studio/config.js?v=20260721-2"></script>
-  <script src="/studio/script.js?v=20260721-4"></script>
+  <script src="/studio/script.js?v=20260721-5"></script>
 
 </body>
 

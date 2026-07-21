@@ -1,4 +1,33 @@
+import { mostrarToast } from "./notifications.js";
+
 let briefingAtualId = null;
+let approvalProject = null;
+
+const PROJECT_STATUS_LABELS = {
+  draft: "Rascunho",
+  in_progress: "Em desenvolvimento",
+  internal_review: "Em revisao interna",
+  awaiting_client_approval: "Aguardando aprovacao do cliente",
+  changes_requested: "Alteracoes solicitadas",
+  approved: "Aprovado pelo cliente",
+  completed: "Concluido",
+  cancelled: "Cancelado"
+};
+
+function getProjectStatusLabel(status) {
+  return PROJECT_STATUS_LABELS[status] || status || "Rascunho";
+}
+
+function formatDate(value) {
+  if (!value) return "A definir";
+
+  const date =
+    new Date(value);
+
+  if (Number.isNaN(date.getTime())) return "A definir";
+
+  return date.toLocaleDateString("pt-PT");
+}
 
 async function carregarIdentidadeStudio(session) {
   const { data, error } = await supabaseClient
@@ -21,6 +50,58 @@ async function carregarIdentidadeStudio(session) {
     profile: data,
     client: data.clients || null
   };
+}
+
+async function registrarAuditoriaCliente({
+  clientId,
+  entityType,
+  entityId,
+  action,
+  newData
+}) {
+  const { error } =
+    await supabaseClient
+      .from("audit_logs")
+      .insert([{
+        client_id: clientId,
+        entity_type: entityType,
+        entity_id: entityId,
+        action,
+        new_data: newData,
+        metadata: {
+          source: "studio_dashboard"
+        }
+      }]);
+
+  if (error) {
+    console.warn("Nao foi possivel registrar auditoria.", error);
+  }
+}
+
+async function carregarProjetoAtualCliente(session) {
+  const identity =
+    await carregarIdentidadeStudio(session);
+
+  if (!identity?.profile?.client_id) {
+    return null;
+  }
+
+  const { data, error } =
+    await supabaseClient
+      .from("projects")
+      .select("*")
+      .eq("client_id", identity.profile.client_id)
+      .order("updated_at", {
+        ascending: false
+      })
+      .limit(1);
+
+  if (error) {
+    console.error(error);
+    return null;
+  }
+
+  return data?.[0] || null;
 }
 
 async function carregarBriefingsCliente(session, columns = "*", limit = null) {
@@ -113,6 +194,18 @@ export async function carregarDashboard() {
     briefingsContainer.innerHTML = `
       <p>Nenhum briefing encontrado para este utilizador.</p>
     `;
+    const projetoAtual =
+      await carregarProjetoAtualCliente(session);
+
+    if (projetoAtual) {
+      document.getElementById("clienteProjeto").textContent =
+        projetoAtual.name || projetoAtual.service_type || "Projeto";
+      document.getElementById("clienteStatus").textContent =
+        getProjectStatusLabel(projetoAtual.status);
+      document.getElementById("clientePrazo").textContent =
+        formatDate(projetoAtual.deadline);
+      renderProjectApprovalCard(projetoAtual);
+    }
     return;
   }
 
@@ -177,6 +270,257 @@ export async function carregarDashboard() {
     });
 
     briefingsContainer.appendChild(card);
+  });
+
+  const projetoAtual =
+    await carregarProjetoAtualCliente(session);
+
+  if (projetoAtual) {
+    document.getElementById("clienteProjeto").textContent =
+      projetoAtual.name || projetoAtual.service_type || "Projeto";
+    document.getElementById("clienteStatus").textContent =
+      getProjectStatusLabel(projetoAtual.status);
+    document.getElementById("clientePrazo").textContent =
+      formatDate(projetoAtual.deadline);
+  }
+
+  renderProjectApprovalCard(projetoAtual);
+}
+
+function renderProjectApprovalCard(project) {
+  const section =
+    document.getElementById("projectApprovalSection");
+
+  if (!section) return;
+
+  approvalProject =
+    project?.status === "awaiting_client_approval" ? project : null;
+
+  if (!approvalProject) {
+    section.hidden = true;
+    return;
+  }
+
+  section.hidden = false;
+
+  document.getElementById("approvalProjectName").textContent =
+    approvalProject.name || "Projeto";
+  document.getElementById("approvalProjectStatus").textContent =
+    getProjectStatusLabel(approvalProject.status);
+  document.getElementById("approvalProjectProgress").textContent =
+    `${approvalProject.progress ?? 0}%`;
+  document.getElementById("approvalProjectDeadline").textContent =
+    formatDate(approvalProject.deadline);
+  document.getElementById("approvalProjectRequestedAt").textContent =
+    formatDate(approvalProject.approval_requested_at);
+
+  const previewLink =
+    document.getElementById("approvalPreviewLink");
+
+  if (previewLink) {
+    previewLink.href =
+      approvalProject.preview_url || "#";
+    previewLink.toggleAttribute(
+      "aria-disabled",
+      !approvalProject.preview_url
+    );
+  }
+}
+
+async function aprovarProjetoAtual() {
+  if (!approvalProject) return;
+
+  const confirmar =
+    confirm("Confirma a aprovacao final deste projeto?");
+
+  if (!confirmar) return;
+
+  const approveButton =
+    document.getElementById("approveProjectBtn");
+
+  if (approveButton?.disabled) return;
+
+  if (approveButton) {
+    approveButton.disabled = true;
+    approveButton.textContent = "Aprovando...";
+  }
+
+  try {
+    const {
+      data: { session }
+    } = await supabaseClient.auth.getSession();
+
+    if (!session) {
+      window.location.href = "login.html";
+      return;
+    }
+
+    const payload = {
+      status: "approved",
+      approved_at: new Date().toISOString(),
+      approved_by: session.user.id
+    };
+
+    const { error } =
+      await supabaseClient
+        .from("projects")
+        .update(payload)
+        .eq("id", approvalProject.id);
+
+    if (error) {
+      throw error;
+    }
+
+    await supabaseClient
+      .from("project_comments")
+      .insert([{
+        project_id: approvalProject.id,
+        client_id: approvalProject.client_id,
+        author_user_id: session.user.id,
+        author_role: "client",
+        comment_type: "approval",
+        message: "Projeto aprovado pelo cliente."
+      }]);
+
+    await registrarAuditoriaCliente({
+      clientId: approvalProject.client_id,
+      entityType: "project",
+      entityId: approvalProject.id,
+      action: "project.approved",
+      newData: payload
+    });
+
+    mostrarToast("Projeto aprovado com sucesso.", "success");
+    await carregarDashboard();
+  } catch (error) {
+    console.error(error);
+    mostrarToast("Erro ao aprovar projeto.", "error");
+  } finally {
+    if (approveButton) {
+      approveButton.disabled = false;
+      approveButton.textContent = "Aprovar Projeto";
+    }
+  }
+}
+
+function initProjectApprovalFlow() {
+  const approveProjectBtn =
+    document.getElementById("approveProjectBtn");
+  const requestChangesBtn =
+    document.getElementById("requestChangesBtn");
+  const requestChangesModal =
+    document.getElementById("requestChangesModal");
+  const closeRequestChangesModal =
+    document.getElementById("closeRequestChangesModal");
+  const requestChangesForm =
+    document.getElementById("requestChangesForm");
+  const requestChangesInput =
+    document.getElementById("requestChangesInput");
+
+  approveProjectBtn?.addEventListener("click", aprovarProjetoAtual);
+
+  requestChangesBtn?.addEventListener("click", () => {
+    if (!approvalProject || !requestChangesModal) return;
+    requestChangesModal.classList.add("active");
+    requestChangesInput?.focus();
+  });
+
+  closeRequestChangesModal?.addEventListener("click", () => {
+    requestChangesModal?.classList.remove("active");
+  });
+
+  requestChangesModal?.addEventListener("click", (event) => {
+    if (event.target === requestChangesModal) {
+      requestChangesModal.classList.remove("active");
+    }
+  });
+
+  requestChangesForm?.addEventListener("submit", async (event) => {
+    event.preventDefault();
+
+    if (!approvalProject) return;
+
+    const message =
+      requestChangesInput?.value.trim() || "";
+
+    if (!message) {
+      mostrarToast("Descreva as alteracoes desejadas.", "error");
+      return;
+    }
+
+    const submitButton =
+      requestChangesForm.querySelector('button[type="submit"]');
+
+    if (submitButton?.disabled) return;
+
+    if (submitButton) {
+      submitButton.disabled = true;
+      submitButton.textContent = "Enviando...";
+    }
+
+    try {
+      const {
+        data: { session }
+      } = await supabaseClient.auth.getSession();
+
+      if (!session) {
+        window.location.href = "login.html";
+        return;
+      }
+
+      const { error: commentError } =
+        await supabaseClient
+          .from("project_comments")
+          .insert([{
+            project_id: approvalProject.id,
+            client_id: approvalProject.client_id,
+            author_user_id: session.user.id,
+            author_role: "client",
+            comment_type: "change_request",
+            message
+          }]);
+
+      if (commentError) {
+        throw commentError;
+      }
+
+      const payload = {
+        status: "changes_requested"
+      };
+
+      const { error: projectError } =
+        await supabaseClient
+          .from("projects")
+          .update(payload)
+          .eq("id", approvalProject.id);
+
+      if (projectError) {
+        throw projectError;
+      }
+
+      await registrarAuditoriaCliente({
+        clientId: approvalProject.client_id,
+        entityType: "project",
+        entityId: approvalProject.id,
+        action: "project.changes_requested",
+        newData: {
+          message
+        }
+      });
+
+      requestChangesInput.value = "";
+      requestChangesModal?.classList.remove("active");
+      mostrarToast("Pedido de alteracoes enviado com sucesso.", "success");
+      await carregarDashboard();
+    } catch (error) {
+      console.error(error);
+      mostrarToast("Erro ao solicitar alteracoes.", "error");
+    } finally {
+      if (submitButton) {
+        submitButton.disabled = false;
+        submitButton.textContent = "Enviar Pedido";
+      }
+    }
   });
 }
 
@@ -399,4 +743,5 @@ export function initDashboard() {
   carregarProgressoProjeto();
   carregarSidebarUser();
   initBriefingModalClose();
+  initProjectApprovalFlow();
 }

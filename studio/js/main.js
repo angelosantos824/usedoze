@@ -1,4 +1,4 @@
-import { initAdmin } from "./admin.js?v=20260721-2";
+import { initAdmin } from "./admin.js?v=20260721-3";
 import {
   initAuth,
   protegerAdmin,
@@ -26,7 +26,7 @@ import {
   ativarAcoesAdmin,
   aplicarFiltrosAdmin,
   mostrarSecaoEmBreve
-} from "./admin.js?v=20260721-2";
+} from "./admin.js?v=20260721-3";
 import {
   buscarBriefingAtualCliente,
   carregarComentariosAdmin,

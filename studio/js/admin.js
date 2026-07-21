@@ -3,6 +3,109 @@ import { mostrarToast } from "./notifications.js";
 import { carregarAdminUploads } from "./uploads.js";
 import { carregarAdminVouchers } from "./vouchers.js";
 
+const CLIENT_DETAIL_LIMIT = 5;
+
+function getDisplayValue(value, fallback = "Nao informado") {
+  return value === null || value === undefined || value === ""
+    ? fallback
+    : String(value);
+}
+
+function setTextById(id, value, fallback) {
+  const element =
+    document.getElementById(id);
+
+  if (!element) return;
+
+  element.textContent =
+    getDisplayValue(value, fallback);
+}
+
+function formatDate(value) {
+  if (!value) return "";
+
+  const date =
+    new Date(value);
+
+  if (Number.isNaN(date.getTime())) return "";
+
+  return date.toLocaleDateString("pt-PT");
+}
+
+function renderDetailList(elementId, items, emptyText, renderItem) {
+  const container =
+    document.getElementById(elementId);
+
+  if (!container) return;
+
+  container.innerHTML = "";
+
+  if (!items || items.length === 0) {
+    const empty =
+      document.createElement("p");
+    empty.textContent = emptyText;
+    container.appendChild(empty);
+    return;
+  }
+
+  items.slice(0, CLIENT_DETAIL_LIMIT).forEach((item) => {
+    const row =
+      document.createElement("div");
+    row.classList.add("client-detail-item");
+    row.textContent = renderItem(item);
+    container.appendChild(row);
+  });
+}
+
+async function fetchClientRelatedRows({
+  table,
+  clientId,
+  email,
+  orderBy = "created_at"
+}) {
+  const byClient =
+    await supabaseClient
+      .from(table)
+      .select("*")
+      .eq("client_id", clientId)
+      .order(orderBy, {
+        ascending: false
+      })
+      .limit(CLIENT_DETAIL_LIMIT);
+
+  if (!byClient.error) {
+    return byClient.data || [];
+  }
+
+  if (!email) {
+    console.warn(
+      `Nao foi possivel carregar ${table} por client_id.`,
+      byClient.error
+    );
+    return [];
+  }
+
+  const byEmail =
+    await supabaseClient
+      .from(table)
+      .select("*")
+      .eq("email", email)
+      .order(orderBy, {
+        ascending: false
+      })
+      .limit(CLIENT_DETAIL_LIMIT);
+
+  if (byEmail.error) {
+    console.warn(
+      `Nao foi possivel carregar ${table} por email.`,
+      byEmail.error
+    );
+    return [];
+  }
+
+  return byEmail.data || [];
+}
+
 export async function carregarAdminReal() {
   const tableBody =
     document.querySelector("tbody");
@@ -413,13 +516,13 @@ export async function carregarAdminClientes() {
 
     const verBtn =
       document.createElement("button");
-    verBtn.classList.add("verBtn");
+    verBtn.classList.add("verClienteBtn");
     verBtn.dataset.id =
       cliente.id;
     verBtn.textContent =
       "Ver";
-    verBtn.disabled = true;
-    verBtn.title = "Detalhe do cliente sera aberto em modulo proprio.";
+    verBtn.type = "button";
+    verBtn.title = "Ver detalhes do cliente.";
     tdAcoes.appendChild(verBtn);
 
     tr.append(
@@ -433,6 +536,154 @@ export async function carregarAdminClientes() {
     tableBody.appendChild(tr);
   });
 
+  ativarAcoesClientesAdmin();
+}
+
+export function ativarAcoesClientesAdmin() {
+  document
+    .querySelectorAll(".verClienteBtn")
+    .forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        const id =
+          btn.dataset.id;
+
+        if (!id) return;
+
+        btn.disabled = true;
+
+        try {
+          await abrirDetalhesClienteAdmin(id);
+        } finally {
+          btn.disabled = false;
+        }
+      });
+    });
+}
+
+export async function abrirDetalhesClienteAdmin(clientId) {
+  const modal =
+    document.getElementById("adminClientModal");
+
+  if (!modal) {
+    mostrarToast("Modal de cliente indisponivel.", "error");
+    return;
+  }
+
+  const { data: cliente, error } =
+    await supabaseClient
+      .from("clients")
+      .select("*")
+      .eq("id", clientId)
+      .single();
+
+  if (error || !cliente) {
+    console.error(error);
+    mostrarToast("Erro ao carregar cliente.", "error");
+    return;
+  }
+
+  const email =
+    cliente.email || "";
+
+  const [
+    profilesResult,
+    briefings,
+    uploads,
+    vouchers
+  ] = await Promise.all([
+    supabaseClient
+      .from("profiles")
+      .select("id,nome,email,client_id,created_at")
+      .eq("client_id", clientId)
+      .limit(1),
+    fetchClientRelatedRows({
+      table: "briefings",
+      clientId,
+      email
+    }),
+    fetchClientRelatedRows({
+      table: "project_uploads",
+      clientId,
+      email,
+      orderBy: "criado_em"
+    }),
+    fetchClientRelatedRows({
+      table: "vouchers",
+      clientId,
+      email,
+      orderBy: "criado_em"
+    })
+  ]);
+
+  if (profilesResult.error) {
+    console.warn(
+      "Nao foi possivel carregar profile do cliente.",
+      profilesResult.error
+    );
+  }
+
+  const profile =
+    profilesResult.data?.[0];
+
+  setTextById(
+    "adminClientModalTitle",
+    cliente.contact_name || cliente.name,
+    "Detalhes do Cliente"
+  );
+  setTextById("adminClientContact", cliente.contact_name || cliente.name);
+  setTextById("adminClientCompany", cliente.name);
+  setTextById("adminClientEmail", cliente.email);
+  setTextById("adminClientStatus", cliente.status || "Cliente");
+  setTextById("adminClientType", cliente.type);
+  setTextById("adminClientOrigin", cliente.origin);
+  setTextById(
+    "adminClientProfile",
+    profile
+      ? `${profile.nome || profile.email || profile.id} - profile vinculado`
+      : "Nenhum profile vinculado encontrado."
+  );
+
+  renderDetailList(
+    "adminClientBriefings",
+    briefings,
+    "Nenhum briefing encontrado para este cliente.",
+    (briefing) =>
+      `${briefing.nome || briefing.tipo_projeto || "Briefing"} - ${
+        briefing.status || "Recebido"
+      } ${formatDate(briefing.created_at)}`
+  );
+
+  renderDetailList(
+    "adminClientProjects",
+    briefings,
+    "Nenhum projeto encontrado para este cliente.",
+    (projeto) =>
+      `${projeto.tipo_projeto || projeto.nome || "Projeto"} - ${
+        projeto.status || "Recebido"
+      }`
+  );
+
+  renderDetailList(
+    "adminClientUploads",
+    uploads,
+    "Nenhum upload encontrado para este cliente.",
+    (upload) =>
+      `${upload.nome_arquivo || "Arquivo"} - ${
+        upload.tipo || "Arquivo"
+      } ${formatDate(upload.criado_em)}`
+  );
+
+  renderDetailList(
+    "adminClientVouchers",
+    vouchers,
+    "Nenhum voucher encontrado para este cliente.",
+    (voucher) =>
+      `${voucher.codigo || "Voucher"} - ${
+        voucher.ativo ? "Ativo" : "Inativo"
+      }`
+  );
+
+  modal.classList.add("active");
 }
 
 export async function carregarAdminProjetos() {
@@ -592,6 +843,23 @@ function initAdminModals() {
     adminBriefingModal.addEventListener("click", (event) => {
       if (event.target === adminBriefingModal) {
         adminBriefingModal.classList.remove("active");
+      }
+    });
+  }
+
+  const adminClientModal =
+    document.getElementById("adminClientModal");
+  const closeAdminClientModal =
+    document.getElementById("closeAdminClientModal");
+
+  if (adminClientModal && closeAdminClientModal) {
+    closeAdminClientModal.addEventListener("click", () => {
+      adminClientModal.classList.remove("active");
+    });
+
+    adminClientModal.addEventListener("click", (event) => {
+      if (event.target === adminClientModal) {
+        adminClientModal.classList.remove("active");
       }
     });
   }

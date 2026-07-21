@@ -11,7 +11,7 @@
  <link rel="stylesheet" href="/studio/css/layout.css">
  <link rel="stylesheet" href="/studio/css/dashboard.css">
  <link rel="stylesheet" href="/studio/css/modals.css">
- <link rel="stylesheet" href="/studio/css/components.css">
+ <link rel="stylesheet" href="/studio/css/components.css?v=20260721-3">
  <link rel="stylesheet" href="/studio/css/responsive.css">
 </head>
 
@@ -216,6 +216,59 @@
   </div>
 
 </div>
+
+<!-- MODAL ADMIN CLIENTE -->
+<div class="admin-modal" id="adminClientModal">
+
+  <div class="admin-modal-content">
+
+    <button class="admin-modal-close" id="closeAdminClientModal">
+      Ã—
+    </button>
+
+    <h2 id="adminClientModalTitle">
+      Detalhes do Cliente
+    </h2>
+
+    <div class="admin-modal-grid">
+
+      <p><strong>Contacto:</strong> <span id="adminClientContact"></span></p>
+      <p><strong>Empresa:</strong> <span id="adminClientCompany"></span></p>
+      <p><strong>Email:</strong> <span id="adminClientEmail"></span></p>
+      <p><strong>Status:</strong> <span id="adminClientStatus"></span></p>
+      <p><strong>Tipo:</strong> <span id="adminClientType"></span></p>
+      <p><strong>Origem:</strong> <span id="adminClientOrigin"></span></p>
+
+    </div>
+
+    <div class="admin-modal-desc">
+      <strong>Perfil associado</strong>
+      <p id="adminClientProfile"></p>
+    </div>
+
+    <div class="admin-modal-desc">
+      <strong>Briefings</strong>
+      <div id="adminClientBriefings" class="client-detail-list"></div>
+    </div>
+
+    <div class="admin-modal-desc">
+      <strong>Projetos</strong>
+      <div id="adminClientProjects" class="client-detail-list"></div>
+    </div>
+
+    <div class="admin-modal-desc">
+      <strong>Uploads</strong>
+      <div id="adminClientUploads" class="client-detail-list"></div>
+    </div>
+
+    <div class="admin-modal-desc">
+      <strong>Vouchers</strong>
+      <div id="adminClientVouchers" class="client-detail-list"></div>
+    </div>
+
+  </div>
+
+</div>
 <!-- MODAL EDITAR STATUS -->
 <div class="admin-modal" id="adminEditModal">
 
@@ -277,7 +330,7 @@
 
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 <script src="/studio/config.js?v=20260721-2"></script>
-<script src="/studio/script.js?v=20260721-2"></script>
+<script src="/studio/script.js?v=20260721-3"></script>
 
 </body>
 </html>

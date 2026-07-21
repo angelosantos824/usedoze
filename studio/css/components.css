@@ -156,6 +156,24 @@
   line-height:1.7;
 }
 
+.client-detail-list{
+  display:grid;
+  gap:10px;
+  margin-top:10px;
+}
+
+.client-detail-list p{
+  margin:0;
+}
+
+.client-detail-item{
+  padding:10px 12px;
+  border-radius:12px;
+  background:rgba(255,255,255,0.04);
+  color:#d1d5db;
+  line-height:1.5;
+}
+
 @media(max-width:700px){
 
   .admin-modal-grid{

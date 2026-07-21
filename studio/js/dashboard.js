@@ -111,6 +111,27 @@ async function carregarProjetosCliente(profile) {
   return data || [];
 }
 
+async function carregarAtualizacoesProjetoCliente(project) {
+  if (!project?.id || !project?.client_id) return [];
+
+  const { data, error } =
+    await supabaseClient
+      .from("project_updates")
+      .select("*")
+      .eq("project_id", project.id)
+      .eq("client_id", project.client_id)
+      .order("created_at", {
+        ascending: false
+      });
+
+  if (error) {
+    console.error(error);
+    return [];
+  }
+
+  return data || [];
+}
+
 function selecionarProjetoAtual(projects) {
   return [...projects].sort((a, b) => {
     const priorityDiff =
@@ -220,6 +241,11 @@ export async function carregarDashboard() {
   renderProjectApprovalCards(projects);
 
   if (projetoAtual) {
+    const projectUpdates =
+      await carregarAtualizacoesProjetoCliente(projetoAtual);
+
+    renderProjectUpdates(projectUpdates);
+
     document.getElementById("clienteProjeto").textContent =
       projetoAtual.name || projetoAtual.service_type || "Projeto";
     document.getElementById("clienteStatus").textContent =
@@ -259,6 +285,46 @@ export async function carregarDashboard() {
     if (sidebarProgressFill) {
       sidebarProgressFill.style.width =
         `${projetoAtual.progress ?? 0}%`;
+    }
+  } else {
+    renderProjectUpdates([]);
+
+    document.getElementById("clienteProjeto").textContent =
+      "--";
+    document.getElementById("clienteStatus").textContent =
+      "--";
+    document.getElementById("clientePrazo").textContent =
+      "--";
+    document.getElementById("clienteVoucher").textContent =
+      "--";
+    document.getElementById("clienteProgresso").textContent =
+      "0%";
+
+    const progressFill =
+      document.getElementById("clienteProgressFill");
+    const sidebarProjetoNome =
+      document.getElementById("sidebarProjetoNome");
+    const sidebarProjetoStatus =
+      document.getElementById("sidebarProjetoStatus");
+    const sidebarProgressFill =
+      document.getElementById("sidebarProgressFill");
+
+    if (progressFill) {
+      progressFill.style.width = "0%";
+    }
+
+    if (sidebarProjetoNome) {
+      sidebarProjetoNome.textContent =
+        "Nenhum projeto ativo";
+    }
+
+    if (sidebarProjetoStatus) {
+      sidebarProjetoStatus.textContent =
+        "A definir";
+    }
+
+    if (sidebarProgressFill) {
+      sidebarProgressFill.style.width = "0%";
     }
   }
 
@@ -332,6 +398,75 @@ export async function carregarDashboard() {
     });
 
     briefingsContainer.appendChild(card);
+  });
+}
+
+function getUpdateSection(description, label) {
+  if (!description) return "";
+
+  const pattern =
+    new RegExp(`${label}:\\n([\\s\\S]*?)(?:\\n\\n[A-ZÀ-Úa-zà-ú ]+:\\n|$)`);
+  const match =
+    description.match(pattern);
+
+  return match?.[1]?.trim() || "";
+}
+
+function renderProjectUpdates(updates) {
+  const container =
+    document.getElementById("projectUpdatesContainer");
+  const notificationBadge =
+    document.querySelector(".notification-badge");
+
+  if (!container) return;
+
+  container.innerHTML = "";
+
+  if (!updates || updates.length === 0) {
+    if (notificationBadge) {
+      notificationBadge.hidden = true;
+    }
+
+    container.innerHTML = `
+      <p>Nenhuma atualizacao de projeto publicada.</p>
+    `;
+    return;
+  }
+
+  if (notificationBadge) {
+    notificationBadge.hidden = false;
+    notificationBadge.textContent =
+      `Nova atualizacao: ${updates[0].title || "Projeto atualizado"}`;
+  }
+
+  updates.forEach((update, index) => {
+    const card =
+      document.createElement("article");
+    card.classList.add("briefing-item");
+
+    if (index === 0) {
+      card.classList.add("current");
+    }
+
+    const ready =
+      getUpdateSection(update.description, "O que ja esta pronto");
+    const progressText =
+      getUpdateSection(update.description, "O que esta em andamento");
+    const nextSteps =
+      getUpdateSection(update.description, "Proximos passos");
+
+    card.innerHTML = `
+      <h3>${update.title || "Atualizacao do projeto"}</h3>
+      <p><strong>Status:</strong> ${getProjectStatusLabel(update.status)}</p>
+      <p><strong>Progresso:</strong> ${update.progress ?? 0}%</p>
+      <p><strong>Data:</strong> ${formatDate(update.created_at)}</p>
+      ${ready ? `<p><strong>O que esta pronto:</strong> ${ready}</p>` : ""}
+      ${progressText ? `<p><strong>Em andamento:</strong> ${progressText}</p>` : ""}
+      ${nextSteps ? `<p><strong>Proximos passos:</strong> ${nextSteps}</p>` : ""}
+      ${!ready && !progressText && !nextSteps ? `<p>${update.description || ""}</p>` : ""}
+    `;
+
+    container.appendChild(card);
   });
 }
 
@@ -733,6 +868,71 @@ export async function carregarTimelineProjeto() {
 
   if (!session) return;
 
+  const identity =
+    await carregarIdentidadeStudio(session);
+
+  if (!identity?.profile?.client_id) return;
+
+  const projects =
+    await carregarProjetosCliente(identity.profile);
+  const projetoAtual =
+    selecionarProjetoAtual(projects);
+
+  if (!projetoAtual) {
+    projectTimeline.innerHTML = `
+      <p>Nenhum projeto ativo.</p>
+    `;
+    return;
+  }
+
+  const etapasProjeto = [
+    "draft",
+    "in_progress",
+    "internal_review",
+    "awaiting_client_approval",
+    "approved",
+    "completed"
+  ];
+  const etapaAtualProjetoIndex =
+    etapasProjeto.indexOf(projetoAtual.status);
+
+  projectTimeline.innerHTML = "";
+
+  etapasProjeto.forEach((etapa, index) => {
+    const div =
+      document.createElement("div");
+
+    div.classList.add("timeline-item");
+
+    if (index < etapaAtualProjetoIndex) {
+      div.classList.add("completed");
+    } else if (index === etapaAtualProjetoIndex) {
+      div.classList.add("current");
+    } else {
+      div.classList.add("pending");
+    }
+
+    div.innerHTML = `
+      <strong>
+        ${getProjectStatusLabel(etapa)}
+      </strong>
+
+      <span>
+        ${
+          index < etapaAtualProjetoIndex
+            ? "Etapa concluida"
+            : index === etapaAtualProjetoIndex
+            ? "Etapa atual"
+            : "Aguardando inicio"
+        }
+      </span>
+    `;
+
+    projectTimeline.appendChild(div);
+  });
+
+  return;
+
   const { data: briefings } =
     await carregarBriefingsCliente(session, "*", 1);
 
@@ -813,7 +1013,13 @@ export async function carregarProgressoProjeto() {
   const projetoAtual =
     selecionarProjetoAtual(projects);
 
-  if (!projetoAtual) return;
+  if (!projetoAtual) {
+    progressoTexto.textContent =
+      "0%";
+    progressoFill.style.width =
+      "0%";
+    return;
+  }
 
   const progresso =
     projetoAtual.progress ?? 0;

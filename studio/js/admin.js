@@ -202,9 +202,141 @@ async function carregarClientesSelectProjeto() {
   });
 }
 
+async function localizarClientIdBriefing(briefing) {
+  if (briefing?.client_id) {
+    return briefing.client_id;
+  }
+
+  const email =
+    briefing?.email || "";
+
+  if (!email) return "";
+
+  const profileResult =
+    await supabaseClient
+      .from("profiles")
+      .select("client_id")
+      .eq("email", email)
+      .not("client_id", "is", null)
+      .limit(1)
+      .maybeSingle();
+
+  if (!profileResult.error && profileResult.data?.client_id) {
+    return profileResult.data.client_id;
+  }
+
+  const clientResult =
+    await supabaseClient
+      .from("clients")
+      .select("id")
+      .eq("email", email)
+      .limit(1)
+      .maybeSingle();
+
+  if (!clientResult.error && clientResult.data?.id) {
+    return clientResult.data.id;
+  }
+
+  return "";
+}
+
+async function buscarProjetoPorBriefingId(briefingId) {
+  if (!briefingId) return null;
+
+  const { data, error } =
+    await supabaseClient
+      .from("projects")
+      .select("id,name")
+      .eq("briefing_id", briefingId)
+      .maybeSingle();
+
+  if (error) {
+    throw error;
+  }
+
+  return data || null;
+}
+
+async function abrirFormularioProjetoPorBriefing(briefingId) {
+  if (!briefingId) return;
+
+  try {
+    const projetoExistente =
+      await buscarProjetoPorBriefingId(briefingId);
+
+    if (projetoExistente?.id) {
+      mostrarToast("Este briefing ja foi convertido em projeto.", "info");
+      await abrirProjetoAdmin(projetoExistente.id);
+      return;
+    }
+
+    const { data: briefing, error } =
+      await supabaseClient
+        .from("briefings")
+        .select("*")
+        .eq("id", briefingId)
+        .single();
+
+    if (error || !briefing) {
+      throw error || new Error("Briefing nao encontrado.");
+    }
+
+    const clientId =
+      await localizarClientIdBriefing(briefing);
+
+    if (!clientId) {
+      mostrarToast(
+        "Nao foi possivel localizar o cliente deste briefing.",
+        "error"
+      );
+      return;
+    }
+
+    const adminBriefingModal =
+      document.getElementById("adminBriefingModal");
+    const adminNewProjectModal =
+      document.getElementById("adminNewProjectModal");
+    const adminNewProjectForm =
+      document.getElementById("adminNewProjectForm");
+
+    await carregarClientesSelectProjeto();
+
+    adminNewProjectForm?.reset();
+    document.getElementById("newProjectBriefingId").value =
+      briefing.id;
+    document.getElementById("newProjectClient").value =
+      clientId;
+    document.getElementById("newProjectName").value =
+      briefing.empresa
+        ? `Site ${briefing.empresa}`
+        : briefing.tipo_projeto || "Novo projeto";
+    document.getElementById("newProjectServiceType").value =
+      briefing.tipo_projeto || "Website institucional";
+    document.getElementById("newProjectDescription").value =
+      briefing.descricao || "";
+    document.getElementById("newProjectStatus").value =
+      "draft";
+    document.getElementById("newProjectProgress").value =
+      "0";
+
+    const title =
+      adminNewProjectModal?.querySelector("h2");
+    if (title) {
+      title.textContent = "Converter Briefing em Projeto";
+    }
+
+    adminBriefingModal?.classList.remove("active");
+    adminNewProjectModal?.classList.add("active");
+  } catch (error) {
+    console.error(error);
+    mostrarToast("Erro ao preparar conversao do briefing.", "error");
+  }
+}
+
 async function criarProjetoAdmin(payload) {
   const projectPayload = {
     client_id: payload.clientId,
+    briefing_id: payload.briefingId || null,
     name: payload.name,
     service_type: payload.serviceType,
     description: payload.description,
@@ -216,8 +348,21 @@ async function criarProjetoAdmin(payload) {
     approval_requested_at:
       payload.status === "awaiting_client_approval"
         ? new Date().toISOString()
-        : null
+      : null
   };
+
+  if (payload.briefingId) {
+    const projetoExistente =
+      await buscarProjetoPorBriefingId(payload.briefingId);
+
+    if (projetoExistente?.id) {
+      const error =
+        new Error("Este briefing ja possui um projeto vinculado.");
+      error.projectId =
+        projetoExistente.id;
+      throw error;
+    }
+  }
 
   const { data, error } =
     await supabaseClient
@@ -321,12 +466,18 @@ export async function carregarAdminReal() {
     editarBtn.dataset.id = briefing.id;
     editarBtn.textContent = "Editar";
 
+    const converterBtn = document.createElement("button");
+    converterBtn.classList.add("converterProjetoBtn");
+    converterBtn.dataset.id = briefing.id;
+    converterBtn.textContent = "Converter em Projeto";
+
     const excluirBtn = document.createElement("button");
     excluirBtn.classList.add("excluirBtn");
     excluirBtn.dataset.id = briefing.id;
     excluirBtn.textContent = "Excluir";
 
     tdAcoes.appendChild(verBtn);
+    tdAcoes.appendChild(converterBtn);
     tdAcoes.appendChild(editarBtn);
     tdAcoes.appendChild(excluirBtn);
 
@@ -362,6 +513,8 @@ export function ativarAcoesAdmin() {
 
         if (!modal) return;
 
+        modal.dataset.briefingId =
+          data.id;
         document.getElementById("adminModalNome").textContent =
           data.nome || "Detalhes do Briefing";
         document.getElementById("adminModalEmpresa").textContent =
@@ -383,6 +536,14 @@ export function ativarAcoesAdmin() {
 
         modal.classList.add("active");
         carregarComentariosAdmin(data.id);
+      });
+    });
+
+  document
+    .querySelectorAll(".converterProjetoBtn")
+    .forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        await abrirFormularioProjetoPorBriefing(btn.dataset.id);
       });
     });
 
@@ -1005,6 +1166,46 @@ async function carregarHistoricoProjeto(projectId) {
   });
 }
 
+async function carregarAtualizacoesProjetoAdmin(projectId) {
+  const container =
+    document.getElementById("adminProjectUpdatesHistory");
+
+  if (!container) return;
+
+  const { data, error } =
+    await supabaseClient
+      .from("project_updates")
+      .select("*")
+      .eq("project_id", projectId)
+      .order("created_at", {
+        ascending: false
+      });
+
+  if (error) {
+    console.error(error);
+    container.innerHTML = "<p>Erro ao carregar atualizacoes.</p>";
+    return;
+  }
+
+  container.innerHTML = "";
+
+  if (!data || data.length === 0) {
+    container.innerHTML = "<p>Nenhuma atualizacao publicada.</p>";
+    return;
+  }
+
+  data.forEach((item) => {
+    const row =
+      document.createElement("div");
+    row.classList.add("client-detail-item");
+    row.textContent =
+      `${item.title || "Atualizacao"} - ${
+        getProjectStatusLabel(item.status)
+      } - ${item.progress ?? 0}% - ${formatDate(item.created_at)}`;
+    container.appendChild(row);
+  });
+}
+
 async function abrirProjetoAdmin(projectId) {
   const modal =
     document.getElementById("adminProjectModal");
@@ -1046,8 +1247,19 @@ async function abrirProjetoAdmin(projectId) {
     data.repository_url || "";
   document.getElementById("adminProjectResponse").value =
     "";
+  document.getElementById("projectUpdateTitle").value =
+    "";
+  document.getElementById("projectUpdateReady").value =
+    "";
+  document.getElementById("projectUpdateProgressText").value =
+    "";
+  document.getElementById("projectUpdateNextSteps").value =
+    "";
+  document.getElementById("projectUpdateDeadlineText").value =
+    "";
 
   await carregarHistoricoProjeto(data.id);
+  await carregarAtualizacoesProjetoAdmin(data.id);
   modal.dataset.clientId =
     data.client_id;
   modal.classList.add("active");
@@ -1115,6 +1327,17 @@ function initAdminModals() {
       if (event.target === adminBriefingModal) {
         adminBriefingModal.classList.remove("active");
       }
+    });
+  }
+
+  const convertBriefingProjectBtn =
+    document.getElementById("convertBriefingProjectBtn");
+
+  if (convertBriefingProjectBtn && adminBriefingModal) {
+    convertBriefingProjectBtn.addEventListener("click", async () => {
+      await abrirFormularioProjetoPorBriefing(
+        adminBriefingModal.dataset.briefingId
+      );
     });
   }
 
@@ -1248,6 +1471,14 @@ function initNovoProjetoAdmin() {
   if (novoProjetoBtn && adminNewProjectModal) {
     novoProjetoBtn.addEventListener("click", async () => {
       await carregarClientesSelectProjeto();
+      adminNewProjectForm?.reset();
+      document.getElementById("newProjectBriefingId").value =
+        "";
+      const title =
+        adminNewProjectModal.querySelector("h2");
+      if (title) {
+        title.textContent = "Novo Projeto";
+      }
       adminNewProjectModal.classList.add("active");
     });
   }
@@ -1283,6 +1514,8 @@ function initNovoProjetoAdmin() {
       document.getElementById("newProjectPreviewUrl")?.value.trim() || "";
     const repositoryUrl =
       document.getElementById("newProjectRepositoryUrl")?.value.trim() || "";
+    const briefingId =
+      document.getElementById("newProjectBriefingId")?.value || "";
 
     if (!clientId || !name || !serviceType) {
       mostrarToast("Preencha cliente, nome e tipo de servico.", "error");
@@ -1312,6 +1545,7 @@ function initNovoProjetoAdmin() {
         progress,
         previewUrl,
         repositoryUrl,
+        briefingId,
         email: selectedOption?.dataset.email || "",
         companyName: selectedOption?.dataset.name || "",
         contactName: selectedOption?.dataset.contact || ""
@@ -1324,7 +1558,12 @@ function initNovoProjetoAdmin() {
       carregarAdminProjetos();
     } catch (error) {
       console.error(error);
-      mostrarToast("Erro ao criar projeto.", "error");
+      if (error?.projectId) {
+        mostrarToast("Este briefing ja possui um projeto vinculado.", "info");
+        await abrirProjetoAdmin(error.projectId);
+      } else {
+        mostrarToast("Erro ao criar projeto.", "error");
+      }
     } finally {
       if (submitButton) {
         submitButton.disabled = false;
@@ -1353,6 +1592,16 @@ function initEditarProjetoAdmin() {
       modal?.dataset.clientId || "";
     const responseMessage =
       document.getElementById("adminProjectResponse")?.value.trim() || "";
+    const updateTitle =
+      document.getElementById("projectUpdateTitle")?.value.trim() || "";
+    const updateReady =
+      document.getElementById("projectUpdateReady")?.value.trim() || "";
+    const updateProgressText =
+      document.getElementById("projectUpdateProgressText")?.value.trim() || "";
+    const updateNextSteps =
+      document.getElementById("projectUpdateNextSteps")?.value.trim() || "";
+    const updateDeadlineText =
+      document.getElementById("projectUpdateDeadlineText")?.value.trim() || "";
     const status =
       document.getElementById("editProjectStatus")?.value || "draft";
     const payload = {
@@ -1390,6 +1639,20 @@ function initEditarProjetoAdmin() {
       return;
     }
 
+    const hasProjectUpdate =
+      Boolean(
+        updateTitle ||
+        updateReady ||
+        updateProgressText ||
+        updateNextSteps ||
+        updateDeadlineText
+      );
+
+    if (hasProjectUpdate && !updateTitle) {
+      mostrarToast("Informe o titulo da atualizacao.", "error");
+      return;
+    }
+
     if (submitButton?.disabled) return;
 
     if (submitButton) {
@@ -1416,6 +1679,44 @@ function initEditarProjetoAdmin() {
         newData: payload
       });
 
+      if (hasProjectUpdate) {
+        const {
+          data: { session }
+        } = await supabaseClient.auth.getSession();
+        const descriptionParts = [
+          updateReady ? `O que ja esta pronto:\n${updateReady}` : "",
+          updateProgressText ? `O que esta em andamento:\n${updateProgressText}` : "",
+          updateNextSteps ? `Proximos passos:\n${updateNextSteps}` : "",
+          updateDeadlineText ? `Previsao ou prazo:\n${updateDeadlineText}` : ""
+        ].filter(Boolean);
+        const updatePayload = {
+          project_id: projectId,
+          client_id: clientId,
+          title: updateTitle,
+          description: descriptionParts.join("\n\n") || updateTitle,
+          progress: payload.progress,
+          status: payload.status,
+          created_by: session?.user?.id || null
+        };
+
+        const { error: updateError } =
+          await supabaseClient
+            .from("project_updates")
+            .insert([updatePayload]);
+
+        if (updateError) {
+          throw updateError;
+        }
+
+        await registrarAuditoriaAdmin({
+          clientId,
+          entityType: "project_update",
+          entityId: projectId,
+          action: "project.update_published",
+          newData: updatePayload
+        });
+      }
+
       if (responseMessage) {
         const {
           data: { session }
@@ -1440,6 +1741,17 @@ function initEditarProjetoAdmin() {
 
       mostrarToast("Projeto atualizado com sucesso.", "success");
       await carregarHistoricoProjeto(projectId);
+      await carregarAtualizacoesProjetoAdmin(projectId);
+      document.getElementById("projectUpdateTitle").value =
+        "";
+      document.getElementById("projectUpdateReady").value =
+        "";
+      document.getElementById("projectUpdateProgressText").value =
+        "";
+      document.getElementById("projectUpdateNextSteps").value =
+        "";
+      document.getElementById("projectUpdateDeadlineText").value =
+        "";
       carregarAdminProjetos();
     } catch (error) {
       console.error(error);

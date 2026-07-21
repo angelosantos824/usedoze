@@ -11,7 +11,7 @@
  <link rel="stylesheet" href="/studio/css/layout.css">
  <link rel="stylesheet" href="/studio/css/dashboard.css">
  <link rel="stylesheet" href="/studio/css/modals.css">
- <link rel="stylesheet" href="/studio/css/components.css?v=20260721-6">
+ <link rel="stylesheet" href="/studio/css/components.css?v=20260721-7">
  <link rel="stylesheet" href="/studio/css/responsive.css">
 </head>
 
@@ -190,6 +190,12 @@
       <p id="adminModalDescricao"></p>
     </div>
 
+    <div class="modal-actions">
+      <button class="btn" id="convertBriefingProjectBtn" type="button">
+        Converter em Projeto
+      </button>
+    </div>
+
     <div class="admin-modal-desc">
 
   <strong>Comentários:</strong>
@@ -284,6 +290,8 @@
     </h2>
 
     <form id="adminNewProjectForm" class="comment-form project-form">
+
+      <input id="newProjectBriefingId" type="hidden">
 
       <label class="admin-edit-label">
         Cliente
@@ -428,6 +436,40 @@
         <div id="adminProjectHistory" class="client-detail-list"></div>
       </div>
 
+      <div class="admin-modal-desc">
+        <strong>Atualizacoes para o cliente</strong>
+        <div id="adminProjectUpdatesHistory" class="client-detail-list"></div>
+      </div>
+
+      <div class="admin-modal-desc">
+        <strong>Nova atualizacao para o cliente</strong>
+
+        <label class="admin-edit-label">
+          Titulo
+          <input id="projectUpdateTitle" type="text" placeholder="Ex.: Versao inicial disponivel">
+        </label>
+
+        <label class="admin-edit-label">
+          O que ja esta pronto
+          <textarea id="projectUpdateReady" placeholder="Descreva os itens concluidos..."></textarea>
+        </label>
+
+        <label class="admin-edit-label">
+          O que esta em andamento
+          <textarea id="projectUpdateProgressText" placeholder="Descreva o trabalho em andamento..."></textarea>
+        </label>
+
+        <label class="admin-edit-label">
+          Proximos passos
+          <textarea id="projectUpdateNextSteps" placeholder="Informe os proximos passos..."></textarea>
+        </label>
+
+        <label class="admin-edit-label">
+          Previsao ou prazo
+          <input id="projectUpdateDeadlineText" type="text" placeholder="Ex.: Revisao do cliente ate sexta-feira">
+        </label>
+      </div>
+
       <label class="admin-edit-label">
         Responder ao cliente
         <textarea id="adminProjectResponse" placeholder="Escreva uma resposta opcional..."></textarea>
@@ -503,7 +545,7 @@
 
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 <script src="/studio/config.js?v=20260721-2"></script>
-<script src="/studio/script.js?v=20260721-6"></script>
+<script src="/studio/script.js?v=20260721-7"></script>
 
 </body>
 </html>

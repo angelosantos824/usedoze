@@ -699,13 +699,7 @@ export async function carregarCardsAdmin() {
 
   if (totalProjetos) {
     totalProjetos.textContent =
-      projects?.length ||
-      briefings?.filter(
-        (item) =>
-          item.status === "Em andamento" ||
-          item.status === "Em desenvolvimento"
-      ).length ||
-      0;
+      projects?.length || 0;
   }
 
   if (projetosAndamento) {
@@ -715,13 +709,7 @@ export async function carregarCardsAdmin() {
           item.status === "in_progress" ||
           item.status === "awaiting_client_approval" ||
           item.status === "changes_requested"
-      ).length ||
-      briefings?.filter(
-        (item) =>
-          item.status === "Em andamento" ||
-          item.status === "Em desenvolvimento"
-      ).length ||
-      0;
+      ).length || 0;
   }
 }
 
@@ -836,7 +824,23 @@ export async function carregarAdminClientes() {
       "Ver";
     verBtn.type = "button";
     verBtn.title = "Ver detalhes do cliente.";
-    tdAcoes.appendChild(verBtn);
+
+    const excluirBtn =
+      document.createElement("button");
+    excluirBtn.classList.add("excluirClienteBtn");
+    excluirBtn.dataset.id =
+      cliente.id;
+    excluirBtn.dataset.name =
+      cliente.contact_name || cliente.name || "";
+    excluirBtn.dataset.email =
+      cliente.email || "";
+    excluirBtn.textContent =
+      "Excluir";
+    excluirBtn.type = "button";
+    excluirBtn.title =
+      "Excluir cliente de teste. Nao remove auth.users.";
+
+    tdAcoes.append(verBtn, excluirBtn);
 
     tr.append(
       tdNome,
@@ -871,6 +875,84 @@ export function ativarAcoesClientesAdmin() {
         }
       });
     });
+
+  document
+    .querySelectorAll(".excluirClienteBtn")
+    .forEach((btn) => {
+      btn.addEventListener("click", async () => {
+        const id =
+          btn.dataset.id;
+
+        if (!id) return;
+
+        const label =
+          btn.dataset.name ||
+          btn.dataset.email ||
+          "cliente";
+        const confirmacao =
+          prompt(
+            `Para excluir o cliente "${label}", digite EXCLUIR. Esta acao nao apaga auth.users.`
+          );
+
+        if (confirmacao !== "EXCLUIR") {
+          return;
+        }
+
+        btn.disabled = true;
+        btn.textContent = "Excluindo...";
+
+        try {
+          await excluirClienteAdmin(id);
+          mostrarToast("Cliente excluido com sucesso.", "success");
+          await carregarAdminClientes();
+          carregarCardsAdmin();
+        } catch (error) {
+          console.error(error);
+          mostrarToast("Erro ao excluir cliente.", "error");
+        } finally {
+          btn.disabled = false;
+          btn.textContent = "Excluir";
+        }
+      });
+    });
+}
+
+async function excluirClienteAdmin(clientId) {
+  const { data: cliente, error: loadError } =
+    await supabaseClient
+      .from("clients")
+      .select("*")
+      .eq("id", clientId)
+      .single();
+
+  if (loadError || !cliente) {
+    throw loadError || new Error("Cliente nao encontrado.");
+  }
+
+  await registrarAuditoriaAdmin({
+    clientId,
+    entityType: "client",
+    entityId: clientId,
+    action: "client.deleted_by_admin",
+    newData: {
+      id: cliente.id,
+      name: cliente.name,
+      contact_name: cliente.contact_name,
+      email: cliente.email,
+      status: cliente.status,
+      type: cliente.type
+    }
+  });
+
+  const { error } =
+    await supabaseClient
+      .from("clients")
+      .delete()
+      .eq("id", clientId);
+
+  if (error) {
+    throw error;
+  }
 }
 
 export async function abrirDetalhesClienteAdmin(clientId) {

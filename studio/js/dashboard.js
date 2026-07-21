@@ -147,23 +147,104 @@ function selecionarProjetoAtual(projects) {
 async function carregarBriefingsCliente(session, columns = "*", limit = null) {
   const identity =
     await carregarIdentidadeStudio(session);
+
+  if (identity?.profile?.client_id) {
+    const legacyMatchers =
+      [
+        identity.client?.name,
+        identity.client?.contact_name,
+        identity.profile?.nome
+      ].filter(Boolean);
+    const byClientQuery =
+      supabaseClient
+        .from("briefings")
+        .select(columns)
+        .eq("client_id", identity.profile.client_id)
+        .order("created_at", {
+          ascending: false
+        });
+
+    const byEmailQuery =
+      supabaseClient
+        .from("briefings")
+        .select(columns)
+        .eq("email", session.user.email)
+        .order("created_at", {
+          ascending: false
+        });
+    const legacyQueries =
+      legacyMatchers.flatMap((value) => [
+        supabaseClient
+          .from("briefings")
+          .select(columns)
+          .eq("empresa", value)
+          .order("created_at", {
+            ascending: false
+          }),
+        supabaseClient
+          .from("briefings")
+          .select(columns)
+          .eq("nome", value)
+          .order("created_at", {
+            ascending: false
+          })
+      ]);
+
+    const [byClient, byEmail, ...legacyResults] =
+      await Promise.all([
+        limit ? byClientQuery.limit(limit) : byClientQuery,
+        limit ? byEmailQuery.limit(limit) : byEmailQuery,
+        ...legacyQueries.map((query) =>
+          limit ? query.limit(limit) : query
+        )
+      ]);
+
+    if (byClient.error) {
+      const message =
+        `${byClient.error.message || ""} ${byClient.error.details || ""}`;
+
+      if (!/client_id|schema cache|column/i.test(message)) {
+        return byClient;
+      }
+    }
+
+    if (byEmail.error) {
+      return byClient.error ? byEmail : byClient;
+    }
+
+    const merged =
+      new Map();
+
+    [
+      ...(byClient.data || []),
+      ...(byEmail.data || []),
+      ...legacyResults.flatMap((result) => result.data || [])
+    ].forEach((briefing) => {
+      merged.set(briefing.id, briefing);
+    });
+
+    const data =
+      [...merged.values()].sort(
+        (a, b) =>
+          new Date(b.created_at || 0) -
+          new Date(a.created_at || 0)
+      );
+
+    return {
+      data: limit ? data.slice(0, limit) : data,
+      error: null
+    };
+  }
+
   let query =
     supabaseClient
       .from("briefings")
-      .select(columns);
+      .select(columns)
+      .eq("email", session.user.email)
+      .order("created_at", {
+        ascending: false
+      });
 
-  if (identity?.profile?.client_id) {
-    query =
-      query.eq("client_id", identity.profile.client_id);
-  } else {
-    query =
-      query.eq("email", session.user.email);
-  }
-
-  query =
-    query.order("created_at", {
-      ascending: false
-    });
 
   if (limit) {
     query =
@@ -173,32 +254,7 @@ async function carregarBriefingsCliente(session, columns = "*", limit = null) {
   const result =
     await query;
 
-  if (!result.error || !identity?.profile?.client_id) {
-    return result;
-  }
-
-  const message =
-    `${result.error.message || ""} ${result.error.details || ""}`;
-
-  if (!/client_id|schema cache|column/i.test(message)) {
-    return result;
-  }
-
-  let fallback =
-    supabaseClient
-      .from("briefings")
-      .select(columns)
-      .eq("email", session.user.email)
-      .order("created_at", {
-        ascending: false
-      });
-
-  if (limit) {
-    fallback =
-      fallback.limit(limit);
-  }
-
-  return fallback;
+  return result;
 }
 
 export async function carregarDashboard() {

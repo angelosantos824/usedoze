@@ -1,5 +1,28 @@
 let briefingAtualId = null;
 
+async function carregarIdentidadeStudio(session) {
+  const { data, error } = await supabaseClient
+    .from("profiles")
+    .select("id,nome,email,client_id,clients(id,name,contact_name,email,status,type)")
+    .eq("id", session.user.id)
+    .single();
+
+  if (error || !data) {
+    console.error("DOZEDEV_STUDIO_ERROR", {
+      modulo: "dashboard",
+      acao: "load_profile_client",
+      mensagem: error?.message || "Perfil nao encontrado.",
+      details: error
+    });
+    return null;
+  }
+
+  return {
+    profile: data,
+    client: data.clients || null
+  };
+}
+
 export async function carregarDashboard() {
   const briefingsContainer =
     document.getElementById("briefingsContainer");
@@ -260,6 +283,8 @@ export async function carregarSidebarUser() {
     document.getElementById("sidebarUserName");
   const userAvatar =
     document.getElementById("sidebarAvatar");
+  const topbarUser =
+    document.querySelector(".admin-user");
 
   if (!userName || !userAvatar) return;
 
@@ -269,19 +294,38 @@ export async function carregarSidebarUser() {
 
   if (!session) return;
 
-  const { data } =
-    await supabaseClient
-      .from("briefings")
-      .select("nome")
-      .eq("email", session.user.email)
-      .limit(1)
-      .single();
+  const identity = await carregarIdentidadeStudio(session);
 
-  if (!data) return;
+  if (!identity) {
+    userName.textContent = "Perfil incompleto";
+    userAvatar.textContent = "!";
+    if (topbarUser) {
+      topbarUser.textContent = "Perfil incompleto";
+    }
+    return;
+  }
 
-  userName.textContent = data.nome;
+  const displayName =
+    identity.profile.nome ||
+    identity.client?.contact_name ||
+    identity.client?.name ||
+    session.user.email;
+  const companyName =
+    identity.client?.name || "Cliente sem empresa associada";
+
+  userName.textContent = displayName;
   userAvatar.textContent =
-    data.nome.charAt(0).toUpperCase();
+    displayName.charAt(0).toUpperCase();
+
+  const userInfoSubtitle =
+    document.querySelector(".sidebar-user-info span");
+  if (userInfoSubtitle) {
+    userInfoSubtitle.textContent = companyName;
+  }
+
+  if (topbarUser) {
+    topbarUser.textContent = displayName;
+  }
 }
 
 function initBriefingModalClose() {

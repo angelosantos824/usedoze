@@ -55,6 +55,7 @@
                 <div class="login-divider">ou</div>
 
                 <button
+                    type="button"
                     id="openRegisterModal"
                     class="register-btn"
                 >Criar Conta
@@ -64,6 +65,14 @@
                     Ainda não tem acesso?
                     <a href="briefing.html">Preencher briefing</a>
                 </p>
+
+                <button
+                    type="button"
+                    id="resendConfirmationBtn"
+                    class="register-btn"
+                >
+                    Reenviar email de confirmacao
+                </button>
 
             </form>
 
@@ -131,6 +140,11 @@
 
       </div>
 
+      <div
+        id="turnstileContainer"
+        class="turnstile-container"
+      ></div>
+
       <button class="btn" type="submit">
         Criar Conta
       </button>
@@ -141,7 +155,10 @@
 
 </div>
 
+    <div id="toastContainer" class="toast-container"></div>
+
     <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer></script>
     <script src="/studio/config.js"></script>
     <script src="/studio/script.js"></script>
 

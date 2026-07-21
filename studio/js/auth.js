@@ -1,5 +1,127 @@
 import { mostrarToast } from "./notifications.js";
+import { FEATURES } from "./features.js";
 import { paginaAtual } from "./utils.js";
+
+let turnstileToken = null;
+let turnstileWidgetId = null;
+let turnstileRenderTimer = null;
+let turnstileRenderAttempts = 0;
+
+function getTurnstileSiteKey() {
+  return globalThis.DOZEDEV_CONFIG?.turnstileSiteKey || "";
+}
+
+function resetTurnstile() {
+  turnstileRenderAttempts = 0;
+
+  if (turnstileRenderTimer) {
+    clearTimeout(turnstileRenderTimer);
+    turnstileRenderTimer = null;
+  }
+
+  if (globalThis.turnstile?.remove && turnstileWidgetId !== null) {
+    try {
+      globalThis.turnstile.remove(turnstileWidgetId);
+    } catch (error) {
+      console.error("DOZEDEV_STUDIO_ERROR", {
+        modulo: "auth",
+        acao: "turnstile_remove",
+        mensagem: error?.message || "Falha ao remover Turnstile.",
+        details: error
+      });
+    }
+  }
+
+  turnstileWidgetId = null;
+  turnstileToken = null;
+}
+
+function scheduleTurnstileRender() {
+  if (!FEATURES.clientFoundationV2) return;
+
+  if (turnstileRenderTimer) {
+    clearTimeout(turnstileRenderTimer);
+  }
+
+  requestAnimationFrame(() => {
+    turnstileRenderTimer = setTimeout(renderTurnstile, 50);
+  });
+}
+
+function renderTurnstile() {
+  const container = document.getElementById("turnstileContainer");
+
+  if (!FEATURES.clientFoundationV2 || !container) return;
+  if (turnstileWidgetId !== null) return;
+
+  const siteKey = getTurnstileSiteKey();
+  if (!siteKey) {
+    console.error("DOZEDEV_STUDIO_ERROR", {
+      modulo: "auth",
+      acao: "turnstile_config",
+      mensagem: "Turnstile site key publica nao configurada."
+    });
+    return;
+  }
+
+  if (!globalThis.turnstile?.render) {
+    if (turnstileRenderAttempts < 30) {
+      turnstileRenderAttempts += 1;
+      turnstileRenderTimer = setTimeout(renderTurnstile, 250);
+    } else {
+      console.error("DOZEDEV_STUDIO_ERROR", {
+        modulo: "auth",
+        acao: "turnstile_script",
+        mensagem: "Turnstile nao ficou disponivel para renderizacao."
+      });
+    }
+    return;
+  }
+
+  if (
+    typeof globalThis.onTurnstileSuccess !== "function" ||
+    typeof globalThis.onTurnstileExpired !== "function" ||
+    typeof globalThis.onTurnstileError !== "function"
+  ) {
+    console.error("DOZEDEV_STUDIO_ERROR", {
+      modulo: "auth",
+      acao: "turnstile_callbacks",
+      mensagem: "Callbacks do Turnstile nao estao definidos como funcoes."
+    });
+    return;
+  }
+
+  try {
+    turnstileWidgetId = globalThis.turnstile.render(container, {
+      sitekey: siteKey,
+      callback: globalThis.onTurnstileSuccess,
+      "expired-callback": globalThis.onTurnstileExpired,
+      "error-callback": globalThis.onTurnstileError
+    });
+    turnstileRenderAttempts = 0;
+  } catch (error) {
+    console.error("DOZEDEV_STUDIO_ERROR", {
+      modulo: "auth",
+      acao: "turnstile_render",
+      mensagem: error?.message || "Falha ao renderizar Turnstile.",
+      details: error
+    });
+  }
+}
+
+globalThis.onTurnstileSuccess = function (token) {
+  turnstileToken = token;
+};
+
+globalThis.onTurnstileExpired = function () {
+  turnstileToken = null;
+  mostrarToast("A verificacao de seguranca expirou. Confirme novamente.", "warning");
+};
+
+globalThis.onTurnstileError = function () {
+  turnstileToken = null;
+  mostrarToast("Nao foi possivel validar a protecao de seguranca.", "error");
+};
 
 export async function protegerPaginasPrivadas() {
   const paginasPrivadas = [
@@ -142,6 +264,50 @@ function initLogin() {
   });
 }
 
+function initResendConfirmation() {
+  const resendConfirmationBtn =
+    document.getElementById("resendConfirmationBtn");
+  const loginEmail =
+    document.getElementById("loginEmail");
+
+  if (!resendConfirmationBtn || !loginEmail) return;
+
+  resendConfirmationBtn.addEventListener("click", async () => {
+    const email = loginEmail.value.trim();
+
+    if (!email) {
+      mostrarToast("Informe o email para reenviar a confirmacao.", "warning");
+      return;
+    }
+
+    resendConfirmationBtn.disabled = true;
+    resendConfirmationBtn.textContent = "A reenviar...";
+
+    try {
+      await supabaseClient.functions.invoke(
+        "resend-studio-confirmation",
+        {
+          body: { email }
+        }
+      );
+    } catch (error) {
+      console.error("DOZEDEV_STUDIO_ERROR", {
+        modulo: "auth",
+        acao: "resend_confirmation",
+        mensagem: error?.message || "Erro inesperado",
+        details: error
+      });
+    } finally {
+      mostrarToast(
+        "Se existir uma conta pendente para este email, enviaremos uma nova confirmacao.",
+        "info"
+      );
+      resendConfirmationBtn.disabled = false;
+      resendConfirmationBtn.textContent = "Reenviar email de confirmacao";
+    }
+  });
+}
+
 function initRegister() {
   const registerModal =
     document.getElementById("registerModal");
@@ -159,17 +325,24 @@ function initRegister() {
   ) {
     openRegisterModal.addEventListener("click", () => {
       registerModal.classList.add("active");
+      scheduleTurnstileRender();
     });
 
     closeRegisterModal.addEventListener("click", () => {
       registerModal.classList.remove("active");
+      resetTurnstile();
     });
   }
 
   if (!registerForm) return;
+  if (registerModal?.classList.contains("active")) {
+    scheduleTurnstileRender();
+  }
 
   registerForm.addEventListener("submit", async (event) => {
     event.preventDefault();
+    const submit = registerForm.querySelector("button[type='submit']");
+    if (submit?.disabled) return;
 
     const nome =
       document.getElementById("registerName").value.trim();
@@ -180,35 +353,110 @@ function initRegister() {
 
     if (!nome || !email || !password) return;
 
-    const { data, error } =
-      await supabaseClient.auth.signUp({
+    if (FEATURES.clientFoundationV2) {
+      await registerClientV2({
+        nome,
         email,
         password,
-        options: {
-          data: { nome }
-        }
+        registerForm,
+        registerModal
       });
-
-    if (error) {
-      console.error(error);
-      mostrarToast(error.message, "error");
       return;
     }
 
-    if (data?.user) {
-      await supabaseClient
-        .from("profiles")
-        .insert([{
-          id: data.user.id,
-          nome,
-          email
-        }]);
-
-      mostrarToast("Conta criada com sucesso!", "success");
-      registerForm.reset();
-      registerModal.classList.remove("active");
-    }
+    console.warn("DOZEDEV_STUDIO_ERROR", {
+      modulo: "auth",
+      acao: "register_legacy_blocked",
+      mensagem:
+        "Cadastro legado bloqueado para evitar auth.users sem profiles/clients."
+    });
+    mostrarToast(
+      "O cadastro está temporariamente em manutenção. Entre em contato com o suporte DOZEDEV.",
+      "warning"
+    );
   });
+}
+
+async function registerClientV2({
+  nome,
+  email,
+  password,
+  registerForm,
+  registerModal
+}) {
+  const submit = registerForm.querySelector("button[type='submit']");
+  const siteKey = getTurnstileSiteKey();
+
+  if (!siteKey) {
+    mostrarToast("Protecao de seguranca nao configurada.", "error");
+    return;
+  }
+
+  scheduleTurnstileRender();
+
+  if (!turnstileToken) {
+    mostrarToast("Confirme a verificacao de seguranca antes de continuar.", "warning");
+    return;
+  }
+
+  if (submit) {
+    submit.disabled = true;
+    submit.textContent = "A criar conta...";
+  }
+
+  try {
+    const { data, error } = await supabaseClient.functions.invoke(
+      "register-studio-client",
+      {
+        body: {
+          name: nome,
+          email,
+          password,
+          turnstileToken
+        }
+      }
+    );
+
+    if (error) {
+      console.error("DOZEDEV_STUDIO_ERROR", {
+        modulo: "auth",
+        acao: "register_client_v2",
+        mensagem: error.message,
+        details: error
+      });
+      mostrarToast("Nao foi possivel criar a conta.", "error");
+      resetTurnstile();
+      return;
+    }
+
+    if (data?.error) {
+      mostrarToast(data.error, "error");
+      resetTurnstile();
+      return;
+    }
+
+    mostrarToast(
+      data?.message || "Conta criada com sucesso. Confirme o email para ativar o acesso.",
+      data?.emailSent === false ? "warning" : "success"
+    );
+    registerForm.reset();
+    registerModal.classList.remove("active");
+    resetTurnstile();
+  } catch (err) {
+    console.error("DOZEDEV_STUDIO_ERROR", {
+      modulo: "auth",
+      acao: "register_client_v2",
+      mensagem: err?.message || "Erro inesperado",
+      details: err
+    });
+    mostrarToast("Erro inesperado ao criar conta.", "error");
+    resetTurnstile();
+  } finally {
+    if (submit) {
+      submit.disabled = false;
+      submit.textContent = "Criar Conta";
+    }
+  }
 }
 
 export function initAuth() {
@@ -216,5 +464,6 @@ export function initAuth() {
   protegerAdmin();
   initLogout();
   initLogin();
+  initResendConfirmation();
   initRegister();
 }

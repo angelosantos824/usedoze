@@ -237,6 +237,14 @@ export async function carregarCardsAdmin() {
       .from("vouchers")
       .select("*");
 
+  const { count: clientsCount } =
+    await supabaseClient
+      .from("clients")
+      .select("id", {
+        count: "exact",
+        head: true
+      });
+
   const totalBriefingsAdmin =
     document.getElementById("totalBriefingsAdmin");
   const briefingsPendentes =
@@ -278,13 +286,8 @@ export async function carregarCardsAdmin() {
   }
 
   if (totalClientes) {
-    const clientesUnicos =
-      new Set(
-        briefings?.map((item) => item.email)
-      );
-
     totalClientes.textContent =
-      clientesUnicos.size || 0;
+      clientsCount || 0;
   }
 
   if (totalProjetos) {
@@ -339,13 +342,19 @@ export function aplicarFiltrosAdmin() {
 export async function carregarAdminClientes() {
   const tableBody =
     document.querySelector("tbody");
+  const panelTitle =
+    document.querySelector(".panel-header h2");
 
   if (!tableBody) return;
 
+  if (panelTitle) {
+    panelTitle.textContent = "Clientes";
+  }
+
   const { data, error } =
     await supabaseClient
-      .from("briefings")
-      .select("*")
+      .from("clients")
+      .select("id,name,contact_name,email,status,type,origin,created_at")
       .order("created_at", {
         ascending: false
       });
@@ -355,16 +364,7 @@ export async function carregarAdminClientes() {
     return;
   }
 
-  const clientesMap =
-    new Map();
-
-  data.forEach((cliente) => {
-    if (!cliente.email) return;
-    clientesMap.set(cliente.email, cliente);
-  });
-
-  const clientes =
-    Array.from(clientesMap.values());
+  const clientes = data || [];
 
   tableBody.innerHTML = "";
 
@@ -386,17 +386,17 @@ export async function carregarAdminClientes() {
     const tdNome =
       document.createElement("td");
     tdNome.textContent =
-      cliente.nome || "Sem nome";
+      cliente.contact_name || cliente.name || "Sem nome";
 
     const tdEmpresa =
       document.createElement("td");
     tdEmpresa.textContent =
-      cliente.empresa || "Não informado";
+      cliente.name || "Nao informado";
 
     const tdEmail =
       document.createElement("td");
     tdEmail.textContent =
-      cliente.email || "Não informado";
+      cliente.email || "Nao informado";
 
     const tdStatus =
       document.createElement("td");
@@ -404,7 +404,7 @@ export async function carregarAdminClientes() {
       document.createElement("span");
     status.classList.add("status", "recebido");
     status.textContent =
-      "Cliente ativo";
+      cliente.status || "Cliente";
     tdStatus.appendChild(status);
 
     const tdAcoes =
@@ -418,6 +418,8 @@ export async function carregarAdminClientes() {
       cliente.id;
     verBtn.textContent =
       "Ver";
+    verBtn.disabled = true;
+    verBtn.title = "Detalhe do cliente sera aberto em modulo proprio.";
     tdAcoes.appendChild(verBtn);
 
     tr.append(
@@ -431,7 +433,6 @@ export async function carregarAdminClientes() {
     tableBody.appendChild(tr);
   });
 
-  ativarAcoesAdmin();
 }
 
 export async function carregarAdminProjetos() {

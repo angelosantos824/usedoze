@@ -1,12 +1,12 @@
-import { initAdmin } from "./admin.js";
+import { initAdmin } from "./admin.js?v=20260721-2";
 import {
   initAuth,
   protegerAdmin,
   protegerPaginasPrivadas
-} from "./auth.js";
+} from "./auth.js?v=20260721-2";
 import { initBriefing } from "./briefing.js";
 import { initComments } from "./comments.js";
-import { initDashboard } from "./dashboard.js";
+import { initDashboard } from "./dashboard.js?v=20260721-2";
 import { initRealtime } from "./realtime.js";
 import { initUploads } from "./uploads.js";
 import { exposePublicFunctions } from "./utils.js";
@@ -26,7 +26,7 @@ import {
   ativarAcoesAdmin,
   aplicarFiltrosAdmin,
   mostrarSecaoEmBreve
-} from "./admin.js";
+} from "./admin.js?v=20260721-2";
 import {
   buscarBriefingAtualCliente,
   carregarComentariosAdmin,
@@ -45,7 +45,7 @@ import {
   carregarProgressoProjeto,
   carregarSidebarUser,
   carregarTimelineProjeto
-} from "./dashboard.js";
+} from "./dashboard.js?v=20260721-2";
 import {
   iniciarRealtimeAdmin,
   iniciarRealtimeCliente,

@@ -6,6 +6,13 @@ function isLocalHomologationHost() {
   ].includes(globalThis.location?.hostname);
 }
 
+function isStudioProductionHost() {
+  return [
+    "dozedev.pt",
+    "www.dozedev.pt"
+  ].includes(globalThis.location?.hostname);
+}
+
 function isLocalFeatureEnabled(key) {
   if (!isLocalHomologationHost()) return false;
 
@@ -16,5 +23,7 @@ function isLocalFeatureEnabled(key) {
 }
 
 export const FEATURES = {
-  clientFoundationV2: isLocalFeatureEnabled("clientFoundationV2")
+  clientFoundationV2:
+    isStudioProductionHost() ||
+    isLocalFeatureEnabled("clientFoundationV2")
 };

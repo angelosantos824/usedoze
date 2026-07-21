@@ -1,5 +1,5 @@
 import { mostrarToast } from "./notifications.js";
-import { FEATURES } from "./features.js";
+import { FEATURES } from "./features.js?v=20260721-2";
 import { paginaAtual } from "./utils.js";
 
 let turnstileToken = null;

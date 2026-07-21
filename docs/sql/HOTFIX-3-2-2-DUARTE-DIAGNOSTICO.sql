@@ -23,14 +23,31 @@ where schemaname in ('public', 'storage')
   and tablename in ('projects', 'project_comments', 'project_uploads', 'objects')
 order by schemaname, tablename, policyname;
 
--- 3. Triggers reais relevantes.
+-- 3. Texto antigo das policies do bucket project-files.
+-- Guardar este resultado no relatorio antes de aplicar a migration.
+select policyname, permissive, roles, cmd, qual as old_using, with_check as old_with_check
+from pg_policies
+where schemaname = 'storage'
+  and tablename = 'objects'
+  and (
+    coalesce(qual, '') ilike '%project-files%'
+    or coalesce(with_check, '') ilike '%project-files%'
+  )
+order by policyname;
+
+-- 4. Configuracao real do bucket.
+select id, name, public, file_size_limit, allowed_mime_types
+from storage.buckets
+where id = 'project-files';
+
+-- 5. Triggers reais relevantes.
 select event_object_schema, event_object_table, trigger_name, action_timing, event_manipulation, action_statement
 from information_schema.triggers
 where event_object_schema = 'public'
   and event_object_table in ('projects', 'project_comments', 'project_uploads')
 order by event_object_table, trigger_name;
 
--- 4. Diagnostico Duarte por profile/client/project.
+-- 6. Diagnostico Duarte por profile/client/project.
 select
   p.id as profile_id,
   p.client_id as profile_client_id,
@@ -64,7 +81,7 @@ where
   or lower(coalesce(pr.name, '')) like '%duarte%'
 order by c.created_at nulls last, pr.updated_at desc nulls last;
 
--- 5. Clientes Duarte duplicados.
+-- 7. Clientes Duarte duplicados.
 select
   lower(trim(coalesce(name, contact_name, email))) as chave,
   count(*) as total,
@@ -77,7 +94,7 @@ where lower(coalesce(name, '')) like '%duarte%'
 group by lower(trim(coalesce(name, contact_name, email)))
 having count(*) > 1;
 
--- 6. Projetos Duarte sem preview/status/progresso esperado.
+-- 8. Projetos Duarte sem preview/status/progresso esperado.
 select
   pr.id,
   pr.client_id,
@@ -102,7 +119,7 @@ where lower(coalesce(c.name, '')) like '%duarte%'
    or lower(coalesce(pr.name, '')) like '%duarte%'
 order by pr.updated_at desc;
 
--- 7. Uploads e paths esperados para Duarte.
+-- 9. Uploads e paths esperados para Duarte.
 select
   pu.id,
   pu.client_id,
@@ -119,3 +136,21 @@ join public.clients c
 where lower(coalesce(c.name, '')) like '%duarte%'
    or lower(coalesce(c.contact_name, '')) like '%duarte%'
 order by pu.criado_em desc;
+
+-- 10. Confirmar policies novas apos aplicar a migration.
+select policyname, cmd, qual as new_using, with_check as new_with_check
+from pg_policies
+where schemaname = 'storage'
+  and tablename = 'objects'
+  and (
+    coalesce(qual, '') ilike '%project-files%'
+    or coalesce(with_check, '') ilike '%project-files%'
+  )
+order by policyname;
+
+-- 11. Confirmar estrutura final de project_uploads apos aplicar a migration.
+select column_name, data_type, is_nullable, column_default
+from information_schema.columns
+where table_schema = 'public'
+  and table_name = 'project_uploads'
+order by ordinal_position;

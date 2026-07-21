@@ -4,13 +4,11 @@ Data: 2026-07-21
 
 ## Escopo
 
-Correcoes para:
+Finalizacao baseada no diagnostico real de producao para:
 
-- projetos invisiveis no dashboard do cliente;
-- cliente com multiplos projetos vendo apenas um;
-- cartao de aprovacao indisponivel;
-- comentarios de projeto por `project_id`/`client_id`;
-- upload com erro generico e sem diagnostico por etapa.
+- painel do cliente sem projetos;
+- upload de arquivos bloqueado por RLS no bucket privado `project-files`;
+- alinhamento de metadados em `public.project_uploads`.
 
 Nao foram alterados:
 
@@ -18,103 +16,121 @@ Nao foram alterados:
 - Turnstile;
 - Resend;
 - DOZECLIN;
-- schema `dozeclin`.
+- schema `dozeclin`;
+- dados de clientes;
+- contas de utilizadores.
 
-## Diagnostico
+## Diagnostico confirmado
 
-Nao houve acesso direto ao banco real a partir deste ambiente. Por isso foi criado o SQL de diagnostico:
+O profile do Duarte esta correto:
+
+- `profiles.client_id = 768931b6-fe4e-4e49-924f-a17758e147d2`
+- `clients.id = 768931b6-fe4e-4e49-924f-a17758e147d2`
+
+Nao existe projeto do Duarte em `public.projects`.
+
+A consulta real retornou:
+
+- `project_id = null`
+- `project_client_id = null`
+- `project_name = null`
+
+Conclusao: o painel do cliente nao esta vazio por erro em `profiles` ou `clients`. Ele esta vazio porque nao ha linha em `public.projects` vinculada ao `client_id` existente.
+
+Nao foi criado projeto automaticamente nesta migration. O projeto do Duarte deve ser criado pelo painel administrativo usando o `client_id` ja existente.
+
+## Causa do upload
+
+O bucket `project-files` existe e e privado.
+
+O upload falha com:
+
+```text
+StorageApiError: new row violates row-level security policy
+```
+
+Causa confirmada: as policies antigas de `storage.objects` para o bucket `project-files` nao estavam alinhadas ao path novo:
+
+```text
+clients/{client_id}/projects/{project_id-ou-general}/{uuid}-{arquivo}
+```
+
+Como a policy nao reconhece o `client_id` nessa estrutura, o INSERT em `storage.objects` e bloqueado antes da gravacao dos metadados.
+
+## Texto antigo das policies
+
+O texto antigo deve ser capturado no SQL Editor antes da migration com:
+
+```sql
+select policyname, permissive, roles, cmd, qual as old_using, with_check as old_with_check
+from pg_policies
+where schemaname = 'storage'
+  and tablename = 'objects'
+  and (
+    coalesce(qual, '') ilike '%project-files%'
+    or coalesce(with_check, '') ilike '%project-files%'
+  )
+order by policyname;
+```
+
+Arquivo preparado:
 
 - `docs/sql/HOTFIX-3-2-2-DUARTE-DIAGNOSTICO.sql`
 
-Esse SQL deve ser executado no Supabase antes de qualquer correcao de dados do Duarte. Ele verifica:
+## Policies novas
 
-- colunas reais de `profiles`, `clients`, `projects`, `project_comments`, `project_uploads` e `storage.objects`;
-- policies reais;
-- triggers reais;
-- vinculo `profiles.client_id -> clients.id -> projects.client_id`;
-- clientes Duarte duplicados;
-- projetos Duarte sem `preview_url`, status esperado, progresso ou `approval_requested_at`;
-- uploads do Duarte e paths gravados.
+A migration substitui somente policies de `storage.objects` cujo texto referencia `project-files`.
 
-## Causa tecnica corrigida no frontend
+Nova regra de cliente:
 
-### Projeto invisivel / progresso 0%
+- bucket precisa ser `project-files`;
+- path precisa iniciar com `clients/{uuid-do-cliente}`;
+- `{uuid-do-cliente}` precisa ser igual a `profiles.client_id` do utilizador autenticado.
 
-A consulta do dashboard escolhia apenas um projeto com `limit(1)` e ainda misturava briefings com projeto atual. Se o projeto prioritario nao fosse o ultimo atualizado, ou se nao houvesse briefing, o dashboard podia manter:
+Nova regra de admin:
 
-- progresso 0%;
-- projeto `--`;
-- status `--`;
-- prazo `--`;
-- sem cartao de aprovacao.
+- `public.is_studio_admin()` pode gerir todos os objetos do bucket `project-files`.
 
-Consulta nova:
+Operacoes:
 
-```js
-supabaseClient
-  .from("projects")
-  .select("*")
-  .eq("client_id", profile.client_id)
-  .order("updated_at", { ascending: false });
-```
+- cliente autenticado pode fazer `select`, `insert` e `delete` somente no proprio diretorio;
+- admin Studio pode fazer `select`, `insert`, `update` e `delete` em todo o bucket;
+- nenhum outro bucket e afetado.
 
-Nao usa `email` como criterio principal e nao usa `single()`, `maybeSingle()` ou `limit(1)` para a lista completa.
+## Estrutura de project_uploads
 
-### Cliente com dois projetos
+A migration e incremental. Ela cria a tabela se nao existir e adiciona as colunas necessarias se estiverem ausentes:
 
-Antes: o dashboard escolhia apenas o ultimo projeto carregado.
+- `profile_id`
+- `client_id`
+- `project_id`
+- `tamanho`
+- `storage_bucket`
+- `storage_path`
+- `created_at`
 
-Agora:
+Registros legados sao preservados.
 
-- carrega todos os projetos do `client_id`;
-- renderiza todos em `Meus Projetos`;
-- escolhe um `Projeto Atual` por prioridade:
-  1. `awaiting_client_approval`
-  2. `changes_requested`
-  3. `in_progress`
-  4. `internal_review`
-  5. `draft`
-  6. `approved`
-  7. `completed`
+Tambem foi adicionada normalizacao por trigger:
 
-### Cartao de aprovacao
+- preenche `user_id`, `profile_id`, `client_id` e `email` a partir da sessao/profile quando possivel;
+- sincroniza `storage_path` e `caminho`;
+- valida que `project_id`, quando informado, pertence ao mesmo `client_id`;
+- nao cria projeto automaticamente.
 
-Agora todos os projetos com `status = awaiting_client_approval` geram cartao de aprovacao com:
+## Frontend alinhado
 
-- nome;
-- progresso;
-- prazo;
-- data de solicitacao;
-- descricao/orientacao;
-- Visualizar Projeto;
-- Solicitar Alteracoes;
-- Aprovar Projeto.
+O frontend de upload usa:
 
-`preview_url` so gera link quando for URL valida `http` ou `https`.
+- bucket: `project-files`;
+- path: `clients/{client_id}/projects/{project_id-ou-general}/{uuid}-{arquivo}`;
+- metadados: `user_id`, `profile_id`, `client_id`, `project_id`, `email`, `nome_arquivo`, `caminho`, `tipo`, `tamanho`, `storage_bucket`, `storage_path`.
 
-### Comentarios de projeto
+Se o upload no Storage passar e o INSERT dos metadados falhar, o arquivo enviado e removido do bucket como compensacao.
 
-Comentarios novos de projeto usam:
+## Migration final
 
-- `project_id`;
-- `client_id`;
-- `author_user_id`;
-- `author_role`;
-- `comment_type`;
-- `message`.
-
-O dashboard do cliente carrega historico por:
-
-```js
-.eq("project_id", projeto.id)
-.eq("client_id", projeto.client_id)
-```
-
-Comentarios por `briefing_id` ficam apenas como fallback legado.
-
-## SQL aplicado/preparado
-
-Migration atualizada:
+Arquivo:
 
 - `supabase/migrations/20260721090000_studio_project_approval_flow.sql`
 
@@ -123,66 +139,41 @@ Inclui:
 - `public.projects`;
 - `public.project_comments`;
 - `public.project_uploads`;
-- bucket privado `project-files`;
+- triggers de normalizacao;
 - policies de `projects`;
 - policies de `project_comments`;
 - policies de `project_uploads`;
-- policies de `storage.objects`;
-- RPC `approve_studio_project(project_id)`;
-- RPC `request_studio_project_changes(project_id, message)`;
-- triggers de normalizacao e protecao.
+- bucket privado `project-files`;
+- policies novas para `storage.objects` filtradas por `project-files`;
+- RPCs de aprovacao e solicitacao de alteracoes.
 
-## Upload
+## Testes SQL
 
-Bucket:
+Arquivo:
 
-- `project-files`
+- `docs/sql/HOTFIX-3-2-2-DUARTE-DIAGNOSTICO.sql`
 
-Tabela:
+Verifica:
 
-- `public.project_uploads`
+- colunas reais de `public.project_uploads`;
+- texto antigo das policies do bucket `project-files`;
+- configuracao real do bucket;
+- vinculo `profiles.client_id -> clients.id`;
+- existencia ou ausencia de projeto em `public.projects`;
+- paths de uploads existentes;
+- texto novo das policies apos aplicar a migration.
 
-Path novo:
+## Checks locais executados
 
-```text
-clients/{client_id}/projects/{project_id-ou-general}/{uuid}-{nome-sanitizado}
-```
-
-Melhorias:
-
-- nome sanitizado;
-- UUID no nome final;
-- metadados com `client_id` e `project_id`;
-- listagem por `client_id`, com fallback legado por `user_id`;
-- diagnostico temporario por etapa em `console.error("Falha no upload", ...)`;
-- compensacao: se o Storage upload passar e o INSERT dos metadados falhar, o arquivo e removido do bucket.
-
-Etapas diagnosticadas:
-
-- `validation`;
-- `load_project`;
-- `storage_upload`;
-- `signed_url`;
-- `metadata_insert`;
-- `load_history_by_client`;
-- `load_history_by_user`.
-
-## Cache
-
-Cache busting atualizado para:
-
-```text
-v=20260721-6
-```
-
-Arquivos com import/versionamento atualizado:
-
-- `studio/dashboard.html`
-- `studio/admin.html`
-- `studio/briefing.html`
-- `studio/script.js`
-- `studio/js/main.js`
-- imports de `admin.js`, `dashboard.js`, `comments.js`, `realtime.js`, `uploads.js`, `briefing.js`
+- `Get-Content studio/js/dashboard.js | node --input-type=module --check`
+- `Get-Content studio/js/uploads.js | node --input-type=module --check`
+- `Get-Content studio/js/comments.js | node --input-type=module --check`
+- `Get-Content studio/js/realtime.js | node --input-type=module --check`
+- `Get-Content studio/js/main.js | node --input-type=module --check`
+- `deno check supabase/functions/register-studio-client/index.ts`
+- `deno check supabase/functions/resend-studio-confirmation/index.ts`
+- `deno fmt --check supabase/migrations/20260721090000_studio_project_approval_flow.sql docs/sql/HOTFIX-3-2-2-DUARTE-DIAGNOSTICO.sql`
+- `git diff --check`
 
 ## Arquivos alterados
 
@@ -193,57 +184,22 @@ Arquivos com import/versionamento atualizado:
 - `studio/js/main.js`
 - `studio/js/dashboard.js`
 - `studio/js/comments.js`
+- `studio/js/realtime.js`
 - `studio/js/uploads.js`
 - `supabase/migrations/20260721090000_studio_project_approval_flow.sql`
 - `docs/sql/HOTFIX-3-2-2-DUARTE-DIAGNOSTICO.sql`
 - `docs/DOZEDEV-STUDIO-HOTFIX-3-2-2.md`
 
-## Dados Duarte
+## Pendencias de homologacao apos migration
 
-Valores esperados depois da validacao/correcao manual no banco real:
-
-- Cliente: Duarte Transporte
-- Projeto: Site Duarte Transporte
-- Tipo: Website institucional
-- Status: `awaiting_client_approval`
-- Progresso: `90`
-- Preview URL: `https://angelosantos824.github.io/duartejr/`
-
-O hotfix nao executa INSERT duplicado. O SQL de diagnostico deve indicar se ha:
-
-- cliente Duarte duplicado;
-- profile com `client_id` diferente do projeto;
-- projeto vinculado ao client errado;
-- `preview_url` ausente;
-- status/progresso divergentes.
-
-## Testes executados localmente
-
-- `Get-Content studio/js/dashboard.js | node --input-type=module --check`
-- `Get-Content studio/js/uploads.js | node --input-type=module --check`
-- `Get-Content studio/js/comments.js | node --input-type=module --check`
-- `Get-Content studio/js/main.js | node --input-type=module --check`
-- `deno fmt --check supabase/migrations/20260721090000_studio_project_approval_flow.sql docs/sql/HOTFIX-3-2-2-DUARTE-DIAGNOSTICO.sql`
-
-## Pendencias
-
-- Executar `docs/sql/HOTFIX-3-2-2-DUARTE-DIAGNOSTICO.sql` no banco real.
-- Confirmar se ha duplicidade de cliente Duarte.
-- Confirmar e, se necessario, corrigir manualmente o vinculo `profiles.client_id = projects.client_id`.
-- Aplicar migration no ambiente de homologacao.
-- Testar com sessao real do Duarte:
-  - lista de todos os projetos;
-  - projeto atual por prioridade;
-  - cartao de aprovacao;
-  - visualizar projeto;
-  - solicitar alteracoes;
-  - resposta admin;
-  - aprovar projeto.
-- Testar upload real JPG, PNG e PDF.
+- Capturar e anexar o texto antigo das policies antes da aplicacao.
+- Aplicar a migration no ambiente alvo.
+- Confirmar policies novas com o SQL de diagnostico.
+- Criar o projeto do Duarte pelo painel administrativo usando o `client_id` existente.
+- Testar upload real pelo cliente Duarte.
+- Confirmar que admin visualiza o upload.
 - Testar isolamento com outro cliente.
 
 ## Decisao
 
-NAO APROVADO PARA DEPLOY DE HOMOLOGACAO
-
-Motivo: o codigo e o SQL estao preparados e os checks locais passaram, mas o requisito do hotfix exige diagnostico baseado no banco real. Esse diagnostico ainda precisa ser executado antes da aprovacao.
+APROVADO PARA APLICACAO DA MIGRATION

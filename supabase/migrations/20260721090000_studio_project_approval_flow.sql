@@ -294,6 +294,61 @@ before insert or update on public.project_comments
 for each row
 execute function public.normalize_project_comment();
 
+create or replace function public.normalize_project_upload()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_profile public.profiles%rowtype;
+  v_project_client_id uuid;
+begin
+  if auth.uid() is not null then
+    select *
+    into v_profile
+    from public.profiles
+    where id = auth.uid();
+
+    if found then
+      new.user_id = coalesce(new.user_id, auth.uid());
+      new.profile_id = coalesce(new.profile_id, v_profile.id);
+      new.client_id = coalesce(new.client_id, v_profile.client_id);
+      new.email = coalesce(new.email, v_profile.email);
+    end if;
+  end if;
+
+  new.storage_bucket = coalesce(new.storage_bucket, 'project-files');
+  new.storage_path = coalesce(new.storage_path, new.caminho);
+  new.caminho = coalesce(new.caminho, new.storage_path);
+  new.created_at = coalesce(new.created_at, new.criado_em, now());
+  new.criado_em = coalesce(new.criado_em, new.created_at, now());
+
+  if new.project_id is not null then
+    select client_id
+    into v_project_client_id
+    from public.projects
+    where id = new.project_id;
+
+    if v_project_client_id is null then
+      raise exception 'project not found';
+    end if;
+
+    if new.client_id is distinct from v_project_client_id then
+      raise exception 'upload client_id does not match project client_id';
+    end if;
+  end if;
+
+  return new;
+end;
+$$;
+
+drop trigger if exists normalize_project_upload on public.project_uploads;
+create trigger normalize_project_upload
+before insert or update on public.project_uploads
+for each row
+execute function public.normalize_project_upload();
+
 alter table public.projects enable row level security;
 alter table public.project_comments enable row level security;
 alter table public.project_uploads enable row level security;
@@ -372,19 +427,53 @@ create policy "project_uploads_select_own_or_studio_admin"
 on public.project_uploads
 for select
 to authenticated
-using (public.can_access_client(client_id));
+using (
+  public.is_studio_admin()
+  or exists (
+    select 1
+    from public.profiles p
+    where p.id = auth.uid()
+      and p.client_id = project_uploads.client_id
+  )
+);
 
 drop policy if exists "project_uploads_insert_own_or_studio_admin" on public.project_uploads;
 create policy "project_uploads_insert_own_or_studio_admin"
 on public.project_uploads
 for insert
 to authenticated
-with check (public.can_access_client(client_id));
+with check (
+  public.is_studio_admin()
+  or exists (
+    select 1
+    from public.profiles p
+    where p.id = auth.uid()
+      and p.client_id = project_uploads.client_id
+  )
+);
 
 insert into storage.buckets (id, name, public)
 values ('project-files', 'project-files', false)
 on conflict (id) do update
 set public = false;
+
+do $$
+declare
+  v_policy record;
+begin
+  for v_policy in
+    select policyname
+    from pg_policies
+    where schemaname = 'storage'
+      and tablename = 'objects'
+      and (
+        coalesce(qual, '') ilike '%project-files%'
+        or coalesce(with_check, '') ilike '%project-files%'
+      )
+  loop
+    execute format('drop policy if exists %I on storage.objects', v_policy.policyname);
+  end loop;
+end $$;
 
 drop policy if exists "project_files_select_own_or_studio_admin" on storage.objects;
 create policy "project_files_select_own_or_studio_admin"
@@ -398,7 +487,12 @@ using (
     or (
       (storage.foldername(name))[1] = 'clients'
       and (storage.foldername(name))[2] ~* '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
-      and public.can_access_client(((storage.foldername(name))[2])::uuid)
+      and exists (
+        select 1
+        from public.profiles p
+        where p.id = auth.uid()
+          and p.client_id = ((storage.foldername(name))[2])::uuid
+      )
     )
   )
 );
@@ -415,9 +509,28 @@ with check (
     or (
       (storage.foldername(name))[1] = 'clients'
       and (storage.foldername(name))[2] ~* '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
-      and public.can_access_client(((storage.foldername(name))[2])::uuid)
+      and exists (
+        select 1
+        from public.profiles p
+        where p.id = auth.uid()
+          and p.client_id = ((storage.foldername(name))[2])::uuid
+      )
     )
   )
+);
+
+drop policy if exists "project_files_update_studio_admin" on storage.objects;
+create policy "project_files_update_studio_admin"
+on storage.objects
+for update
+to authenticated
+using (
+  bucket_id = 'project-files'
+  and public.is_studio_admin()
+)
+with check (
+  bucket_id = 'project-files'
+  and public.is_studio_admin()
 );
 
 drop policy if exists "project_files_delete_own_or_studio_admin" on storage.objects;
@@ -432,7 +545,12 @@ using (
     or (
       (storage.foldername(name))[1] = 'clients'
       and (storage.foldername(name))[2] ~* '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
-      and public.can_access_client(((storage.foldername(name))[2])::uuid)
+      and exists (
+        select 1
+        from public.profiles p
+        where p.id = auth.uid()
+          and p.client_id = ((storage.foldername(name))[2])::uuid
+      )
     )
   )
 );

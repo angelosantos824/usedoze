@@ -132,6 +132,35 @@ create index if not exists idx_project_comments_project_id on public.project_com
 create index if not exists idx_project_comments_client_id on public.project_comments(client_id);
 create index if not exists idx_project_comments_created_at on public.project_comments(created_at);
 
+create table if not exists public.project_uploads (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid references auth.users(id) on delete set null,
+  profile_id uuid references public.profiles(id) on delete set null,
+  client_id uuid references public.clients(id) on delete cascade,
+  project_id uuid references public.projects(id) on delete set null,
+  email text,
+  nome_arquivo text,
+  caminho text,
+  tipo text,
+  tamanho bigint,
+  storage_bucket text not null default 'project-files',
+  storage_path text,
+  criado_em timestamptz not null default now(),
+  created_at timestamptz not null default now()
+);
+
+alter table public.project_uploads
+  add column if not exists profile_id uuid references public.profiles(id) on delete set null,
+  add column if not exists client_id uuid references public.clients(id) on delete cascade,
+  add column if not exists project_id uuid references public.projects(id) on delete set null,
+  add column if not exists tamanho bigint,
+  add column if not exists storage_bucket text not null default 'project-files',
+  add column if not exists storage_path text,
+  add column if not exists created_at timestamptz not null default now();
+
+create index if not exists idx_project_uploads_client_id on public.project_uploads(client_id);
+create index if not exists idx_project_uploads_project_id on public.project_uploads(project_id);
+
 create or replace function public.set_projects_updated_at()
 returns trigger
 language plpgsql
@@ -267,6 +296,7 @@ execute function public.normalize_project_comment();
 
 alter table public.projects enable row level security;
 alter table public.project_comments enable row level security;
+alter table public.project_uploads enable row level security;
 
 drop policy if exists "projects_select_own_or_studio_admin" on public.projects;
 create policy "projects_select_own_or_studio_admin"
@@ -306,8 +336,12 @@ on public.project_comments
 for select
 to authenticated
 using (
-  project_id is null
+  public.is_studio_admin()
   or public.can_access_client(client_id)
+  or (
+    project_id is null
+    and user_id = auth.uid()
+  )
 );
 
 drop policy if exists "project_comments_insert_own_or_studio_admin" on public.project_comments;
@@ -333,9 +367,248 @@ with check (
   or public.can_access_client(client_id)
 );
 
+drop policy if exists "project_uploads_select_own_or_studio_admin" on public.project_uploads;
+create policy "project_uploads_select_own_or_studio_admin"
+on public.project_uploads
+for select
+to authenticated
+using (public.can_access_client(client_id));
+
+drop policy if exists "project_uploads_insert_own_or_studio_admin" on public.project_uploads;
+create policy "project_uploads_insert_own_or_studio_admin"
+on public.project_uploads
+for insert
+to authenticated
+with check (public.can_access_client(client_id));
+
+insert into storage.buckets (id, name, public)
+values ('project-files', 'project-files', false)
+on conflict (id) do update
+set public = false;
+
+drop policy if exists "project_files_select_own_or_studio_admin" on storage.objects;
+create policy "project_files_select_own_or_studio_admin"
+on storage.objects
+for select
+to authenticated
+using (
+  bucket_id = 'project-files'
+  and (
+    public.is_studio_admin()
+    or (
+      (storage.foldername(name))[1] = 'clients'
+      and (storage.foldername(name))[2] ~* '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
+      and public.can_access_client(((storage.foldername(name))[2])::uuid)
+    )
+  )
+);
+
+drop policy if exists "project_files_insert_own_or_studio_admin" on storage.objects;
+create policy "project_files_insert_own_or_studio_admin"
+on storage.objects
+for insert
+to authenticated
+with check (
+  bucket_id = 'project-files'
+  and (
+    public.is_studio_admin()
+    or (
+      (storage.foldername(name))[1] = 'clients'
+      and (storage.foldername(name))[2] ~* '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
+      and public.can_access_client(((storage.foldername(name))[2])::uuid)
+    )
+  )
+);
+
+drop policy if exists "project_files_delete_own_or_studio_admin" on storage.objects;
+create policy "project_files_delete_own_or_studio_admin"
+on storage.objects
+for delete
+to authenticated
+using (
+  bucket_id = 'project-files'
+  and (
+    public.is_studio_admin()
+    or (
+      (storage.foldername(name))[1] = 'clients'
+      and (storage.foldername(name))[2] ~* '^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
+      and public.can_access_client(((storage.foldername(name))[2])::uuid)
+    )
+  )
+);
+
+create or replace function public.approve_studio_project(p_project_id uuid)
+returns public.projects
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_project public.projects%rowtype;
+  v_profile public.profiles%rowtype;
+begin
+  select *
+  into v_project
+  from public.projects
+  where id = p_project_id
+  for update;
+
+  if not found then
+    raise exception 'project not found';
+  end if;
+
+  select *
+  into v_profile
+  from public.profiles
+  where id = auth.uid();
+
+  if not found or v_profile.client_id is distinct from v_project.client_id then
+    raise exception 'project access denied';
+  end if;
+
+  if v_project.status <> 'awaiting_client_approval' or v_project.approved_at is not null then
+    raise exception 'project cannot be approved';
+  end if;
+
+  update public.projects
+  set status = 'approved',
+      approved_at = now(),
+      approved_by = v_profile.id
+  where id = p_project_id
+  returning * into v_project;
+
+  insert into public.project_comments (
+    project_id,
+    client_id,
+    author_profile_id,
+    author_user_id,
+    author_role,
+    comment_type,
+    message
+  ) values (
+    v_project.id,
+    v_project.client_id,
+    v_profile.id,
+    auth.uid(),
+    'client',
+    'approval',
+    'Projeto aprovado pelo cliente.'
+  );
+
+  insert into public.audit_logs (
+    actor_profile_id,
+    client_id,
+    entity_type,
+    entity_id,
+    action,
+    new_data,
+    metadata
+  ) values (
+    v_profile.id,
+    v_project.client_id,
+    'project',
+    v_project.id,
+    'project.approved',
+    to_jsonb(v_project),
+    jsonb_build_object('source', 'approve_studio_project')
+  );
+
+  return v_project;
+end;
+$$;
+
+create or replace function public.request_studio_project_changes(
+  p_project_id uuid,
+  p_message text
+)
+returns public.projects
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_project public.projects%rowtype;
+  v_profile public.profiles%rowtype;
+  v_message text := nullif(trim(p_message), '');
+begin
+  if v_message is null then
+    raise exception 'message is required';
+  end if;
+
+  select *
+  into v_project
+  from public.projects
+  where id = p_project_id
+  for update;
+
+  if not found then
+    raise exception 'project not found';
+  end if;
+
+  select *
+  into v_profile
+  from public.profiles
+  where id = auth.uid();
+
+  if not found or v_profile.client_id is distinct from v_project.client_id then
+    raise exception 'project access denied';
+  end if;
+
+  if v_project.status <> 'awaiting_client_approval' then
+    raise exception 'project is not awaiting client approval';
+  end if;
+
+  update public.projects
+  set status = 'changes_requested'
+  where id = p_project_id
+  returning * into v_project;
+
+  insert into public.project_comments (
+    project_id,
+    client_id,
+    author_profile_id,
+    author_user_id,
+    author_role,
+    comment_type,
+    message
+  ) values (
+    v_project.id,
+    v_project.client_id,
+    v_profile.id,
+    auth.uid(),
+    'client',
+    'change_request',
+    v_message
+  );
+
+  insert into public.audit_logs (
+    actor_profile_id,
+    client_id,
+    entity_type,
+    entity_id,
+    action,
+    new_data,
+    metadata
+  ) values (
+    v_profile.id,
+    v_project.client_id,
+    'project',
+    v_project.id,
+    'project.changes_requested',
+    jsonb_build_object('message', v_message),
+    jsonb_build_object('source', 'request_studio_project_changes')
+  );
+
+  return v_project;
+end;
+$$;
+
 grant select, insert, update on public.projects to authenticated;
 grant select, insert, update on public.project_comments to authenticated;
+grant select, insert, update on public.project_uploads to authenticated;
 grant insert on public.audit_logs to authenticated;
+grant execute on function public.approve_studio_project(uuid) to authenticated;
+grant execute on function public.request_studio_project_changes(uuid, text) to authenticated;
 
 comment on table public.projects is 'Projetos reais do DOZEDEV Studio, incluindo fluxo de homologacao e aprovacao do cliente.';
 comment on table public.project_comments is 'Comentarios de projeto e registros de pedidos de alteracao. Campos legados de briefing permanecem para compatibilidade temporaria.';

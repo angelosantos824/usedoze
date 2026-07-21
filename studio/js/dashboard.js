@@ -1,7 +1,7 @@
 import { mostrarToast } from "./notifications.js";
 
 let briefingAtualId = null;
-let approvalProject = null;
+let approvalProjects = [];
 
 const PROJECT_STATUS_LABELS = {
   draft: "Rascunho",
@@ -16,6 +16,21 @@ const PROJECT_STATUS_LABELS = {
 
 function getProjectStatusLabel(status) {
   return PROJECT_STATUS_LABELS[status] || status || "Rascunho";
+}
+
+function getProjectPriority(status) {
+  const priorities = {
+    awaiting_client_approval: 1,
+    changes_requested: 2,
+    in_progress: 3,
+    internal_review: 4,
+    draft: 5,
+    approved: 6,
+    completed: 7,
+    cancelled: 8
+  };
+
+  return priorities[status] || 99;
 }
 
 function formatDate(value) {
@@ -78,30 +93,34 @@ async function registrarAuditoriaCliente({
   }
 }
 
-async function carregarProjetoAtualCliente(session) {
-  const identity =
-    await carregarIdentidadeStudio(session);
-
-  if (!identity?.profile?.client_id) {
-    return null;
-  }
-
+async function carregarProjetosCliente(profile) {
   const { data, error } =
     await supabaseClient
       .from("projects")
       .select("*")
-      .eq("client_id", identity.profile.client_id)
+      .eq("client_id", profile.client_id)
       .order("updated_at", {
         ascending: false
-      })
-      .limit(1);
+      });
 
   if (error) {
     console.error(error);
-    return null;
+    return [];
   }
 
-  return data?.[0] || null;
+  return data || [];
+}
+
+function selecionarProjetoAtual(projects) {
+  return [...projects].sort((a, b) => {
+    const priorityDiff =
+      getProjectPriority(a.status) - getProjectPriority(b.status);
+
+    if (priorityDiff !== 0) return priorityDiff;
+
+    return new Date(b.updated_at || b.created_at || 0) -
+      new Date(a.updated_at || a.created_at || 0);
+  })[0] || null;
 }
 
 async function carregarBriefingsCliente(session, columns = "*", limit = null) {
@@ -164,8 +183,10 @@ async function carregarBriefingsCliente(session, columns = "*", limit = null) {
 export async function carregarDashboard() {
   const briefingsContainer =
     document.getElementById("briefingsContainer");
+  const projectsContainer =
+    document.getElementById("projectsContainer");
 
-  if (!briefingsContainer) return;
+  if (!briefingsContainer || !projectsContainer) return;
 
   const {
     data: { session },
@@ -175,6 +196,70 @@ export async function carregarDashboard() {
   if (sessionError || !session) {
     window.location.href = "login.html";
     return;
+  }
+
+  const identity =
+    await carregarIdentidadeStudio(session);
+
+  if (!identity?.profile?.client_id) {
+    projectsContainer.innerHTML = `
+      <p>Perfil sem cliente associado.</p>
+    `;
+    briefingsContainer.innerHTML = `
+      <p>Nenhum briefing encontrado para este utilizador.</p>
+    `;
+    return;
+  }
+
+  const projects =
+    await carregarProjetosCliente(identity.profile);
+  const projetoAtual =
+    selecionarProjetoAtual(projects);
+
+  renderProjetosCliente(projects);
+  renderProjectApprovalCards(projects);
+
+  if (projetoAtual) {
+    document.getElementById("clienteProjeto").textContent =
+      projetoAtual.name || projetoAtual.service_type || "Projeto";
+    document.getElementById("clienteStatus").textContent =
+      getProjectStatusLabel(projetoAtual.status);
+    document.getElementById("clientePrazo").textContent =
+      formatDate(projetoAtual.deadline);
+    document.getElementById("clienteVoucher").textContent =
+      "--";
+    document.getElementById("clienteProgresso").textContent =
+      `${projetoAtual.progress ?? 0}%`;
+
+    const progressFill =
+      document.getElementById("clienteProgressFill");
+
+    if (progressFill) {
+      progressFill.style.width =
+        `${projetoAtual.progress ?? 0}%`;
+    }
+
+    const sidebarProjetoNome =
+      document.getElementById("sidebarProjetoNome");
+    const sidebarProjetoStatus =
+      document.getElementById("sidebarProjetoStatus");
+    const sidebarProgressFill =
+      document.getElementById("sidebarProgressFill");
+
+    if (sidebarProjetoNome) {
+      sidebarProjetoNome.textContent =
+        projetoAtual.name || "Projeto";
+    }
+
+    if (sidebarProjetoStatus) {
+      sidebarProjetoStatus.textContent =
+        getProjectStatusLabel(projetoAtual.status);
+    }
+
+    if (sidebarProgressFill) {
+      sidebarProgressFill.style.width =
+        `${projetoAtual.progress ?? 0}%`;
+    }
   }
 
   const { data, error } =
@@ -194,31 +279,8 @@ export async function carregarDashboard() {
     briefingsContainer.innerHTML = `
       <p>Nenhum briefing encontrado para este utilizador.</p>
     `;
-    const projetoAtual =
-      await carregarProjetoAtualCliente(session);
-
-    if (projetoAtual) {
-      document.getElementById("clienteProjeto").textContent =
-        projetoAtual.name || projetoAtual.service_type || "Projeto";
-      document.getElementById("clienteStatus").textContent =
-        getProjectStatusLabel(projetoAtual.status);
-      document.getElementById("clientePrazo").textContent =
-        formatDate(projetoAtual.deadline);
-      renderProjectApprovalCard(projetoAtual);
-    }
     return;
   }
-
-  const briefingPrincipal = data[0];
-
-  document.getElementById("clienteProjeto").textContent =
-    briefingPrincipal.tipo_projeto || "Projeto Web";
-  document.getElementById("clienteStatus").textContent =
-    briefingPrincipal.status || "Recebido";
-  document.getElementById("clientePrazo").textContent =
-    briefingPrincipal.prazo || "A definir";
-  document.getElementById("clienteVoucher").textContent =
-    briefingPrincipal.voucher_codigo || "Nenhum";
 
   data.forEach((briefing) => {
     const card = document.createElement("article");
@@ -271,73 +333,155 @@ export async function carregarDashboard() {
 
     briefingsContainer.appendChild(card);
   });
-
-  const projetoAtual =
-    await carregarProjetoAtualCliente(session);
-
-  if (projetoAtual) {
-    document.getElementById("clienteProjeto").textContent =
-      projetoAtual.name || projetoAtual.service_type || "Projeto";
-    document.getElementById("clienteStatus").textContent =
-      getProjectStatusLabel(projetoAtual.status);
-    document.getElementById("clientePrazo").textContent =
-      formatDate(projetoAtual.deadline);
-  }
-
-  renderProjectApprovalCard(projetoAtual);
 }
 
-function renderProjectApprovalCard(project) {
+function renderProjetosCliente(projects) {
+  const container =
+    document.getElementById("projectsContainer");
+
+  if (!container) return;
+
+  container.innerHTML = "";
+
+  if (!projects || projects.length === 0) {
+    container.innerHTML = `
+      <p>Nenhum projeto encontrado.</p>
+    `;
+    return;
+  }
+
+  projects.forEach((project) => {
+    const card =
+      document.createElement("article");
+    card.classList.add("briefing-item");
+
+    const title =
+      document.createElement("h3");
+    title.textContent =
+      project.name || "Projeto";
+
+    const service =
+      document.createElement("p");
+    service.innerHTML =
+      `<strong>Tipo:</strong> ${project.service_type || "Nao informado"}`;
+
+    const status =
+      document.createElement("p");
+    status.innerHTML =
+      `<strong>Status:</strong> ${getProjectStatusLabel(project.status)}`;
+
+    const progress =
+      document.createElement("p");
+    progress.innerHTML =
+      `<strong>Progresso:</strong> ${project.progress ?? 0}%`;
+
+    const deadline =
+      document.createElement("p");
+    deadline.innerHTML =
+      `<strong>Prazo:</strong> ${formatDate(project.deadline)}`;
+
+    const updated =
+      document.createElement("span");
+    updated.classList.add("briefing-badge");
+    updated.textContent =
+      `Atualizado em ${formatDate(project.updated_at || project.created_at)}`;
+
+    card.append(title, service, status, progress, deadline, updated);
+
+    if (isValidUrl(project.preview_url)) {
+      const link =
+        document.createElement("a");
+      link.classList.add("btn");
+      link.href =
+        project.preview_url;
+      link.target =
+        "_blank";
+      link.rel =
+        "noopener noreferrer";
+      link.textContent =
+        "Visualizar Projeto";
+      card.appendChild(link);
+    }
+
+    container.appendChild(card);
+  });
+}
+
+function isValidUrl(value) {
+  try {
+    const url =
+      new URL(value);
+    return ["http:", "https:"].includes(url.protocol);
+  } catch {
+    return false;
+  }
+}
+
+function renderProjectApprovalCards(projects) {
   const section =
     document.getElementById("projectApprovalSection");
+  const container =
+    document.getElementById("projectApprovalCards");
 
-  if (!section) return;
+  if (!section || !container) return;
 
-  approvalProject =
-    project?.status === "awaiting_client_approval" ? project : null;
+  approvalProjects =
+    (projects || []).filter(
+      (project) => project.status === "awaiting_client_approval"
+    );
 
-  if (!approvalProject) {
+  if (approvalProjects.length === 0) {
     section.hidden = true;
+    container.innerHTML = "";
     return;
   }
 
   section.hidden = false;
+  container.innerHTML = "";
 
-  document.getElementById("approvalProjectName").textContent =
-    approvalProject.name || "Projeto";
-  document.getElementById("approvalProjectStatus").textContent =
-    getProjectStatusLabel(approvalProject.status);
-  document.getElementById("approvalProjectProgress").textContent =
-    `${approvalProject.progress ?? 0}%`;
-  document.getElementById("approvalProjectDeadline").textContent =
-    formatDate(approvalProject.deadline);
-  document.getElementById("approvalProjectRequestedAt").textContent =
-    formatDate(approvalProject.approval_requested_at);
+  approvalProjects.forEach((project) => {
+    const card =
+      document.createElement("article");
+    card.classList.add("briefing-item");
 
-  const previewLink =
-    document.getElementById("approvalPreviewLink");
+    const previewHtml =
+      isValidUrl(project.preview_url)
+        ? `<a class="btn" href="${project.preview_url}" target="_blank" rel="noopener noreferrer">Visualizar Projeto</a>`
+        : "";
 
-  if (previewLink) {
-    previewLink.href =
-      approvalProject.preview_url || "#";
-    previewLink.toggleAttribute(
-      "aria-disabled",
-      !approvalProject.preview_url
-    );
-  }
+    card.innerHTML = `
+      <h3>${project.name || "Projeto"}</h3>
+      <p><strong>Progresso:</strong> ${project.progress ?? 0}%</p>
+      <p><strong>Prazo:</strong> ${formatDate(project.deadline)}</p>
+      <p><strong>Solicitado em:</strong> ${formatDate(project.approval_requested_at)}</p>
+      <p>${project.description || "Revise a demonstracao e informe a sua decisao."}</p>
+      <div class="modal-actions">
+        ${previewHtml}
+        <button class="btn approveProjectBtn" type="button" data-project-id="${project.id}">
+          Aprovar Projeto
+        </button>
+        <button class="btn-secondary requestChangesBtn" type="button" data-project-id="${project.id}">
+          Solicitar Alteracoes
+        </button>
+      </div>
+    `;
+
+    container.appendChild(card);
+  });
 }
 
-async function aprovarProjetoAtual() {
-  if (!approvalProject) return;
+function getApprovalProjectById(projectId) {
+  return approvalProjects.find(
+    (project) => project.id === projectId
+  ) || null;
+}
+async function aprovarProjetoAtual(project, approveButton) {
+  if (!project) return;
 
   const confirmar =
     confirm("Confirma a aprovacao final deste projeto?");
 
   if (!confirmar) return;
-
-  const approveButton =
-    document.getElementById("approveProjectBtn");
-
   if (approveButton?.disabled) return;
 
   if (approveButton) {
@@ -346,49 +490,42 @@ async function aprovarProjetoAtual() {
   }
 
   try {
-    const {
-      data: { session }
-    } = await supabaseClient.auth.getSession();
+    const rpcResult =
+      await supabaseClient.rpc("approve_studio_project", {
+        p_project_id: project.id
+      });
 
-    if (!session) {
-      window.location.href = "login.html";
-      return;
+    if (rpcResult.error) {
+      const message =
+        `${rpcResult.error.message || ""} ${rpcResult.error.details || ""}`;
+
+      if (!/function|schema cache|not found/i.test(message)) {
+        throw rpcResult.error;
+      }
+
+      const payload = {
+        status: "approved",
+        approved_at: new Date().toISOString()
+      };
+
+      const { error } =
+        await supabaseClient
+          .from("projects")
+          .update(payload)
+          .eq("id", project.id);
+
+      if (error) {
+        throw error;
+      }
+
+      await registrarAuditoriaCliente({
+        clientId: project.client_id,
+        entityType: "project",
+        entityId: project.id,
+        action: "project.approved",
+        newData: payload
+      });
     }
-
-    const payload = {
-      status: "approved",
-      approved_at: new Date().toISOString(),
-      approved_by: session.user.id
-    };
-
-    const { error } =
-      await supabaseClient
-        .from("projects")
-        .update(payload)
-        .eq("id", approvalProject.id);
-
-    if (error) {
-      throw error;
-    }
-
-    await supabaseClient
-      .from("project_comments")
-      .insert([{
-        project_id: approvalProject.id,
-        client_id: approvalProject.client_id,
-        author_user_id: session.user.id,
-        author_role: "client",
-        comment_type: "approval",
-        message: "Projeto aprovado pelo cliente."
-      }]);
-
-    await registrarAuditoriaCliente({
-      clientId: approvalProject.client_id,
-      entityType: "project",
-      entityId: approvalProject.id,
-      action: "project.approved",
-      newData: payload
-    });
 
     mostrarToast("Projeto aprovado com sucesso.", "success");
     await carregarDashboard();
@@ -404,10 +541,8 @@ async function aprovarProjetoAtual() {
 }
 
 function initProjectApprovalFlow() {
-  const approveProjectBtn =
-    document.getElementById("approveProjectBtn");
-  const requestChangesBtn =
-    document.getElementById("requestChangesBtn");
+  const approvalContainer =
+    document.getElementById("projectApprovalCards");
   const requestChangesModal =
     document.getElementById("requestChangesModal");
   const closeRequestChangesModal =
@@ -417,12 +552,30 @@ function initProjectApprovalFlow() {
   const requestChangesInput =
     document.getElementById("requestChangesInput");
 
-  approveProjectBtn?.addEventListener("click", aprovarProjetoAtual);
+  let selectedProject = null;
 
-  requestChangesBtn?.addEventListener("click", () => {
-    if (!approvalProject || !requestChangesModal) return;
-    requestChangesModal.classList.add("active");
-    requestChangesInput?.focus();
+  approvalContainer?.addEventListener("click", async (event) => {
+    const approveButton =
+      event.target.closest(".approveProjectBtn");
+    const changesButton =
+      event.target.closest(".requestChangesBtn");
+
+    if (approveButton) {
+      const project =
+        getApprovalProjectById(approveButton.dataset.projectId);
+      await aprovarProjetoAtual(project, approveButton);
+      return;
+    }
+
+    if (changesButton) {
+      selectedProject =
+        getApprovalProjectById(changesButton.dataset.projectId);
+
+      if (!selectedProject || !requestChangesModal) return;
+
+      requestChangesModal.classList.add("active");
+      requestChangesInput?.focus();
+    }
   });
 
   closeRequestChangesModal?.addEventListener("click", () => {
@@ -438,7 +591,7 @@ function initProjectApprovalFlow() {
   requestChangesForm?.addEventListener("submit", async (event) => {
     event.preventDefault();
 
-    if (!approvalProject) return;
+    if (!selectedProject) return;
 
     const message =
       requestChangesInput?.value.trim() || "";
@@ -459,58 +612,68 @@ function initProjectApprovalFlow() {
     }
 
     try {
-      const {
-        data: { session }
-      } = await supabaseClient.auth.getSession();
+      const rpcResult =
+        await supabaseClient.rpc("request_studio_project_changes", {
+          p_project_id: selectedProject.id,
+          p_message: message
+        });
 
-      if (!session) {
-        window.location.href = "login.html";
-        return;
-      }
+      if (rpcResult.error) {
+        const rpcMessage =
+          `${rpcResult.error.message || ""} ${rpcResult.error.details || ""}`;
 
-      const { error: commentError } =
-        await supabaseClient
-          .from("project_comments")
-          .insert([{
-            project_id: approvalProject.id,
-            client_id: approvalProject.client_id,
-            author_user_id: session.user.id,
-            author_role: "client",
-            comment_type: "change_request",
-            message
-          }]);
-
-      if (commentError) {
-        throw commentError;
-      }
-
-      const payload = {
-        status: "changes_requested"
-      };
-
-      const { error: projectError } =
-        await supabaseClient
-          .from("projects")
-          .update(payload)
-          .eq("id", approvalProject.id);
-
-      if (projectError) {
-        throw projectError;
-      }
-
-      await registrarAuditoriaCliente({
-        clientId: approvalProject.client_id,
-        entityType: "project",
-        entityId: approvalProject.id,
-        action: "project.changes_requested",
-        newData: {
-          message
+        if (!/function|schema cache|not found/i.test(rpcMessage)) {
+          throw rpcResult.error;
         }
-      });
+
+        const {
+          data: { session }
+        } = await supabaseClient.auth.getSession();
+
+        if (!session) {
+          window.location.href = "login.html";
+          return;
+        }
+
+        const { error: commentError } =
+          await supabaseClient
+            .from("project_comments")
+            .insert([{
+              project_id: selectedProject.id,
+              client_id: selectedProject.client_id,
+              author_user_id: session.user.id,
+              author_role: "client",
+              comment_type: "change_request",
+              message
+            }]);
+
+        if (commentError) {
+          throw commentError;
+        }
+
+        const { error: projectError } =
+          await supabaseClient
+            .from("projects")
+            .update({ status: "changes_requested" })
+            .eq("id", selectedProject.id);
+
+        if (projectError) {
+          throw projectError;
+        }
+
+        await registrarAuditoriaCliente({
+          clientId: selectedProject.client_id,
+          entityType: "project",
+          entityId: selectedProject.id,
+          action: "project.changes_requested",
+          newData: { message }
+        });
+      }
 
       requestChangesInput.value = "";
       requestChangesModal?.classList.remove("active");
       mostrarToast("Pedido de alteracoes enviado com sucesso.", "success");
+      selectedProject = null;
       await carregarDashboard();
     } catch (error) {
       console.error(error);
@@ -523,7 +686,6 @@ function initProjectApprovalFlow() {
     }
   });
 }
-
 export function abrirModalBriefing(briefing) {
   const modal = document.getElementById("briefingModal");
 
@@ -641,33 +803,26 @@ export async function carregarProgressoProjeto() {
 
   if (!session) return;
 
-  const { data: briefings } =
-    await carregarBriefingsCliente(session, "status", 1);
+  const identity =
+    await carregarIdentidadeStudio(session);
 
-  if (!briefings || briefings.length === 0) return;
+  if (!identity?.profile?.client_id) return;
 
-  const status =
-    briefings[0].status || "Recebido";
+  const projects =
+    await carregarProjetosCliente(identity.profile);
+  const projetoAtual =
+    selecionarProjetoAtual(projects);
 
-  const progressoPorStatus = {
-    "Recebido": 15,
-    "Planejamento": 30,
-    "Design": 45,
-    "Em desenvolvimento": 65,
-    "Revisão": 80,
-    "Aguardando cliente": 90,
-    "Finalizado": 100
-  };
+  if (!projetoAtual) return;
 
   const progresso =
-    progressoPorStatus[status] || 15;
+    projetoAtual.progress ?? 0;
 
   progressoTexto.textContent =
     `${progresso}%`;
   progressoFill.style.width =
     `${progresso}%`;
 }
-
 export async function carregarSidebarUser() {
   const userName =
     document.getElementById("sidebarUserName");

@@ -25,15 +25,33 @@ export async function buscarProjetoAtualCliente() {
       .eq("client_id", profile.client_id)
       .order("updated_at", {
         ascending: false
-      })
-      .limit(1);
+      });
 
   if (error) {
     console.error(error);
     return null;
   }
 
-  return data?.[0] || null;
+  const priorities = {
+    awaiting_client_approval: 1,
+    changes_requested: 2,
+    in_progress: 3,
+    internal_review: 4,
+    draft: 5,
+    approved: 6,
+    completed: 7,
+    cancelled: 8
+  };
+
+  return [...(data || [])].sort((a, b) => {
+    const priorityDiff =
+      (priorities[a.status] || 99) - (priorities[b.status] || 99);
+
+    if (priorityDiff !== 0) return priorityDiff;
+
+    return new Date(b.updated_at || b.created_at || 0) -
+      new Date(a.updated_at || a.created_at || 0);
+  })[0] || null;
 }
 
 export async function buscarBriefingAtualCliente() {
@@ -167,6 +185,7 @@ export async function carregarComentariosProjeto() {
         .from("project_comments")
         .select("*")
         .eq("project_id", projeto.id)
+        .eq("client_id", projeto.client_id)
         .order("created_at", {
           ascending: true
         });

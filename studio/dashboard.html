@@ -14,7 +14,7 @@
   <link rel="stylesheet" href="css/layout.css">
   <link rel="stylesheet" href="css/dashboard.css">
   <link rel="stylesheet" href="css/modals.css">
-  <link rel="stylesheet" href="css/components.css?v=20260721-5">
+  <link rel="stylesheet" href="css/components.css?v=20260721-6">
   <link rel="stylesheet" href="css/responsive.css">
 </head>
 
@@ -66,7 +66,7 @@
     Novo Briefing
   </a>
 
-  <a href="#briefingsSection">
+  <a href="#projectsSection">
     Meus Projetos
   </a>
 
@@ -233,31 +233,25 @@
           verifique todas as paginas e informe se esta aprovado ou se precisa de alteracoes.
         </p>
 
-        <div class="admin-modal-grid">
-          <p><strong>Projeto:</strong> <span id="approvalProjectName"></span></p>
-          <p><strong>Status:</strong> <span id="approvalProjectStatus"></span></p>
-          <p><strong>Progresso:</strong> <span id="approvalProjectProgress"></span></p>
-          <p><strong>Prazo:</strong> <span id="approvalProjectDeadline"></span></p>
-          <p><strong>Solicitado em:</strong> <span id="approvalProjectRequestedAt"></span></p>
+        <div id="projectApprovalCards" class="briefings-grid"></div>
+
+      </section>
+
+      <!-- PROJETOS -->
+      <section class="panel" id="projectsSection">
+
+        <div class="panel-header">
+
+          <h2>
+            Meus Projetos
+          </h2>
+
         </div>
 
-        <div class="modal-actions">
-          <a
-            id="approvalPreviewLink"
-            class="btn"
-            href="#"
-            target="_blank"
-            rel="noopener noreferrer">
-            Visualizar Projeto
-          </a>
+        <div id="projectsContainer" class="briefings-grid">
 
-          <button id="approveProjectBtn" class="btn" type="button">
-            Aprovar Projeto
-          </button>
+          <!-- VIA JS -->
 
-          <button id="requestChangesBtn" class="btn-secondary" type="button">
-            Solicitar Alteracoes
-          </button>
         </div>
 
       </section>
@@ -500,7 +494,7 @@
 
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
   <script src="/studio/config.js?v=20260721-2"></script>
-  <script src="/studio/script.js?v=20260721-5"></script>
+  <script src="/studio/script.js?v=20260721-6"></script>
 
 </body>
 

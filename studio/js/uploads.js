@@ -14,12 +14,35 @@ const ALLOWED_UPLOAD_TYPES = [
 ];
 
 function sanitizeFileName(fileName) {
-  return fileName
+  const sanitized = fileName
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
     .replace(/[^a-zA-Z0-9._-]/g, "-")
     .replace(/-+/g, "-")
     .slice(0, 120);
+
+  return sanitized || "arquivo";
+}
+
+function logUploadFailure({
+  stage,
+  error,
+  bucket = PROJECT_FILES_BUCKET,
+  path = "",
+  clientId = "",
+  projectId = ""
+}) {
+  console.error("Falha no upload", {
+    stage,
+    message: error?.message,
+    details: error?.details,
+    hint: error?.hint,
+    code: error?.code,
+    bucket,
+    path,
+    clientId,
+    projectId
+  });
 }
 
 function validarArquivoUpload(arquivo) {
@@ -57,6 +80,51 @@ async function carregarIdentidadeUpload(session) {
   return data;
 }
 
+function getProjectPriority(status) {
+  const priorities = {
+    awaiting_client_approval: 1,
+    changes_requested: 2,
+    in_progress: 3,
+    internal_review: 4,
+    draft: 5,
+    approved: 6,
+    completed: 7,
+    cancelled: 8
+  };
+
+  return priorities[status] || 99;
+}
+
+async function carregarProjetoUpload(clientId) {
+  const { data, error } =
+    await supabaseClient
+      .from("projects")
+      .select("id,status,updated_at,created_at")
+      .eq("client_id", clientId)
+      .order("updated_at", {
+        ascending: false
+      });
+
+  if (error) {
+    logUploadFailure({
+      stage: "load_project",
+      error,
+      clientId
+    });
+    return null;
+  }
+
+  return [...(data || [])].sort((a, b) => {
+    const priorityDiff =
+      getProjectPriority(a.status) - getProjectPriority(b.status);
+
+    if (priorityDiff !== 0) return priorityDiff;
+
+    return new Date(b.updated_at || b.created_at || 0) -
+      new Date(a.updated_at || a.created_at || 0);
+  })[0] || null;
+}
+
 async function inserirMetadataUpload(metadata) {
   const { error } =
     await supabaseClient
@@ -71,6 +139,7 @@ async function inserirMetadataUpload(metadata) {
 
   const {
     client_id,
+    project_id,
     profile_id,
     storage_bucket,
     storage_path,
@@ -126,27 +195,60 @@ export async function carregarUploadsCliente() {
 
   if (!session) return;
 
+  const profile =
+    await carregarIdentidadeUpload(session);
+
+  if (!profile?.client_id) return;
+
   const { data, error } =
     await supabaseClient
       .from("project_uploads")
       .select("*")
-      .eq("user_id", session.user.id)
+      .eq("client_id", profile.client_id)
       .order("criado_em", {
         ascending: false
       });
 
   if (error) {
-    console.error(error);
-    clienteUploadsTable.innerHTML = `
-      <tr>
-        <td colspan="4">
-          Erro ao carregar arquivos.
-        </td>
-      </tr>
-    `;
+    logUploadFailure({
+      stage: "load_history_by_client",
+      error,
+      clientId: profile.client_id
+    });
+
+    const fallback =
+      await supabaseClient
+        .from("project_uploads")
+        .select("*")
+        .eq("user_id", session.user.id)
+        .order("criado_em", {
+          ascending: false
+        });
+
+    if (fallback.error) {
+      logUploadFailure({
+        stage: "load_history_by_user",
+        error: fallback.error,
+        clientId: profile.client_id
+      });
+      clienteUploadsTable.innerHTML = `
+        <tr>
+          <td colspan="4">
+            Erro ao carregar arquivos.
+          </td>
+        </tr>
+      `;
+      return;
+    }
+
+    renderUploadsCliente(clienteUploadsTable, fallback.data || []);
     return;
   }
 
+  renderUploadsCliente(clienteUploadsTable, data || []);
+}
+
+function renderUploadsCliente(clienteUploadsTable, data) {
   clienteUploadsTable.innerHTML = "";
 
   if (!data || data.length === 0) {
@@ -529,12 +631,24 @@ function initClienteUploadInput() {
 
     try {
       let enviados = 0;
+      const projeto =
+        await carregarProjetoUpload(profile.client_id);
+      const projectId =
+        projeto?.id || "general";
 
       for (const arquivo of arquivos) {
         const validationError =
           validarArquivoUpload(arquivo);
 
         if (validationError) {
+          logUploadFailure({
+            stage: "validation",
+            error: {
+              message: validationError
+            },
+            clientId: profile.client_id,
+            projectId
+          });
           mostrarToast(`${arquivo.name}: ${validationError}`, "error");
           continue;
         }
@@ -546,8 +660,10 @@ function initClienteUploadInput() {
 
         const safeName =
           sanitizeFileName(arquivo.name);
+        const uploadId =
+          crypto.randomUUID();
         const caminho =
-          `clients/${profile.client_id}/${Date.now()}-${safeName}`;
+          `clients/${profile.client_id}/projects/${projectId}/${uploadId}-${safeName}`;
 
         const { error: storageError } =
           await supabaseClient.storage
@@ -558,8 +674,37 @@ function initClienteUploadInput() {
             });
 
         if (storageError) {
-          console.error(storageError);
+          logUploadFailure({
+            stage: "storage_upload",
+            error: storageError,
+            path: caminho,
+            clientId: profile.client_id,
+            projectId
+          });
           mostrarToast(`Erro ao enviar ${arquivo.name}`, "error");
+          continue;
+        }
+
+        try {
+          const signedUrl =
+            await criarSignedUrl(caminho);
+
+          if (!signedUrl) {
+            throw new Error("URL assinada nao foi criada.");
+          }
+        } catch (signedUrlError) {
+          logUploadFailure({
+            stage: "signed_url",
+            error: signedUrlError,
+            path: caminho,
+            clientId: profile.client_id,
+            projectId
+          });
+
+          await supabaseClient.storage
+            .from(PROJECT_FILES_BUCKET)
+            .remove([caminho]);
+          mostrarToast(`Erro ao validar ${arquivo.name}`, "error");
           continue;
         }
 
@@ -568,6 +713,8 @@ function initClienteUploadInput() {
             user_id: session.user.id,
             profile_id: profile.id,
             client_id: profile.client_id,
+            project_id:
+              projeto?.id || null,
             email: session.user.email,
             nome_arquivo: arquivo.name,
             caminho,
@@ -577,7 +724,17 @@ function initClienteUploadInput() {
             storage_path: caminho
           });
         } catch (uploadDbError) {
-          console.error(uploadDbError);
+          logUploadFailure({
+            stage: "metadata_insert",
+            error: uploadDbError,
+            path: caminho,
+            clientId: profile.client_id,
+            projectId
+          });
+
+          await supabaseClient.storage
+            .from(PROJECT_FILES_BUCKET)
+            .remove([caminho]);
           mostrarToast(
             "Arquivo enviado, mas nao apareceu no admin.",
             "error"

@@ -79,9 +79,26 @@ Foi adicionado botao `Excluir` na lista de clientes.
 Segurancas:
 
 - exige digitar `EXCLUIR`;
-- registra auditoria antes da exclusao;
 - nao remove `auth.users`;
-- delete e permitido apenas para Studio Admin via RLS.
+- delete e permitido apenas para Studio Admin via RPC.
+
+Para excluir o cliente de dentro do Supabase com dados vinculados, e necessario
+aplicar a migration:
+
+- `supabase/migrations/20260722100000_studio_admin_delete_client_rpc.sql`
+
+A RPC `delete_studio_client_admin(client_id)`:
+
+- valida `public.is_studio_admin()`;
+- registra auditoria;
+- desvincula `profiles.client_id`;
+- remove comentarios, atualizacoes, uploads, projetos e briefings vinculados ao
+  cliente no Studio;
+- remove o registro de `public.clients`;
+- nao remove `auth.users`.
+
+Sem essa migration, o botao mostra erro informando que a RPC ainda nao foi
+aplicada.
 
 ### Exclusao de briefings
 
@@ -135,6 +152,7 @@ Arquivo:
 
 - `supabase/migrations/20260722090000_studio_admin_delete_test_clients.sql`
 - `supabase/migrations/20260722093000_studio_admin_delete_briefings.sql`
+- `supabase/migrations/20260722100000_studio_admin_delete_client_rpc.sql`
 
 Inclui:
 
@@ -160,7 +178,7 @@ Inclui:
 Versionamento atualizado para:
 
 ```text
-v=20260722-6
+v=20260722-7
 ```
 
 ## Testes locais
@@ -170,6 +188,7 @@ v=20260722-6
 - `Get-Content studio/js/main.js | node --input-type=module --check`
 - `deno fmt --check supabase/migrations/20260722090000_studio_admin_delete_test_clients.sql`
 - `deno fmt --check supabase/migrations/20260722093000_studio_admin_delete_briefings.sql`
+- `deno fmt --check supabase/migrations/20260722100000_studio_admin_delete_client_rpc.sql`
 
 ## Pendencia operacional
 

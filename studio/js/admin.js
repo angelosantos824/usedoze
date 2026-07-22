@@ -1101,7 +1101,7 @@ export function ativarAcoesClientesAdmin() {
           carregarCardsAdmin();
         } catch (error) {
           console.error(error);
-          mostrarToast("Erro ao excluir cliente.", "error");
+          mostrarToast(error?.message || "Erro ao excluir cliente.", "error");
         } finally {
           btn.disabled = false;
           btn.textContent = "Excluir";
@@ -1122,11 +1122,27 @@ async function excluirClienteAdmin(clientId) {
     throw loadError || new Error("Cliente nao encontrado.");
   }
 
+  const rpcResult =
+    await supabaseClient.rpc("delete_studio_client_admin", {
+      p_client_id: clientId
+    });
+
+  if (!rpcResult.error) {
+    return;
+  }
+
+  const message =
+    `${rpcResult.error.message || ""} ${rpcResult.error.details || ""}`;
+
+  if (!/delete_studio_client_admin|function|schema cache|Could not find/i.test(message)) {
+    throw rpcResult.error;
+  }
+
   await registrarAuditoriaAdmin({
-    clientId,
+    clientId: null,
     entityType: "client",
     entityId: clientId,
-    action: "client.deleted_by_admin",
+    action: "client.delete_failed_missing_rpc",
     newData: {
       id: cliente.id,
       name: cliente.name,
@@ -1137,15 +1153,9 @@ async function excluirClienteAdmin(clientId) {
     }
   });
 
-  const { error } =
-    await supabaseClient
-      .from("clients")
-      .delete()
-      .eq("id", clientId);
-
-  if (error) {
-    throw error;
-  }
+  throw new Error(
+    "A migration delete_studio_client_admin ainda nao foi aplicada no Supabase."
+  );
 }
 
 export async function abrirDetalhesClienteAdmin(clientId) {

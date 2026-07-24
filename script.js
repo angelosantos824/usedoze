@@ -20,6 +20,102 @@ if (toggle && navLinks) {
   });
 }
 
+if (toggle && navLinks) {
+  toggle.addEventListener("click", () => {
+    toggle.textContent = navLinks.classList.contains("open") ? "×" : "☰";
+  });
+}
+
+const homeTabCopy = {
+  gestao: {
+    label: "Sistema DOZEDEV",
+    title: "Gestão empresarial",
+    text: "Soluções para gerir clientes, serviços, equipas, agenda, financeiro, estoque e relatórios."
+  },
+  crm: {
+    label: "Relacionamento",
+    title: "CRM",
+    text: "Organização de contactos, oportunidades, histórico de atendimento e relacionamento com clientes."
+  },
+  erp: {
+    label: "Operação integrada",
+    title: "ERP",
+    text: "Estruturas integradas para controlar recursos, operações, dados e processos empresariais."
+  },
+  saas: {
+    label: "Plataforma escalável",
+    title: "SaaS personalizados",
+    text: "Plataformas escaláveis com múltiplas empresas, utilizadores, planos, permissões e controlo de acesso."
+  }
+  /* FUTURO: reativar quando a DOZEDEV voltar a oferecer solucoes de IA/chatbots.
+  ,
+  chatbots: {
+    label: "Solução IA",
+    title: "Chatbots",
+    text: "Assistentes preparados para responder clientes, captar informações e direcionar atendimentos."
+  },
+  automacao: {
+    label: "Fluxos inteligentes",
+    title: "Automação",
+    text: "Fluxos automáticos para reduzir tarefas repetitivas e acelerar operações."
+  },
+  assistentes: {
+    label: "Apoio interno",
+    title: "Assistentes IA",
+    text: "Assistentes internos para apoiar equipas, consultar informações e executar processos."
+  },
+  openai: {
+    label: "Integração técnica",
+    title: "Integrações com OpenAI",
+    text: "Integração de inteligência artificial em websites, sistemas e plataformas empresariais."
+  }
+  */
+};
+
+document.querySelectorAll("[data-home-tabs]").forEach((tabsRoot) => {
+  const buttons = Array.from(tabsRoot.querySelectorAll("[data-tab]"));
+  const panel = tabsRoot.querySelector("[data-tab-panel]");
+
+  if (!buttons.length || !panel) return;
+
+  const renderTab = (key) => {
+    const copy = homeTabCopy[key];
+
+    if (!copy) return;
+
+    buttons.forEach((button) => {
+      button.setAttribute("aria-selected", String(button.dataset.tab === key));
+    });
+
+    const label = panel.querySelector("span");
+    const title = panel.querySelector("h3");
+    const text = panel.querySelector("p");
+
+    if (label) label.textContent = copy.label;
+    if (title) title.textContent = copy.title;
+    if (text) text.textContent = copy.text;
+  };
+
+  buttons.forEach((button) => {
+    button.addEventListener("click", () => renderTab(button.dataset.tab));
+
+    button.addEventListener("keydown", (event) => {
+      if (!["ArrowRight", "ArrowDown", "ArrowLeft", "ArrowUp"].includes(event.key)) return;
+
+      event.preventDefault();
+
+      const direction =
+        event.key === "ArrowRight" || event.key === "ArrowDown" ? 1 : -1;
+      const currentIndex = buttons.indexOf(button);
+      const nextButton =
+        buttons[(currentIndex + direction + buttons.length) % buttons.length];
+
+      nextButton.focus();
+      renderTab(nextButton.dataset.tab);
+    });
+  });
+});
+
 const contactForm = document.querySelector('#contact-form');
 const formStatus = document.querySelector('#form-status');
 
